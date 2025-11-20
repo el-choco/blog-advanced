@@ -1,30 +1,33 @@
-FROM php:7.4-apache
+FROM php:8.2-apache
 
-RUN set -eux; apt-get update; \
-	apt-get install -y --no-install-recommends libpq-dev \
-	#
-	# install curl
-	libcurl4-openssl-dev \
-	#
-	# install gd dependencies
-	zlib1g-dev libpng-dev libjpeg-dev \
-	libwebp-dev libxpm-dev libfreetype6-dev; \
-	#
-	# clean up
-	rm -rf /var/lib/apt/lists/*; \
-	#
-	# configure extensions
-	docker-php-ext-configure gd --enable-gd \
-	--with-jpeg --with-webp --with-xpm --with-freetype; \
-	#
-	# install extensions
-	docker-php-ext-install curl gd pdo pdo_mysql pdo_pgsql exif; \
-	#
-	# set up environment
-	a2enmod rewrite;
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    libonig-dev \
+    zip \
+    unzip \
+    git \
+    curl
 
-#
-# copy files
-COPY --chown=33:33 . /var/www/html
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    pdo \
+    pdo_mysql \
+    mysqli \
+    gd \
+    mbstring \
+    zip \
+    exif \
+    pcntl \
+    bcmath
 
-VOLUME /var/www/html/data
+RUN a2enmod rewrite headers
+
+WORKDIR /var/www/html
+
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+EXPOSE 80

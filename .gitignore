@@ -8,3 +8,22 @@ t/*
 # Ignore all files in data but keep directory itself
 data/*
 !data/.gitkeep
+
+# User Data (don't commit!)
+data/config.ini
+data/posts/*.json
+data/images/*
+data/files/*
+data/backups/*
+data/cache/*
+data/logs/*
+uploads/*
+logs/*
+sessions/*
+
+# Keep directory structure
+!data/posts/.gitkeep
+!data/images/.gitkeep
+!data/files/.gitkeep
+!uploads/.gitkeep
+!logs/.gitkeep

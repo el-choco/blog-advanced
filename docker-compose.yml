@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  # Web Server (Apache + PHP)
   web:
-    image: php:8.2-apache
+    build: .
     container_name: blog-advanced-web
     ports:
       - "3333:80"
@@ -17,7 +16,6 @@ services:
       - blog-network
     restart: unless-stopped
 
-  # Database (MariaDB)
   db:
     image: mariadb:10.11
     container_name: blog-advanced-db
@@ -35,7 +33,6 @@ services:
       - blog-network
     restart: unless-stopped
 
-  # phpMyAdmin (Database Management)
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: blog-advanced-phpmyadmin
