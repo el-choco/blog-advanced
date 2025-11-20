@@ -6,7 +6,7 @@ services:
     image: php:8.2-apache
     container_name: blog-advanced-web
     ports:
-      - "8080:80"
+      - "3333:80"
     volumes:
       - ./:/var/www/html
     environment:
@@ -30,7 +30,7 @@ services:
       - db_data:/var/lib/mysql
       - ./migrations/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - blog-network
     restart: unless-stopped
@@ -40,7 +40,7 @@ services:
     image: phpmyadmin:latest
     container_name: blog-advanced-phpmyadmin
     ports:
-      - "8081:80"
+      - "3334:80"
     environment:
       PMA_HOST: db
       PMA_USER: root
