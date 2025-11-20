@@ -1,29 +1,22 @@
-# Custom config (legacy)
-custom.ini
+# Data directories
+data/
+uploads/
+logs/
 
-# Ignore images & thumbnails directories (legacy)
-i/*
-t/*
+# Database backups
+*.sql
 
-# Ignore all files in data but keep directory itself
-data/*
-!data/.gitkeep
+# Environment files with secrets
+.env
 
-# User Data (don't commit!)
-data/config.ini
-data/posts/*.json
-data/images/*
-data/files/*
-data/backups/*
-data/cache/*
-data/logs/*
-uploads/*
-logs/*
-sessions/*
+# Log files
+*.log
 
-# Keep directory structure
-!data/posts/.gitkeep
-!data/images/.gitkeep
-!data/files/.gitkeep
-!uploads/.gitkeep
-!logs/.gitkeep
+# Temporary files
+tmp/
+temp/
+cache/
+
+# OS files
+.DS_Store
+Thumbs.db
