@@ -1,6 +1,3 @@
-# blog-advanced
-"Advanced PHP Blog System with Multi-User Support, Comments, Backup/Export, Security Features &amp; PWA"
----
 # 📝 Blog Advanced - Professional PHP Blog System
 
 A powerful, self-hosted blogging platform with advanced features including multi-user support, comments, backup/export, security features, and Progressive Web App capabilities.
