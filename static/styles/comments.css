@@ -1,0 +1,201 @@
+/* Comments Section */
+.comments-section {
+    margin-top: 40px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.comments-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.comment-count {
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Comment List */
+.comments-list {
+    margin-bottom: 30px;
+}
+
+.comment {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 3px solid #007bff;
+    border-radius: 4px;
+}
+
+.comment.pending {
+    border-left-color: #ffc107;
+    background: #fffbf0;
+}
+
+.comment.spam {
+    border-left-color: #dc3545;
+    background: #fff0f0;
+    opacity: 0.7;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.comment-date {
+    color: #888;
+}
+
+.comment-content {
+    line-height: 1.6;
+    color: #333;
+}
+
+.comment-status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    margin-left: 10px;
+}
+
+.comment-status-badge.pending {
+    background: #ffc107;
+    color: #000;
+}
+
+.comment-status-badge.spam {
+    background: #dc3545;
+    color: white;
+}
+
+/* Comment Form */
+.comment-form-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.comment-form-wrapper h4 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.comment-form .form-group {
+    margin-bottom: 15px;
+}
+
+.comment-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.comment-form input,
+.comment-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.comment-form input:focus,
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.comment-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.comment-form .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.comment-form .btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.comment-form .btn-primary:hover {
+    background: #0056b3;
+}
+
+.comment-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+.comment-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+
+.comment-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+}
+
+/* Reply Comments (nested) */
+.comment.reply {
+    margin-left: 40px;
+    border-left-color: #6c757d;
+}
+
+/* Admin Actions */
+.comment-admin-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.comment-admin-actions button {
+    margin-right: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-approve {
+    background: #28a745;
+    color: white;
+}
+
+.btn-spam {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-delete {
+    background: #6c757d;
+    color: white;
+}

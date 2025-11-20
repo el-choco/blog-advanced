@@ -14,13 +14,20 @@ try {
 
     $action = $request["action"];
 
-    // Prüfen, ob Methode in Post existiert
-    if(!method_exists('Post', $action)){
-        throw new Exception("Method was not found.");
+    // Check if action is for comments
+    if (strpos($action, 'comment_') === 0) {
+        // Comment actions
+        if(!method_exists('Comment', $action)){
+            throw new Exception("Comment method was not found.");
+        }
+        $response = Comment::$action($request);
+    } else {
+        // Post actions (original behavior)
+        if(!method_exists('Post', $action)){
+            throw new Exception("Method was not found.");
+        }
+        $response = Post::$action($request);
     }
-
-    // Statischer Aufruf der Methode
-    $response = Post::$action($request);
 
     $ajax->set_response($response);
 

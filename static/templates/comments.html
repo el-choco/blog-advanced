@@ -1,0 +1,47 @@
+<!-- Comment Section Template -->
+<div class="comments-section" data-post-id="{POST_ID}">
+    <h3 class="comments-title">
+        <span class="comment-count">{COMMENT_COUNT}</span> Comments
+    </h3>
+    
+    <!-- Comment List -->
+    <div class="comments-list">
+        <!-- Comments will be loaded here via JavaScript -->
+    </div>
+    
+    <!-- Comment Form -->
+    <div class="comment-form-wrapper">
+        <h4>Leave a Comment</h4>
+        <form class="comment-form" data-post-id="{POST_ID}">
+            <!-- Honeypot (hidden spam protection) -->
+            <input type="text" name="website_check" style="display:none;" tabindex="-1" autocomplete="off">
+            
+            <div class="form-group">
+                <label for="author_name">Name *</label>
+                <input type="text" id="author_name" name="author_name" required maxlength="100" 
+                       placeholder="Your name">
+            </div>
+            
+            <div class="form-group">
+                <label for="author_email">Email (optional)</label>
+                <input type="email" id="author_email" name="author_email" maxlength="100"
+                       placeholder="your@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="author_website">Website (optional)</label>
+                <input type="url" id="author_website" name="author_website" maxlength="255"
+                       placeholder="https://yourwebsite.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="content">Comment *</label>
+                <textarea id="content" name="content" required rows="5" maxlength="5000"
+                          placeholder="Write your comment here..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+            <div class="comment-status"></div>
+        </form>
+    </div>
+</div>
