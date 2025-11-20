@@ -1,17 +1,61 @@
-version: "3"
+version: '3.8'
 
 services:
-  blog:
-    image: m1k1o/blog:latest
-    restart: unless-stopped
-    environment:
-        TZ: Europe/Vienna
-        BLOG_TITLE: Blog
-        BLOG_NAME: Max Musermann
-        BLOG_NICK: username
-        BLOG_PASS: password
-        BLOG_LANG: en
+  # Web Server (Apache + PHP)
+  web:
+    image: php:8.2-apache
+    container_name: blog-advanced-web
     ports:
-      - 80:80
+      - "8080:80"
     volumes:
-      - ./data:/var/www/html/data
+      - ./:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    depends_on:
+      - db
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  # Database (MariaDB)
+  db:
+    image: mariadb:10.11
+    container_name: blog-advanced-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: blog
+      MYSQL_USER: bloguser
+      MYSQL_PASSWORD: blogpass123
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  # phpMyAdmin (Database Management)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: blog-advanced-phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+      UPLOAD_LIMIT: 50M
+    depends_on:
+      - db
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  blog-network:
+    driver: bridge

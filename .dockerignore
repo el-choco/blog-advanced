@@ -1,0 +1,16 @@
+.git
+.gitignore
+.github
+*.md
+data/posts/*.json
+data/images/*
+data/files/*
+data/backups/*
+data/cache/*
+uploads/*
+logs/*
+sessions/*
+node_modules
+vendor
+.env
+.env.local
