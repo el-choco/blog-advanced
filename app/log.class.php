@@ -26,7 +26,7 @@ class Log
 	}
 
 	private static function escape($_text = null){
-		return preg_replace("/[\n\r\t]/", "-", $_text);
+		return preg_replace("/[\n\r\t]/", "-", $_text ?? '');
 	}
 
 	private static function line($_text = null){
