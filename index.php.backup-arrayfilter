@@ -42,15 +42,8 @@ if(!empty($styles)){
 	}
 
 	$styles = array_unique($styles);
-	$styles = array_filter($styles); // Remove empty values
-	
-	if(!empty($styles)){
-		$styles = array_map('escape', $styles);
-	$styles = array_filter($styles);
-	if(!empty($styles)){
-		$styles_html = '<link href="'.implode('" rel="stylesheet" type="text/css"/>'.PHP_EOL.'<link href="', $styles).'" rel="stylesheet" type="text/css"/>'.PHP_EOL;
-	}
-	}
+	$styles = array_map('escape', $styles);
+	$styles_html = '<link href="'.implode('" rel="stylesheet" type="text/css"/>'.PHP_EOL.'<link href="', $styles).'" rel="stylesheet" type="text/css"/>'.PHP_EOL;
 }
 
 // Translate script urls into html
@@ -62,15 +55,8 @@ if(!empty($scripts)){
 	}
 
 	$scripts = array_unique($scripts);
-	$scripts = array_filter($scripts); // Remove empty values
-	
-	if(!empty($scripts)){
-		$scripts = array_map('escape', $scripts);
-	$scripts = array_filter($scripts);
-	if(!empty($scripts)){
-		$scripts_html = '<script src="'.implode('" type="text/javascript"></script>'.PHP_EOL.'<script src="', $scripts).'" type="text/javascript"></script>'.PHP_EOL;
-	}
-	}
+	$scripts = array_map('escape', $scripts);
+	$scripts_html = '<script src="'.implode('" type="text/javascript"></script>'.PHP_EOL.'<script src="', $scripts).'" type="text/javascript"></script>'.PHP_EOL;
 }
 
 // Use version suffix in URLs to prevent cache

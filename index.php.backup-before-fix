@@ -46,10 +46,7 @@ if(!empty($styles)){
 	
 	if(!empty($styles)){
 		$styles = array_map('escape', $styles);
-	$styles = array_filter($styles);
-	if(!empty($styles)){
 		$styles_html = '<link href="'.implode('" rel="stylesheet" type="text/css"/>'.PHP_EOL.'<link href="', $styles).'" rel="stylesheet" type="text/css"/>'.PHP_EOL;
-	}
 	}
 }
 
@@ -66,10 +63,7 @@ if(!empty($scripts)){
 	
 	if(!empty($scripts)){
 		$scripts = array_map('escape', $scripts);
-	$scripts = array_filter($scripts);
-	if(!empty($scripts)){
 		$scripts_html = '<script src="'.implode('" type="text/javascript"></script>'.PHP_EOL.'<script src="', $scripts).'" type="text/javascript"></script>'.PHP_EOL;
-	}
 	}
 }
 
