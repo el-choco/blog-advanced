@@ -86,6 +86,8 @@ if (Config::get_safe("version", false)) {
 	<link href="static/styles/lightbox.css" rel="stylesheet" type="text/css" />
 
 	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
+	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
+	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 
 	<?php echo Config::get_safe("highlight", false) ? '<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css" />'.PHP_EOL : ''; ?>
 	<style>
@@ -571,12 +573,18 @@ if (Config::get_safe("version", false)) {
 	<script src="static/scripts/datepick.js<?php echo $versionSuffix?>"></script>
 	<?php echo Config::get_safe("highlight", false) ? '<script src="static/scripts/highlight-10.1.2.min.js"></script><script>hljs.initHighlightingOnLoad();</script>'.PHP_EOL : ''; ?>
 	<script src="static/scripts/app.js<?php echo $versionSuffix?>"></script>
+	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
+	<script src="static/scripts/comments-init.js<?php echo $versionSuffix?>"></script>
+	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
 	<?php echo $scripts_html; ?>
 
 <script>
 // ============================================
 // Markdown & Emoji Editor Functionality
 // (unchanged - same as before; the file-upload integration happens in static/scripts/app.js)
+	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
+	<script src="static/scripts/comments-init.js<?php echo $versionSuffix?>"></script>
+	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
 // ============================================
 (function(){
 	'use strict';
