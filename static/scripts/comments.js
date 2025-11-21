@@ -1,216 +1,171 @@
 // Comments System
 var Comments = {
+    postId: null,
+    container: null,
+    form: null,
+    commentsList: null,
     
-    // Initialize comments for a post
     init: function(postId) {
+        console.log('💬 Initializing Comments for post', postId);
         this.postId = postId;
-        this.load();
+        this.container = $('.comments-section[data-post-id="' + postId + '"]');
+        this.form = this.container.find('.comment-form');
+        this.commentsList = this.container.find('.comments-list');
+        
+        if (!this.container.length) {
+            console.error('❌ Comments container not found for post', postId);
+            return;
+        }
+        
+        // Bind events
         this.bindFormSubmit();
+        
+        // Load existing comments
+        this.loadComments();
+        
+        console.log('✅ Comments initialized for post', postId);
     },
     
-    // Load comments from server
-    load: function() {
+    bindFormSubmit: function() {
         var self = this;
+        this.form.on('submit', function(e) {
+            e.preventDefault();
+            self.submitComment();
+        });
+    },
+    
+    submitComment: function() {
+        var self = this;
+        var formData = {
+            action: 'comment_add',
+            post_id: this.postId,
+            author_name: this.form.find('[name="author_name"]').val(),
+            content: this.form.find('[name="content"]').val(),
+            website_check: this.form.find('[name="website_check"]').val()
+        };
         
-        $.get({
-            dataType: "json",
-            url: "ajax.php",
-            data: {
-                action: "comment_get",
-                post_id: self.postId
-            },
-            success: function(data) {
-                if (data.error) {
-                    console.error("Failed to load comments:", data.msg);
-                    return;
-                }
+        console.log('📤 Submitting comment:', formData);
+        
+        $.ajax({
+            url: 'ajax.php',
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                console.log('📥 Comment response:', response);
                 
-                self.render(data.comments);
-                self.updateCount(data.count);
+                if (response.error) {
+                    self.showStatus('error', response.msg || 'Error posting comment');
+                } else {
+                    self.showStatus('success', response.message || 'Comment posted successfully!');
+                    self.form[0].reset();
+                    
+                    // Reload comments
+                    setTimeout(function() {
+                        self.loadComments();
+                    }, 500);
+                }
             },
-            error: function() {
-                console.error("Failed to load comments");
+            error: function(xhr, status, error) {
+                console.error('❌ AJAX error:', status, error);
+                self.showStatus('error', 'Failed to post comment. Please try again.');
             }
         });
     },
     
-    // Render comments
-    render: function(comments) {
-        var container = $('.comments-list[data-post-id="' + this.postId + '"]');
+    loadComments: function() {
+        var self = this;
         
-        if (!container.length) {
-            container = $('.post[data-id="' + this.postId + '"]').find('.comments-list');
-        }
+        console.log('📥 Loading comments for post', this.postId);
         
-        container.empty();
+        $.ajax({
+            url: 'ajax.php',
+            method: 'GET',
+            data: {
+                action: 'comment_get',
+                post_id: this.postId
+            },
+            dataType: 'json',
+            success: function(response) {
+                console.log('📦 Received comments:', response);
+                
+                if (response.error) {
+                    console.error('❌ Error loading comments:', response.msg);
+                } else {
+                    self.renderComments(response.comments || []);
+                    self.updateCount(response.count || 0);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Failed to load comments:', status, error);
+            }
+        });
+    },
+    
+    renderComments: function(comments) {
+        console.log('🎨 Rendering', comments.length, 'comments');
+        
+        this.commentsList.empty();
         
         if (comments.length === 0) {
-            container.html('<p class="no-comments">No comments yet. Be the first to comment!</p>');
+            this.commentsList.html('<p class="no-comments">Noch keine Kommentare. Sei der Erste!</p>');
             return;
         }
         
         comments.forEach(function(comment) {
-            var commentHtml = Comments.buildCommentHtml(comment);
-            container.append(commentHtml);
-        });
-    },
-    
-    // Build HTML for a single comment
-    buildCommentHtml: function(comment) {
-        var statusBadge = '';
-        var adminActions = '';
-        var commentClass = 'comment';
-        
-        if (comment.status === 'pending') {
-            statusBadge = '<span class="comment-status-badge pending">Pending Moderation</span>';
-            commentClass += ' pending';
-        } else if (comment.status === 'spam') {
-            statusBadge = '<span class="comment-status-badge spam">Spam</span>';
-            commentClass += ' spam';
-        }
-        
-        // Admin actions (only if logged in)
-        if (typeof login !== 'undefined' && login.is) {
-            adminActions = '<div class="comment-admin-actions">';
-            if (comment.status !== 'approved') {
-                adminActions += '<button class="btn-approve" data-id="' + comment.id + '">Approve</button>';
-            }
-            adminActions += '<button class="btn-spam" data-id="' + comment.id + '">Spam</button>';
-            adminActions += '<button class="btn-delete" data-id="' + comment.id + '">Delete</button>';
-            adminActions += '</div>';
-        }
-        
-        var date = new Date(comment.created_at);
-        var formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        
-        return '<div class="' + commentClass + '" data-id="' + comment.id + '">' +
-                   '<div class="comment-header">' +
-                       '<span class="comment-author">' + this.escapeHtml(comment.author_name) + '</span>' +
-                       statusBadge +
-                       '<span class="comment-date">' + formattedDate + '</span>' +
-                   '</div>' +
-                   '<div class="comment-content">' + this.escapeHtml(comment.content) + '</div>' +
-                   adminActions +
-               '</div>';
-    },
-    
-    // Bind form submit
-    bindFormSubmit: function() {
-        var self = this;
-        
-        $('.comment-form[data-post-id="' + this.postId + '"]').on('submit', function(e) {
-            e.preventDefault();
+            var isPending = comment.status === 'pending';
+            var statusBadge = isPending ? '<span class="comment-status-badge pending">Wartet auf Freigabe</span>' : '';
             
-            var form = $(this);
-            var data = {
-                action: 'comment_add',
-                post_id: self.postId,
-                author_name: form.find('[name="author_name"]').val(),
-                author_email: form.find('[name="author_email"]').val(),
-                author_website: form.find('[name="author_website"]').val(),
-                content: form.find('[name="content"]').val(),
-                website_check: form.find('[name="website_check"]').val()
-            };
+            var commentHTML = `
+                <div class="comment ${isPending ? 'pending' : ''}" data-comment-id="${comment.id}">
+                    <div class="comment-header">
+                        <span class="comment-author">${this.escapeHtml(comment.author_name)}</span>
+                        ${statusBadge}
+                        <span class="comment-date">${this.formatDate(comment.created_at)}</span>
+                    </div>
+                    <div class="comment-content">${this.escapeHtml(comment.content)}</div>
+                </div>
+            `;
             
-            $.post({
-                dataType: "json",
-                url: "ajax.php",
-                data: data,
-                success: function(response) {
-                    if (response.error) {
-                        self.showStatus(form, 'error', response.msg);
-                        return;
-                    }
-                    
-                    self.showStatus(form, 'success', response.message);
-                    form[0].reset();
-                    
-                    // Reload comments
-                    setTimeout(function() {
-                        self.load();
-                    }, 1000);
-                },
-                error: function() {
-                    self.showStatus(form, 'error', 'Failed to post comment. Please try again.');
-                }
-            });
-        });
-        
-        // Bind admin actions
-        this.bindAdminActions();
+            this.commentsList.append(commentHTML);
+        }.bind(this));
     },
     
-    // Bind admin action buttons
-    bindAdminActions: function() {
-        var self = this;
-        
-        $(document).on('click', '.btn-approve', function() {
-            var commentId = $(this).data('id');
-            self.adminAction('comment_approve', commentId);
-        });
-        
-        $(document).on('click', '.btn-spam', function() {
-            var commentId = $(this).data('id');
-            self.adminAction('comment_spam', commentId);
-        });
-        
-        $(document).on('click', '.btn-delete', function() {
-            if (confirm('Delete this comment?')) {
-                var commentId = $(this).data('id');
-                self.adminAction('comment_delete', commentId);
-            }
-        });
+    updateCount: function(count) {
+        this.container.find('.comment-count').text(count);
+        console.log('📊 Updated count to', count);
     },
     
-    // Admin action
-    adminAction: function(action, commentId) {
-        var self = this;
-        
-        $.post({
-            dataType: "json",
-            url: "ajax.php",
-            data: {
-                action: action,
-                id: commentId
-            },
-            success: function(response) {
-                if (response.error) {
-                    alert('Error: ' + response.msg);
-                    return;
-                }
-                
-                // Reload comments
-                self.load();
-            }
-        });
-    },
-    
-    // Show status message
-    showStatus: function(form, type, message) {
-        var status = form.find('.comment-status');
-        status.removeClass('success error').addClass(type);
-        status.text(message);
-        status.fadeIn();
+    showStatus: function(type, message) {
+        var statusDiv = this.form.find('.comment-status');
+        statusDiv.removeClass('success error').addClass(type).text(message).show();
         
         setTimeout(function() {
-            status.fadeOut();
+            statusDiv.fadeOut();
         }, 5000);
     },
     
-    // Update comment count
-    updateCount: function(count) {
-        $('.comments-section[data-post-id="' + this.postId + '"] .comment-count').text(count);
+    formatDate: function(dateString) {
+        var date = new Date(dateString);
+        var now = new Date();
+        var diff = Math.floor((now - date) / 1000);
+        
+        if (diff < 60) return 'vor ' + diff + ' Sekunden';
+        if (diff < 3600) return 'vor ' + Math.floor(diff / 60) + ' Minuten';
+        if (diff < 86400) return 'vor ' + Math.floor(diff / 3600) + ' Stunden';
+        
+        return date.toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     },
     
-    // Escape HTML
     escapeHtml: function(text) {
-        var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 };

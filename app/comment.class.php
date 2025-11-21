@@ -69,7 +69,9 @@ class Comment {
     
     // Approve comment (admin only)
     public static function comment_approve($r) {
-        User::login_protected();
+        if(!User::is_logged_in()){
+            throw new Exception("You need to be logged in");
+        }
         
         DB::get_instance()->query("
             UPDATE comments 
@@ -82,7 +84,9 @@ class Comment {
     
     // Mark as spam (admin only)
     public static function comment_spam($r) {
-        User::login_protected();
+        if(!User::is_logged_in()){
+            throw new Exception("You need to be logged in");
+        }
         
         DB::get_instance()->query("
             UPDATE comments 
@@ -95,7 +99,9 @@ class Comment {
     
     // Delete comment (admin only)
     public static function comment_delete($r) {
-        User::login_protected();
+        if(!User::is_logged_in()){
+            throw new Exception("You need to be logged in");
+        }
         
         DB::get_instance()->query("
             UPDATE comments 
@@ -108,7 +114,9 @@ class Comment {
     
     // Get pending comments count (admin)
     public static function comment_pending_count($r = []) {
-        User::login_protected();
+        if(!User::is_logged_in()){
+            throw new Exception("You need to be logged in");
+        }
         
         $count = DB::get_instance()->query("
             SELECT COUNT(*) as count
@@ -121,7 +129,9 @@ class Comment {
     
     // Get all comments (admin)
     public static function comment_get_all($r) {
-        User::login_protected();
+        if(!User::is_logged_in()){
+            throw new Exception("You need to be logged in");
+        }
         
         $status = $r['status'] ?? 'all';
         $limit = (int)($r['limit'] ?? 50);

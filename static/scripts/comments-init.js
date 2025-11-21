@@ -13,17 +13,16 @@
             
             // Try to get post ID from various sources
             var postId = $post.attr('data-id') 
-                      || $post.data('id') 
-                      || $post.find('[data-id]').attr('data-id')
-                      || $post.attr('id');
+                      || $post.data('id');
             
-            // Try to extract from URL hash or links
+            // Extract from date link (most reliable!)
             if (!postId) {
                 var $dateLink = $post.find('.b_date');
                 if ($dateLink.length) {
                     var href = $dateLink.attr('href');
-                    if (href && href.indexOf('id=') > -1) {
-                        postId = href.split('id=')[1].split('&')[0];
+                    if (href && href.indexOf('#id=') > -1) {
+                        postId = href.split('#id=')[1].split('&')[0];
+                        console.log('  → Found ID in URL hash:', postId);
                     }
                 }
             }
@@ -45,49 +44,45 @@
             // Mark as initialized
             $post.data('comments-initialized', true);
             
-            // Show comments wrapper if exists
-            var $wrapper = $post.find('.comments-wrapper');
-            if ($wrapper.length) {
-                $wrapper.show();
-                $post.find('.comment-form').attr('data-post-id', postId);
-                console.log('  ✅ Wrapper shown');
-            } else {
-                // Add comments section dynamically
-                var commentsHTML = `
-                    <div class="comments-wrapper" style="margin-top:20px; padding:15px; background:#f9f9f9; border-radius:8px;">
-                        <div class="comments-section" data-post-id="${postId}">
-                            <h3 class="comments-title">
-                                <span class="comment-count">0</span> Kommentare
-                            </h3>
-                            <div class="comments-list"></div>
-                            <div class="comment-form-wrapper" style="margin-top:15px; background:white; padding:15px; border-radius:5px;">
-                                <h4>💬 Kommentar hinterlassen</h4>
-                                <form class="comment-form" data-post-id="${postId}">
-                                    <input type="text" name="website_check" style="display:none;" tabindex="-1">
-                                    <div class="form-group" style="margin-bottom:10px;">
-                                        <input type="text" name="author_name" required placeholder="Dein Name *" 
-                                               style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
-                                    </div>
-                                    <div class="form-group" style="margin-bottom:10px;">
-                                        <textarea name="content" required rows="4" placeholder="Dein Kommentar *" 
-                                                  style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; resize:vertical;"></textarea>
-                                    </div>
-                                    <button type="submit" class="button blue" style="padding:8px 16px;">Kommentar posten</button>
-                                    <div class="comment-status" style="margin-top:10px;"></div>
-                                </form>
-                            </div>
+            // Add comments section HTML
+            var commentsHTML = `
+                <div class="comments-wrapper" style="margin-top:20px; padding:15px; background:#f9f9f9; border-radius:8px;">
+                    <div class="comments-section" data-post-id="${postId}">
+                        <h3 class="comments-title">
+                            <span class="comment-count">0</span> Kommentare
+                        </h3>
+                        <div class="comments-list"></div>
+                        <div class="comment-form-wrapper" style="margin-top:15px; background:white; padding:15px; border-radius:5px;">
+                            <h4>💬 Kommentar hinterlassen</h4>
+                            <form class="comment-form" data-post-id="${postId}">
+                                <input type="text" name="website_check" style="display:none;" tabindex="-1">
+                                <div class="form-group" style="margin-bottom:10px;">
+                                    <input type="text" name="author_name" required placeholder="Dein Name *" 
+                                           style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom:10px;">
+                                    <textarea name="content" required rows="4" placeholder="Dein Kommentar *" 
+                                              style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; resize:vertical;"></textarea>
+                                </div>
+                                <button type="submit" class="button blue" style="padding:8px 16px;">Kommentar posten</button>
+                                <div class="comment-status" style="margin-top:10px;"></div>
+                            </form>
                         </div>
                     </div>
-                `;
-                $post.append(commentsHTML);
-                console.log('  ✅ HTML injected');
-            }
+                </div>
+            `;
+            $post.append(commentsHTML);
+            console.log('  ✅ HTML injected');
             
             // Initialize Comments object if available
             if (typeof Comments !== 'undefined') {
-                var commentsObj = Object.create(Comments);
-                commentsObj.init(postId);
-                console.log('  ✅ Comments object initialized');
+                try {
+                    var commentsObj = Object.create(Comments);
+                    commentsObj.init(postId);
+                    console.log('  ✅ Comments object initialized for post', postId);
+                } catch(e) {
+                    console.error('  ❌ Error initializing Comments:', e);
+                }
             } else {
                 console.warn('  ⚠️ Comments object not available yet');
             }
@@ -102,27 +97,44 @@
         var originalLoad = posts.load;
         posts.load = function() {
             originalLoad.call(this);
-            setTimeout(initComments, 500);
+            setTimeout(initComments, 800);
         };
+        
+        var originalAddNew = posts.add_new;
+        if (originalAddNew) {
+            posts.add_new = function(post) {
+                originalAddNew.call(this, post);
+                setTimeout(initComments, 300);
+            };
+        }
     }
     
-    // Initial load
+    // Initial load - multiple attempts with increasing delays
     $(document).ready(function() {
-        console.log('✅ Document ready, initializing comments in 1s...');
-        setTimeout(function() {
-            initComments();
-            // Check if Comments loaded now
-            if (typeof Comments === 'undefined') {
-                console.error('❌ Comments object still not loaded!');
-                console.log('Checking script tags...');
-                $('script').each(function() {
-                    var src = $(this).attr('src');
-                    if (src && src.indexOf('comments') > -1) {
-                        console.log('  Found:', src);
-                    }
-                });
+        console.log('✅ Document ready');
+        
+        // Try immediately
+        setTimeout(initComments, 500);
+        
+        // Try again after posts likely loaded
+        setTimeout(initComments, 1500);
+        setTimeout(initComments, 3000);
+        
+        // Periodic check (remove after development)
+        var checkCount = 0;
+        var checkInterval = setInterval(function() {
+            checkCount++;
+            if (checkCount > 10) {
+                clearInterval(checkInterval);
+                return;
             }
-        }, 1000);
+            
+            var uninitializedPosts = $('.b_post.post_row').not('[data-comments-initialized="true"]').length;
+            if (uninitializedPosts > 0) {
+                console.log('🔄 Found ' + uninitializedPosts + ' uninitialized posts, retrying...');
+                initComments();
+            }
+        }, 2000);
     });
     
     console.log("✅ Comments init script loaded");

@@ -34,32 +34,46 @@ if(file_exists($header_path)){
 }
 
 // Translate styles into html
-// Translate styles into html
 $styles = Config::get_safe("styles", []);
 $styles_html = '';
-if(!empty($styles) && is_array($styles)){
+if(!empty($styles)){
+	if(!is_array($styles)){
+		$styles = [$styles];
+	}
+
 	$styles = array_unique($styles);
-	$styles = array_filter($styles);
+	$styles = array_filter($styles); // Remove empty values
 	
 	if(!empty($styles)){
 		$styles = array_map('escape', $styles);
-		$styles_html = '<link href="'.implode('" rel="stylesheet" type="text/css"/>'.PHP_EOL.'	<link href="', $styles).'" rel="stylesheet" type="text/css"/>'.PHP_EOL;
+	$styles = array_filter($styles);
+	if(!empty($styles)){
+		$styles_html = '<link href="'.implode('" rel="stylesheet" type="text/css"/>'.PHP_EOL.'<link href="', $styles).'" rel="stylesheet" type="text/css"/>'.PHP_EOL;
+	}
 	}
 }
 
 // Translate script urls into html
 $scripts = Config::get_safe("scripts", []);
 $scripts_html = '';
-if(!empty($scripts) && is_array($scripts)){
+if(!empty($scripts)){
+	if(!is_array($scripts)){
+		$scripts = [$scripts];
+	}
+
 	$scripts = array_unique($scripts);
-	$scripts = array_filter($scripts);
+	$scripts = array_filter($scripts); // Remove empty values
 	
 	if(!empty($scripts)){
 		$scripts = array_map('escape', $scripts);
-		$scripts_html = '<script src="'.implode('" type="text/javascript"></script>'.PHP_EOL.'	<script src="', $scripts).'" type="text/javascript"></script>'.PHP_EOL;
+	$scripts = array_filter($scripts);
+	if(!empty($scripts)){
+		$scripts_html = '<script src="'.implode('" type="text/javascript"></script>'.PHP_EOL.'<script src="', $scripts).'" type="text/javascript"></script>'.PHP_EOL;
+	}
 	}
 }
 
+// Use version suffix in URLs to prevent cache
 $versionSuffix = '';
 if (Config::get_safe("version", false)) {
 	$versionSuffix = '?v='.rawurlencode(Config::get("version"));
