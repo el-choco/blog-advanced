@@ -7,6 +7,15 @@ if (!User::is_logged_in()) {
     exit;
 }
 
+// Create CSRF token if not exists
+if(empty($_SESSION['token'])){
+    if(function_exists('random_bytes')){
+        $_SESSION['token'] = bin2hex(random_bytes(5));
+    } else {
+        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
+    }
+}
+
 // Get filter status
 $filter_status = $_GET['status'] ?? 'all';
 $page = (int)($_GET['page'] ?? 1);
@@ -79,6 +88,10 @@ function getStatusBadge($status) {
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
     
     <script src="../static/scripts/jquery.min.js"></script>
+    <script>
+    // Setup CSRF token for AJAX requests
+    $["\x61\x6A\x61\x78\x53\x65\x74\x75\x70"]({"\x68\x65\x61\x64\x65\x72\x73":{"\x43\x73\x72\x66-\x54\x6F\x6B\x65\x6E":"<?php echo $_SESSION['token'];?>"}});
+    </script>
 </head>
 <body class="admin-body">
     
