@@ -14,48 +14,40 @@ function escape($str) {
     <title>Admin Dashboard - <?php echo escape(Config::get("title")); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-
+    
     <!-- Main Blog Styles -->
     <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
-
+    
     <!-- Admin Styles -->
     <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
-
+    
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
 </head>
 <body class="admin-body">
-
+    
     <!-- Admin Header -->
-    <header class="admin-header">
-        <div class="header-content">
-            <h1>📊 Admin Dashboard</h1>
-            <div class="header-actions">
-                <a href="../" class="btn btn-secondary">← Zum Blog</a>
-                <a href="logout.php" class="btn btn-danger">Abmelden</a>
-            </div>
         </div>
-    </header>
-
+    </div>
+    
     <div class="admin-layout">
-
+        
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar">
             <nav class="admin-nav">
                 <a href="index.php" class="active">📊 Dashboard</a>
                 <a href="posts.php">📝 Beiträge</a>
-                <a href="comments.php">💬 Kommentare</a>
+                
                 <a href="media.php">📁 Dateien</a>
-                <a href="backups.php">💾 Backups</a>
                 <a href="trash.php">🗑️ Papierkorb <span class="badge"><?php echo $stats['trash_posts']; ?></span></a>
                 <a href="settings.php">⚙️ Einstellungen</a>
             </nav>
         </aside>
-
+        
         <!-- Main Content -->
         <main class="admin-content">
-
+            
             <!-- Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -65,7 +57,7 @@ function escape($str) {
                         <div class="stat-label">Gesamt Beiträge</div>
                     </div>
                 </div>
-
+                
                 <div class="stat-card">
                     <div class="stat-icon">✅</div>
                     <div class="stat-info">
@@ -73,7 +65,7 @@ function escape($str) {
                         <div class="stat-label">Öffentlich</div>
                     </div>
                 </div>
-
+                
                 <div class="stat-card">
                     <div class="stat-icon">📌</div>
                     <div class="stat-info">
@@ -81,7 +73,7 @@ function escape($str) {
                         <div class="stat-label">Sticky Posts</div>
                     </div>
                 </div>
-
+                
                 <div class="stat-card">
                     <div class="stat-icon">🖼️</div>
                     <div class="stat-info">
@@ -89,7 +81,7 @@ function escape($str) {
                         <div class="stat-label">Bilder</div>
                     </div>
                 </div>
-
+                
                 <div class="stat-card">
                     <div class="stat-icon">📎</div>
                     <div class="stat-info">
@@ -97,7 +89,7 @@ function escape($str) {
                         <div class="stat-label">Dateien</div>
                     </div>
                 </div>
-
+                
                 <div class="stat-card">
                     <div class="stat-icon">🗑️</div>
                     <div class="stat-info">
@@ -106,12 +98,13 @@ function escape($str) {
                     </div>
                 </div>
             </div>
-
+            
             <!-- Recent Posts -->
             <div class="admin-panel">
                 <div class="panel-header">
                     <h2>Neueste Beiträge</h2>
                     <a href="posts.php" class="btn btn-primary">Alle anzeigen →</a>
+                
                 </div>
                 <div class="panel-body">
                     <table class="admin-table">
@@ -156,7 +149,7 @@ function escape($str) {
                     </table>
                 </div>
             </div>
-
+            
             <!-- Quick Actions -->
             <div class="admin-panel">
                 <div class="panel-header">
@@ -168,11 +161,8 @@ function escape($str) {
                             <div class="qa-icon">✏️</div>
                             <div class="qa-label">Neuer Beitrag</div>
                         </a>
-                        <a href="backups.php" class="quick-action-card">
-                            <div class="qa-icon">💾</div>
-                            <div class="qa-label">Backups</div>
-                        </a>
                         <a href="comments.php" class="quick-action-card">
+        <a href="backups.php" class="admin-link">💾 Backups</a>
                             <div class="qa-icon">💬</div>
                             <div class="qa-label">Kommentare</div>
                         </a>
@@ -189,12 +179,34 @@ function escape($str) {
                             <div class="qa-label">Papierkorb</div>
                         </a>
                     </div>
-                </div>
-            </div>
+<?php
+require_once 'common.php';
 
-        </main>
+$stats = AdminHelper::getStats();
+$recent_posts = array_slice(AdminHelper::getAllPosts(), 0, 5);
 
+?><!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    
+    <!-- Main Blog Styles -->
+    <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
+    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
+    <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Admin Styles -->
+    <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
+</head>
+<body class="admin-body">
+        
+        <!-- Main Content -->
+        
     </div>
-
+    
 </body>
 </html>
