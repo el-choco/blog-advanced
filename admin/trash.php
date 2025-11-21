@@ -244,6 +244,7 @@ function escape($str) {
             <nav class="admin-nav">
                 <a href="index.php">📊 Dashboard</a>
                 <a href="posts.php">📝 Beiträge</a>
+                <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
                 <a href="trash.php" class="active">🗑️ Papierkorb <span class="badge"><?php echo count($trash_posts); ?></span></a>
                 <a href="settings.php">⚙️ Einstellungen</a>

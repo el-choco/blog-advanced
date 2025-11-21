@@ -45,6 +45,7 @@ function escape($str) {
             <nav class="admin-nav">
                 <a href="index.php" class="active">📊 Dashboard</a>
                 <a href="posts.php">📝 Beiträge</a>
+                <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
                 <a href="trash.php">🗑️ Papierkorb <span class="badge"><?php echo $stats['trash_posts']; ?></span></a>
                 <a href="settings.php">⚙️ Einstellungen</a>
@@ -110,6 +111,7 @@ function escape($str) {
                 <div class="panel-header">
                     <h2>Neueste Beiträge</h2>
                     <a href="posts.php" class="btn btn-primary">Alle anzeigen →</a>
+                <a href="comments.php">💬 Kommentare</a>
                 </div>
                 <div class="panel-body">
                     <table class="admin-table">
@@ -167,6 +169,7 @@ function escape($str) {
                             <div class="qa-label">Neuer Beitrag</div>
                         </a>
                         <a href="posts.php" class="quick-action-card">
+                <a href="comments.php">💬 Kommentare</a>
                             <div class="qa-icon">📝</div>
                             <div class="qa-label">Beiträge verwalten</div>
                         </a>

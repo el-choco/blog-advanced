@@ -413,6 +413,7 @@ function escape($str) {
             <nav class="admin-nav">
                 <a href="index.php">📊 Dashboard</a>
                 <a href="posts.php">📝 Beiträge</a>
+                <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
                 <a href="trash.php">🗑️ Papierkorb</a>
                 <a href="settings.php" class="active">⚙️ Einstellungen</a>

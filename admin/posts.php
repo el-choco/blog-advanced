@@ -300,6 +300,7 @@ function escape($str) {
             <nav class="admin-nav">
                 <a href="index.php">📊 Dashboard</a>
                 <a href="posts.php" class="active">📝 Beiträge <span class="badge"><?php echo $count_all; ?></span></a>
+                <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
                 <a href="trash.php">🗑️ Papierkorb</a>
                 <a href="settings.php">⚙️ Einstellungen</a>
