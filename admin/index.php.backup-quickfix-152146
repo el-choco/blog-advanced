@@ -28,6 +28,13 @@ function escape($str) {
 <body class="admin-body">
     
     <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-container">
+            <h1>📊 Admin Dashboard</h1>
+            <div class="admin-user">
+                <span>👤 <?php echo escape(Config::get("name")); ?></span>
+                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+            </div>
         </div>
     </div>
     
@@ -38,7 +45,7 @@ function escape($str) {
             <nav class="admin-nav">
                 <a href="index.php" class="active">📊 Dashboard</a>
                 <a href="posts.php">📝 Beiträge</a>
-                
+                <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
                 <a href="trash.php">🗑️ Papierkorb <span class="badge"><?php echo $stats['trash_posts']; ?></span></a>
                 <a href="settings.php">⚙️ Einstellungen</a>
@@ -104,7 +111,7 @@ function escape($str) {
                 <div class="panel-header">
                     <h2>Neueste Beiträge</h2>
                     <a href="posts.php" class="btn btn-primary">Alle anzeigen →</a>
-                
+                <a href="comments.php">💬 Kommentare</a>
                 </div>
                 <div class="panel-body">
                     <table class="admin-table">
@@ -161,11 +168,8 @@ function escape($str) {
                             <div class="qa-icon">✏️</div>
                             <div class="qa-label">Neuer Beitrag</div>
                         </a>
-                        <a href="comments.php" class="quick-action-card">
-                            <div class="qa-icon">💬</div>
-                            <div class="qa-label">Kommentare</div>
-                        </a>
                         <a href="posts.php" class="quick-action-card">
+                <a href="comments.php">💬 Kommentare</a>
                             <div class="qa-icon">📝</div>
                             <div class="qa-label">Beiträge verwalten</div>
                         </a>
@@ -178,32 +182,10 @@ function escape($str) {
                             <div class="qa-label">Papierkorb</div>
                         </a>
                     </div>
-<?php
-require_once 'common.php';
-
-$stats = AdminHelper::getStats();
-$recent_posts = array_slice(AdminHelper::getAllPosts(), 0, 5);
-
-?><!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="robots" content="noindex, nofollow">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    
-    <!-- Main Blog Styles -->
-    <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
-    
-    <!-- Admin Styles -->
-    <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
-    
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
-</head>
-<body class="admin-body">
-        
-        <!-- Main Content -->
+                </div>
+            </div>
+            
+        </main>
         
     </div>
     

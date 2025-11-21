@@ -1,15 +1,17 @@
-Options -Indexes
+# Disable caching for development
+<FilesMatch "\.(html|htm|js|css|php)$">
+    FileETag None
+    Header unset ETag
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+</FilesMatch>
 
-<Files ~ "\.(db|ini|sql|log|class\.php)$">
-	Order Allow,Deny
-	Deny from All
-</Files>
-
-<Files ~ "^(\.|Dockerfile|docker-compose\.yml|README\.md)">
-	Order Allow,Deny
-	Deny from All
-</Files>
-
-# Allow uploading large images
-php_value upload_max_filesize 32M
-php_value post_max_size 32M
+# Enable rewrite for cache busting
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Remove version query string from static files
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.+)\.(\d+)\.(js|css|png|jpg|gif)$ $1.$3 [L]
+</IfModule>

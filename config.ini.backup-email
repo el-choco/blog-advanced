@@ -75,8 +75,3 @@ logs_path = data/logs/
 version = 1.42
 debug = false
 logs = false
-
-# Email Settings
-email_notifications = true
-admin_email = paquele@gmail.com
-site_url = http://pacos-blog.dynv6.net:3333
