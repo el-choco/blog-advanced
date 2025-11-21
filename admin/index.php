@@ -162,6 +162,7 @@ function escape($str) {
                             <div class="qa-label">Neuer Beitrag</div>
                         </a>
                         <a href="comments.php" class="quick-action-card">
+        <a href="backups.php" class="admin-link">💾 Backups</a>
                             <div class="qa-icon">💬</div>
                             <div class="qa-label">Kommentare</div>
                         </a>

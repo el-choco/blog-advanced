@@ -1,19 +1,19 @@
+
 services:
   web:
     build: .
     container_name: blog-advanced-web
-    volumes:
-      - .:/var/www/html
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker Socket mounten
     ports:
       - "3333:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
     depends_on:
       - db
     networks:
       - blog-network
     restart: unless-stopped
-    environment:
-      - TZ=Europe/Berlin
 
   db:
     image: mariadb:10.11
@@ -35,21 +35,23 @@ services:
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: blog-advanced-phpmyadmin
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: rootpassword
     ports:
       - "3334:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+      UPLOAD_LIMIT: 50M
     depends_on:
       - db
     networks:
       - blog-network
     restart: unless-stopped
 
+volumes:
+  db_data:
+    driver: local
+
 networks:
   blog-network:
     driver: bridge
-
-volumes:
-  db_data:

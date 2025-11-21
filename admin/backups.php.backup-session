@@ -1,0 +1,264 @@
+<?php
+// Prevent duplicate session start
+if (session_status() === PHP_SESSION_NONE) {
+}
+define('PROJECT_PATH', realpath(__DIR__ . '/../') . '/');
+require_once PROJECT_PATH . 'common.php';
+
+// Check if logged in
+if (!User::is_logged_in()) {
+    header('Location: login.php');
+    exit;
+}
+
+// Handle actions
+$action = $_GET['action'] ?? null;
+
+if ($action === 'create') {
+    try {
+        $result = Backup::create_full_backup();
+        $success_msg = "✅ Backup erfolgreich erstellt: " . $result['backup_name'];
+    } catch (Exception $e) {
+        $error_msg = "❌ Fehler: " . $e->getMessage();
+    }
+}
+
+if ($action === 'delete' && isset($_GET['name'])) {
+    try {
+        Backup::delete_backup(['name' => $_GET['name']]);
+        $success_msg = "✅ Backup gelöscht!";
+    } catch (Exception $e) {
+        $error_msg = "❌ Fehler: " . $e->getMessage();
+    }
+}
+
+if ($action === 'download' && isset($_GET['name'])) {
+    Backup::download_backup(['name' => $_GET['name']]);
+    exit;
+}
+
+// Get all backups
+$backups_data = Backup::get_backups();
+$backups = $backups_data['backups'];
+
+function format_bytes($bytes, $precision = 2) {
+    $units = ['B', 'KB', 'MB', 'GB'];
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+    $bytes /= pow(1024, $pow);
+    return round($bytes, $precision) . ' ' . $units[$pow];
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Backups - <?php echo Config::get('title'); ?></title>
+    <link href="../static/styles/main.css" rel="stylesheet">
+    <link href="../static/styles/<?php echo Config::get_safe('theme', 'theme01'); ?>.css" rel="stylesheet">
+    <link href="../static/styles/admin.css" rel="stylesheet">
+    <style>
+        .backup-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .backup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e5e5;
+        }
+        .backup-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #333;
+        }
+        .btn-create-backup {
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-create-backup:hover {
+            background: #218838;
+        }
+        .backup-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .backup-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .backup-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .backup-table tr:hover {
+            background: #f8f9fa;
+        }
+        .backup-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn-download {
+            background: #007bff;
+            color: white;
+        }
+        .btn-download:hover {
+            background: #0056b3;
+        }
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .no-backups {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .backup-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            color: #007bff;
+        }
+        .info-card p {
+            margin: 0;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="backup-container">
+        <div class="backup-header">
+            <h1>💾 Backup-Verwaltung</h1>
+            <a href="?action=create" class="btn-create-backup" onclick="return confirm('Backup jetzt erstellen?');">
+                ➕ Neues Backup erstellen
+            </a>
+        </div>
+
+        <?php if (isset($success_msg)): ?>
+            <div class="alert alert-success"><?php echo $success_msg; ?></div>
+        <?php endif; ?>
+
+        <?php if (isset($error_msg)): ?>
+            <div class="alert alert-error"><?php echo $error_msg; ?></div>
+        <?php endif; ?>
+
+        <div class="backup-info">
+            <div class="info-card">
+                <h3><?php echo count($backups); ?></h3>
+                <p>Verfügbare Backups</p>
+            </div>
+            <div class="info-card">
+                <h3><?php 
+                    $total_size = array_sum(array_column($backups, 'size'));
+                    echo format_bytes($total_size);
+                ?></h3>
+                <p>Gesamtgröße</p>
+            </div>
+            <div class="info-card">
+                <h3><?php echo count($backups) > 0 ? date('d.m.Y H:i', $backups[0]['date']) : '-'; ?></h3>
+                <p>Letztes Backup</p>
+            </div>
+        </div>
+
+        <?php if (empty($backups)): ?>
+            <div class="no-backups">
+                <p>📦 Noch keine Backups vorhanden.</p>
+                <p>Klicke auf "Neues Backup erstellen" um das erste Backup zu erstellen.</p>
+            </div>
+        <?php else: ?>
+            <table class="backup-table">
+                <thead>
+                    <tr>
+                        <th>📅 Datum</th>
+                        <th>📦 Dateiname</th>
+                        <th>💾 Größe</th>
+                        <th>⚙️ Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($backups as $backup): ?>
+                        <tr>
+                            <td><?php echo date('d.m.Y H:i:s', $backup['date']); ?></td>
+                            <td><code><?php echo htmlspecialchars($backup['name']); ?></code></td>
+                            <td><?php echo format_bytes($backup['size']); ?></td>
+                            <td>
+                                <div class="backup-actions">
+                                    <a href="?action=download&name=<?php echo urlencode($backup['name']); ?>" 
+                                       class="btn-action btn-download">
+                                        ⬇️ Download
+                                    </a>
+                                    <a href="?action=delete&name=<?php echo urlencode($backup['name']); ?>" 
+                                       class="btn-action btn-delete"
+                                       onclick="return confirm('Backup wirklich löschen?');">
+                                        🗑️ Löschen
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="index.php" style="color: #007bff; text-decoration: none;">← Zurück zum Admin-Panel</a>
+        </div>
+    </div>
+</body>
+</html>
