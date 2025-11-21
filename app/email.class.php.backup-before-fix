@@ -5,13 +5,13 @@ class Email {
 
     // Check if email notifications are enabled
     private static function is_enabled() {
-        return Config::get_safe('notifications_enabled', '0') === '1';
+        return Config::get_safe('email.notifications_enabled', '0') === '1';
     }
 
     // Send email notification when new comment is posted
     public static function notify_new_comment($comment_id) {
         // Check if this notification type is enabled
-        if (!self::is_enabled() || Config::get_safe('notify_admin_new_comment', '0') !== '1') {
+        if (!self::is_enabled() || Config::get_safe('email.notify_admin_new_comment', '0') !== '1') {
             return false;
         }
 
@@ -28,11 +28,11 @@ class Email {
         if (!$comment) return false;
 
         // Get admin email from config
-        $admin_email = Config::get_safe('admin_email', null);
+        $admin_email = Config::get_safe('email.admin_email', null);
         if (!$admin_email) return false;
 
-        $site_name = Config::get_safe('from_name', Config::get('title'));
-        $from_email = Config::get_safe('from_email', 'noreply@' . $_SERVER['HTTP_HOST']);
+        $site_name = Config::get_safe('email.from_name', Config::get('title'));
+        $from_email = Config::get_safe('email.from_email', 'noreply@' . $_SERVER['HTTP_HOST']);
         $site_url = 'http://' . $_SERVER['HTTP_HOST'];
 
         $subject = "[$site_name] 💬 Neuer Kommentar wartet auf Freigabe";
@@ -59,7 +59,7 @@ class Email {
     // Send notification when comment is approved
     public static function notify_comment_approved($comment_id) {
         // Check if this notification type is enabled
-        if (!self::is_enabled() || Config::get_safe('notify_user_approved', '0') !== '1') {
+        if (!self::is_enabled() || Config::get_safe('email.notify_user_approved', '0') !== '1') {
             return false;
         }
 
@@ -74,8 +74,8 @@ class Email {
 
         if (!$comment || !$comment['author_email']) return false;
 
-        $site_name = Config::get_safe('from_name', Config::get('title'));
-        $from_email = Config::get_safe('from_email', 'noreply@' . $_SERVER['HTTP_HOST']);
+        $site_name = Config::get_safe('email.from_name', Config::get('title'));
+        $from_email = Config::get_safe('email.from_email', 'noreply@' . $_SERVER['HTTP_HOST']);
         $site_url = 'http://' . $_SERVER['HTTP_HOST'];
 
         $subject = "[$site_name] ✅ Dein Kommentar wurde genehmigt";
@@ -99,13 +99,13 @@ class Email {
             return ['success' => false, 'message' => 'Email notifications are disabled'];
         }
 
-        $to = $to_email ?: Config::get_safe('admin_email', null);
+        $to = $to_email ?: Config::get_safe('email.admin_email', null);
         if (!$to) {
             return ['success' => false, 'message' => 'No recipient email configured'];
         }
 
-        $site_name = Config::get_safe('from_name', Config::get('title'));
-        $from_email = Config::get_safe('from_email', 'noreply@' . $_SERVER['HTTP_HOST']);
+        $site_name = Config::get_safe('email.from_name', Config::get('title'));
+        $from_email = Config::get_safe('email.from_email', 'noreply@' . $_SERVER['HTTP_HOST']);
 
         $subject = "[$site_name] ✅ Test Email";
         $message = "Dies ist eine Test-Email vom Blog-System.\n\n";
