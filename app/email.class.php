@@ -19,7 +19,7 @@ class Email {
 
         // Get comment details
         $comment = $db->query("
-            SELECT c.*, p.plain_text as post_excerpt, p.title as post_title
+            SELECT c.*, LEFT(p.plain_text, 100) as post_excerpt, p.id as post_id
             FROM comments c
             LEFT JOIN posts p ON c.post_id = p.id
             WHERE c.id = ?
@@ -43,7 +43,7 @@ class Email {
         if ($comment['author_email']) {
             $message .= "E-Mail: " . $comment['author_email'] . "\n";
         }
-        $message .= "Beitrag: " . ($comment['post_title'] ?: substr($comment['post_excerpt'], 0, 50) . "...") . "\n\n";
+        $message .= "Beitrag: " . substr($comment['post_excerpt'], 0, 50) . "...\n\n";
         $message .= "Kommentar:\n" . $comment['content'] . "\n\n";
         $message .= "Freigeben: " . $site_url . "/admin/comments.php?status=pending\n\n";
         $message .= "---\n";
@@ -66,7 +66,7 @@ class Email {
         $db = DB::get_instance();
 
         $comment = $db->query("
-            SELECT c.*, p.plain_text as post_excerpt, p.title as post_title, p.id as post_id
+            SELECT c.*, LEFT(p.plain_text, 100) as post_excerpt, p.id as post_id
             FROM comments c
             LEFT JOIN posts p ON c.post_id = p.id
             WHERE c.id = ?
@@ -81,7 +81,7 @@ class Email {
         $subject = "[$site_name] ✅ Dein Kommentar wurde genehmigt";
 
         $message = "Hallo " . $comment['author_name'] . "!\n\n";
-        $message .= "Dein Kommentar auf \"" . ($comment['post_title'] ?: substr($comment['post_excerpt'], 0, 50) . "...") . "\" wurde genehmigt und ist jetzt sichtbar.\n\n";
+        $message .= "Dein Kommentar auf \"" . substr($comment['post_excerpt'], 0, 50) . "...\" wurde genehmigt und ist jetzt sichtbar.\n\n";
         $message .= "Zum Beitrag: " . $site_url . "/?id=" . $comment['post_id'] . "\n\n";
         $message .= "Vielen Dank für deinen Kommentar!\n\n";
         $message .= "---\n";
