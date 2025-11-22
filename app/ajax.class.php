@@ -34,23 +34,22 @@ class Ajax
             throw new Exception("Direct access violation.");
         }
         
-        if ($_SESSION['token'] !== ($_POST['token'] ?? '')) {
+        // Check CSRF token from headers
+        $headers = array_change_key_case(getallheaders(), CASE_LOWER);
+        
+        if (!isset($headers['csrf-token'])) {
+            throw new Exception("No CSRF token.");
+        }
+        
+        if ($headers['csrf-token'] !== $_SESSION['token']) {
             throw new Exception("Wrong security token.");
         }
     }
     
     public function csrf(): void
     {
-        // Get all headers (case-insensitive)
-        $headers = array_change_key_case(getallheaders(), CASE_LOWER);
-        
-        if (!isset($headers['csrf-token'])) {
-            throw new Exception("CSRF token missing.");
-        }
-        
-        if ($headers['csrf-token'] !== $_SESSION['token']) {
-            throw new Exception("Wrong CSRF token.");
-        }
+        // Alias for token() for backward compatibility
+        $this->token();
     }
     
     public function set_response(?array $response = null): void
