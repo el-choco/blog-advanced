@@ -807,3 +807,39 @@ textarea#postText {
 #emojiPicker .emoji:active {
 	transform: scale(1.1);
 }
+/* ================================================
+   COMMENT SECTION HEIGHT FIX
+   ================================================ */
+
+/* Kommentar-Sektion soll sich an Inhalt anpassen, nicht riesig sein */
+.comments-section,
+.comments-container {
+    min-height: auto !important;
+    height: auto !important;
+}
+
+/* Leere Kommentar-Section kompakt halten */
+.comments-section:empty,
+.no-comments {
+    padding: 20px !important;
+    min-height: 60px !important;
+}
+
+/* Kommentar-Liste kompakt */
+.comments-list {
+    min-height: auto !important;
+}
+
+/* Kommentar-Formular kompakt */
+.comment-form-container {
+    margin-top: 15px;
+    padding: 15px;
+}
+
+/* Bei kleinen Posts: kompaktere Comment-Area */
+@media (max-width: 768px) {
+    .comments-section {
+        padding: 10px !important;
+    }
+}
+
