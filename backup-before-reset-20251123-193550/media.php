@@ -345,7 +345,7 @@ function formatFileSize($bytes) {
         background: #f0f2f5;
     }
     
-    .bulk-actions-bar { display: none !important;
+    .bulk-actions-bar {
         background: #fff3cd;
         padding: 15px;
         border-radius: 6px;

@@ -230,11 +230,5 @@ class AdminHelper {
         
         return $stats;
     }
-
-    public static function getTrashCount() {
-        $db = DB::get_instance();
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
-        return $result["count"] ?? 0;
-    }
 }
 ?>

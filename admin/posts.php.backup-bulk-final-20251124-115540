@@ -1,0 +1,490 @@
+<?php
+require_once 'common.php';
+
+// Handle actions
+$message = '';
+$message_type = '';
+
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    
+    // Bulk Actions
+    if($action === 'bulk' && isset($_POST['post_ids']) && isset($_POST['bulk_action'])) {
+        $post_ids = $_POST['post_ids'];
+        $bulk_action = $_POST['bulk_action'];
+        
+        $count = AdminHelper::bulkUpdate($post_ids, $bulk_action);
+        
+        $message = "$count Beiträge wurden aktualisiert";
+        $message_type = 'success';
+    }
+    
+    // Single Quick Action
+    if(isset($_POST['post_id']) && isset($_POST['quick_action'])) {
+        $post_id = $_POST['post_id'];
+        $quick_action = $_POST['quick_action'];
+        
+        $db = DB::get_instance();
+        
+        switch($quick_action) {
+            case 'toggle_sticky':
+                // Get current status
+                $current = $db->query("SELECT is_sticky FROM posts WHERE id = ?", [$post_id])->first();
+                
+                if ($current) {
+                    $new_sticky = $current['is_sticky'] ? 0 : 1;
+                    $db->query("UPDATE posts SET is_sticky = ? WHERE id = ?", [$new_sticky, $post_id]);
+                    $message = $new_sticky ? 'Beitrag als Sticky markiert' : 'Sticky entfernt';
+                    $message_type = 'success';
+                }
+                break;
+
+            case 'toggle_hidden':
+                // Get current status
+                $current = $db->query("SELECT status FROM posts WHERE id = ?", [$post_id])->first();
+                
+                if ($current) {
+                    $new_status = ($current['status'] == 4) ? 1 : 4;
+                    $db->query("UPDATE posts SET status = ? WHERE id = ?", [$new_status, $post_id]);
+                    $message = ($new_status == 4) ? 'Beitrag versteckt' : 'Beitrag sichtbar';
+                    $message_type = 'success';
+                }
+                break;
+                
+            case 'delete':
+                $db->query("UPDATE posts SET status = ? WHERE id = ?", [5, $post_id]);
+                $message = 'Beitrag in den Papierkorb verschoben';
+                $message_type = 'success';
+                break;
+        }
+    }
+}
+
+// Get filter and sort parameters
+$filter = $_GET['filter'] ?? 'all';
+$sort = $_GET['sort'] ?? 'date_desc';
+$search = $_GET['search'] ?? '';
+
+// Get all posts
+$all_posts = AdminHelper::getAllPosts(false);
+
+// Apply search filter
+if($search) {
+    $all_posts = array_filter($all_posts, function($post) use ($search) {
+        return stripos($post['text'], $search) !== false || 
+               stripos($post['id'], $search) !== false;
+    });
+}
+
+// Apply status filter
+$posts = array_filter($all_posts, function($post) use ($filter) {
+    switch($filter) {
+        case 'public':
+            return !$post['hidden'] && !$post['sticky'];
+        case 'hidden':
+            return $post['hidden'];
+        case 'sticky':
+            return $post['sticky'];
+        default:
+            return true;
+    }
+});
+
+// Apply sorting
+usort($posts, function($a, $b) use ($sort) {
+    switch($sort) {
+        case 'date_asc':
+            return $a['time'] - $b['time'];
+        case 'date_desc':
+            return $b['time'] - $a['time'];
+        case 'id_asc':
+            return $a['id'] - $b['id'];
+        case 'id_desc':
+            return $b['id'] - $a['id'];
+        default:
+            return $b['time'] - $a['time'];
+    }
+});
+
+// Count by status
+$count_all = count($all_posts);
+$count_public = count(array_filter($all_posts, fn($p) => !$p['hidden'] && !$p['sticky']));
+$count_hidden = count(array_filter($all_posts, fn($p) => $p['hidden']));
+$count_sticky = count(array_filter($all_posts, fn($p) => $p['sticky']));
+
+function escape($str) {
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+}
+?><!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Beiträge verwalten - <?php echo escape(Config::get("title")); ?></title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    
+    <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
+    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
+    <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
+    <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
+    
+    <style>
+    .posts-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #666;
+        background: white;
+        border: 1px solid #e5e5e5;
+        transition: all 0.2s;
+        font-size: 14px;
+    }
+    
+    .filter-tab:hover {
+        background: #f0f2f5;
+    }
+    
+    .filter-tab.active {
+        background: #1877f2;
+        color: white;
+        border-color: #1877f2;
+        font-weight: 600;
+    }
+    
+    .filter-count {
+        background: rgba(0,0,0,0.1);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+    
+    .search-sort {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        padding: 8px 12px;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 200px;
+    }
+    
+    .sort-select {
+        padding: 8px 12px;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+    }
+    
+    .bulk-actions-bar {
+        background: #fff3cd;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .bulk-actions-bar.active {
+        display: flex;
+    }
+    
+    .bulk-select {
+        padding: 8px 12px;
+        border: 1px solid #856404;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+    }
+    
+    .checkbox-cell {
+        width: 40px;
+        text-align: center;
+    }
+    
+    .post-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    #select-all {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .message {
+        padding: 12px 20px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .message-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .message-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .quick-action-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    
+    .quick-action-btn:hover {
+        background: #f0f2f5;
+    }
+    
+    .post-text-preview {
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    </style>
+</head>
+<body class="admin-body">
+    
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-container">
+            <h1>📝 Beiträge verwalten</h1>
+            <div class="admin-user">
+                <span>👤 <?php echo escape(Config::get("name")); ?></span>
+                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <a href="index.php">📊 Dashboard</a>
+                <a href="posts.php" class="active">📝 Beiträge <span class="badge"><?php echo $count_all; ?></span></a>
+                <a href="comments.php">💬 Kommentare</a>
+                <a href="media.php">📁 Dateien</a>
+                <a href="trash.php">🗑️ Papierkorb</a>
+                <a href="settings.php">⚙️ Einstellungen</a>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-content">
+            
+            <?php if($message): ?>
+            <div class="message message-<?php echo $message_type; ?>">
+                <?php echo escape($message); ?>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Filter and Search -->
+            <div class="posts-header">
+                <div class="filter-tabs">
+                    <a href="?filter=all" class="filter-tab <?php echo $filter === 'all' ? 'active' : ''; ?>">
+                        Alle <span class="filter-count"><?php echo $count_all; ?></span>
+                    </a>
+                    <a href="?filter=public" class="filter-tab <?php echo $filter === 'public' ? 'active' : ''; ?>">
+                        Öffentlich <span class="filter-count"><?php echo $count_public; ?></span>
+                    </a>
+                    <a href="?filter=sticky" class="filter-tab <?php echo $filter === 'sticky' ? 'active' : ''; ?>">
+                        📌 Sticky <span class="filter-count"><?php echo $count_sticky; ?></span>
+                    </a>
+                    <a href="?filter=hidden" class="filter-tab <?php echo $filter === 'hidden' ? 'active' : ''; ?>">
+                        👁️‍🗨️ Versteckt <span class="filter-count"><?php echo $count_hidden; ?></span>
+                    </a>
+                </div>
+                
+                <div class="search-sort">
+                    <form method="GET" style="display: flex; gap: 10px;">
+                        <input type="hidden" name="filter" value="<?php echo escape($filter); ?>">
+                        <input type="hidden" name="sort" value="<?php echo escape($sort); ?>">
+                        <input type="search" name="search" class="search-box" placeholder="🔍 Suche..." value="<?php echo escape($search); ?>">
+                        <button type="submit" class="btn btn-primary">Suchen</button>
+                    </form>
+                    
+                    <select class="sort-select" onchange="window.location.href='?filter=<?php echo escape($filter); ?>&sort='+this.value+'&search=<?php echo escape($search); ?>'">
+                        <option value="date_desc" <?php echo $sort === 'date_desc' ? 'selected' : ''; ?>>Neueste zuerst</option>
+                        <option value="date_asc" <?php echo $sort === 'date_asc' ? 'selected' : ''; ?>>Älteste zuerst</option>
+                        <option value="id_desc" <?php echo $sort === 'id_desc' ? 'selected' : ''; ?>>ID absteigend</option>
+                        <option value="id_asc" <?php echo $sort === 'id_asc' ? 'selected' : ''; ?>>ID aufsteigend</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Bulk Actions Bar -->
+            <form method="POST" id="bulkForm">
+                <input type="hidden" name="action" value="bulk">
+                
+                <div class="bulk-actions-bar" id="bulkBar">
+                    <span id="selectedCount">0 ausgewählt</span>
+                    <select name="bulk_action" class="bulk-select">
+                        <option value="">Aktion wählen...</option>
+                        <option value="sticky">📌 Als Sticky markieren</option>
+                        <option value="unsticky">Sticky entfernen</option>
+                        <option value="hide">👁️‍🗨️ Verstecken</option>
+                        <option value="show">👁️ Sichtbar machen</option>
+                        <option value="delete">🗑️ In Papierkorb</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Ausführen</button>
+                    <button type="button" class="btn btn-sm" onclick="clearSelection()">Abbrechen</button>
+                </div>
+                
+                <!-- Posts Table -->
+                <div class="admin-panel">
+                    <div class="panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-cell">
+                                        <input type="checkbox" id="select-all">
+                                    </th>
+                                    <th>ID</th>
+                                    <th>Inhalt</th>
+                                    <th>Status</th>
+                                    <th>Datum</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if(empty($posts)): ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            <?php if($search): ?>
+                                                Keine Beiträge gefunden für "<?php echo escape($search); ?>"
+                                            <?php else: ?>
+                                                Keine Beiträge in dieser Kategorie
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach($posts as $post): ?>
+                                        <tr>
+                                            <td class="checkbox-cell">
+                                                <input type="checkbox" name="post_ids[]" value="<?php echo escape($post['id']); ?>" class="post-checkbox">
+                                            </td>
+                                            <td><code>#<?php echo escape($post['id']); ?></code></td>
+                                            <td>
+                                                <div class="post-text-preview">
+                                                    <?php echo escape(AdminHelper::getExcerpt($post['text'], 100)); ?>
+                                                </div>
+                                                <?php if($post['has_images']): ?>
+                                                    <span class="badge badge-info">🖼️ <?php echo $post['image_count']; ?></span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><?php echo AdminHelper::getStatusBadge($post); ?></td>
+                                            <td><?php echo AdminHelper::formatDate($post['time']); ?></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a href="../#id=<?php echo $post['id']; ?>" class="btn btn-sm" title="Anzeigen" target="_blank">👁️</a>                                                    
+                                                    <form method="POST" style="display: inline;">
+                                                        <input type="hidden" name="action" value="">
+                                                        <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
+                                                        <input type="hidden" name="quick_action" value="toggle_sticky">
+                                                        <button type="submit" class="quick-action-btn" title="<?php echo $post['sticky'] ? 'Sticky entfernen' : 'Als Sticky markieren'; ?>">
+                                                            <?php echo $post['sticky'] ? '📍' : '📌'; ?>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <form method="POST" style="display: inline;">
+                                                        <input type="hidden" name="action" value="">
+                                                        <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
+                                                        <input type="hidden" name="quick_action" value="toggle_hidden">
+                                                        <button type="submit" class="quick-action-btn" title="<?php echo $post['hidden'] ? 'Sichtbar machen' : 'Verstecken'; ?>">
+                                                            <?php echo $post['hidden'] ? '👁️' : '👁️‍🗨️'; ?>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Beitrag in den Papierkorb verschieben?');">
+                                                        <input type="hidden" name="action" value="">
+                                                        <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
+                                                        <input type="hidden" name="quick_action" value="delete">
+                                                        <button type="submit" class="quick-action-btn" title="Löschen">🗑️</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </form>
+            
+        </main>
+        
+    </div>
+    
+    <script>
+    // Select All functionality
+    document.getElementById('select-all').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.post-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateBulkBar();
+    });
+    
+    // Update bulk bar when checkboxes change
+    document.querySelectorAll('.post-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateBulkBar);
+    });
+    
+    function updateBulkBar() {
+        const checked = document.querySelectorAll('.post-checkbox:checked');
+        const bulkBar = document.getElementById('bulkBar');
+        const count = document.getElementById('selectedCount');
+        
+        if(checked.length > 0) {
+            bulkBar.classList.add('active');
+            count.textContent = checked.length + ' ausgewählt';
+        } else {
+            bulkBar.classList.remove('active');
+        }
+    }
+    
+    function clearSelection() {
+        document.querySelectorAll('.post-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('select-all').checked = false;
+        updateBulkBar();
+    }
+    </script>
+    
+</body>
+</html>

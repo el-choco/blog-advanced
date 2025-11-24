@@ -8,7 +8,7 @@ if (!User::is_logged_in()) {
 }
 
 // Load Backup class
-require_once PROJECT_PATH . 'app/backup.class.php';
+require_once APP_PATH . 'backup.class.php';
 
 $page_title = 'Backup-Verwaltung';
 $error = null;

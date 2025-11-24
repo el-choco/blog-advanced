@@ -8,28 +8,7 @@ $message_type = '';
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     
-    // Bulk Actions
-    if($action === 'bulk' && isset($_POST['post_ids']) && isset($_POST['bulk_action'])) {
-        $post_ids = $_POST['post_ids'];
-        $bulk_action = $_POST['bulk_action'];
-        $count = 0;
-        
-        foreach($post_ids as $post_id) {
-            if($bulk_action === 'restore') {
-                if(AdminHelper::updatePost($post_id, ['deleted' => false])) {
-                    $count++;
-                }
-            } elseif($bulk_action === 'delete_permanent') {
-                if(AdminHelper::permanentDelete($post_id)) {
-                    $count++;
-                }
-            }
-        }
-        
-        $msg = ($bulk_action === 'restore') ? 'wiederhergestellt' : 'endgültig gelöscht';
-        $message = "$count Beiträge wurden $msg";
-        $message_type = 'success';
-    }
+    $db = DB::get_instance();
     
     // Single Quick Action
     if(isset($_POST['post_id']) && isset($_POST['quick_action'])) {
@@ -37,10 +16,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $quick_action = $_POST['quick_action'];
         
         if($quick_action === 'restore') {
-            if(AdminHelper::updatePost($post_id, ['deleted' => false])) {
-                $message = 'Beitrag wiederhergestellt';
-                $message_type = 'success';
-            }
+            // Status 1 = Published (wiederhergestellt)
+            $db->query("UPDATE posts SET status = ? WHERE id = ?", [1, $post_id]);
+            $message = 'Beitrag wiederhergestellt';
+            $message_type = 'success';
         } elseif($quick_action === 'delete_permanent') {
             if(AdminHelper::permanentDelete($post_id)) {
                 $message = 'Beitrag endgültig gelöscht';
@@ -51,7 +30,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     
     // Empty trash
     if($action === 'empty_trash') {
-        $db = DB::get_instance();
         $trash_posts = $db->query("SELECT id FROM posts WHERE status = 5")->all();
         $count = 0;
         
@@ -88,6 +66,19 @@ function escape($str) {
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
     
     <style>
+    /* Bulk Actions komplett versteckt */
+    .bulk-actions-bar,
+    .bulk-select,
+    .post-checkbox,
+    .file-checkbox,
+    #select-all,
+    #selectAll,
+    .checkbox-cell,
+    #bulkBar,
+    #bulkForm {
+        display: none !important;
+    }
+    
     .trash-warning {
         background: #fff3cd;
         border: 1px solid #ffc107;
@@ -145,45 +136,6 @@ function escape($str) {
         margin-bottom: 20px;
     }
     
-    .checkbox-cell {
-        width: 40px;
-        text-align: center;
-    }
-    
-    .post-checkbox {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-    }
-    
-    #select-all {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-    }
-    
-    .bulk-actions-bar {
-        background: #fff3cd;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 20px;
-        display: none;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .bulk-actions-bar.active {
-        display: flex;
-    }
-    
-    .bulk-select {
-        padding: 8px 12px;
-        border: 1px solid #856404;
-        border-radius: 6px;
-        font-size: 14px;
-        background: white;
-    }
-    
     .message {
         padding: 12px 20px;
         border-radius: 6px;
@@ -218,9 +170,17 @@ function escape($str) {
         white-space: nowrap;
     }
     
-    .deleted-time {
-        font-size: 12px;
-        color: #999;
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .badge-info {
+        background: #17a2b8;
+        color: white;
     }
     </style>
 </head>
@@ -295,120 +255,60 @@ function escape($str) {
                     </form>
                 </div>
                 
-                <!-- Bulk Actions Bar -->
-                <form method="POST" id="bulkForm">
-                    <input type="hidden" name="action" value="bulk">
-                    
-                    <div class="bulk-actions-bar" id="bulkBar">
-                        <span id="selectedCount">0 ausgewählt</span>
-                        <select name="bulk_action" class="bulk-select" required>
-                            <option value="">Aktion wählen...</option>
-                            <option value="restore">♻️ Wiederherstellen</option>
-                            <option value="delete_permanent">🗑️ Endgültig löschen</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Ausführen</button>
-                        <button type="button" class="btn btn-sm" onclick="clearSelection()">Abbrechen</button>
-                    </div>
-                    
-                    <!-- Trash Table -->
-                    <div class="admin-panel">
-                        <div class="panel-body" style="padding: 0;">
-                            <table class="admin-table">
-                                <thead>
+                <!-- Trash Table -->
+                <div class="admin-panel">
+                    <div class="panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Inhalt</th>
+                                    <th>Gelöscht am</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($trash_posts as $post): ?>
                                     <tr>
-                                        <th class="checkbox-cell">
-                                            <input type="checkbox" id="select-all">
-                                        </th>
-                                        <th>ID</th>
-                                        <th>Inhalt</th>
-                                        <th>Gelöscht am</th>
-                                        <th>Aktionen</th>
+                                        <td><code>#<?php echo escape($post['id']); ?></code></td>
+                                        <td>
+                                            <div class="post-text-preview">
+                                                <?php echo escape(AdminHelper::getExcerpt($post['text'], 100)); ?>
+                                            </div>
+                                            <?php if($post['has_images']): ?>
+                                                <span class="badge badge-info">🖼️ <?php echo $post['image_count']; ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo AdminHelper::formatDate($post['time']); ?></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <form method="POST" style="display: inline;">
+                                                    <input type="hidden" name="action" value="">
+                                                    <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
+                                                    <input type="hidden" name="quick_action" value="restore">
+                                                    <button type="submit" class="quick-action-btn" title="Wiederherstellen">♻️</button>
+                                                </form>
+                                                
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden!');">
+                                                    <input type="hidden" name="action" value="">
+                                                    <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
+                                                    <input type="hidden" name="quick_action" value="delete_permanent">
+                                                    <button type="submit" class="quick-action-btn" title="Endgültig löschen" style="color: #dc3545;">🗑️</button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach($trash_posts as $post): ?>
-                                        <tr>
-                                            <td class="checkbox-cell">
-                                                <input type="checkbox" name="post_ids[]" value="<?php echo escape($post['id']); ?>" class="post-checkbox">
-                                            </td>
-                                            <td><code>#<?php echo escape($post['id']); ?></code></td>
-                                            <td>
-                                                <div class="post-text-preview">
-                                                    <?php echo escape(AdminHelper::getExcerpt($post['text'], 100)); ?>
-                                                </div>
-                                                <?php if($post['has_images']): ?>
-                                                    <span class="badge badge-info">🖼️ <?php echo $post['image_count']; ?></span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td><?php echo AdminHelper::formatDate($post['time']); ?></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <form method="POST" style="display: inline;">
-                                                        <input type="hidden" name="action" value="">
-                                                        <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
-                                                        <input type="hidden" name="quick_action" value="restore">
-                                                        <button type="submit" class="quick-action-btn" title="Wiederherstellen">♻️</button>
-                                                    </form>
-                                                    
-                                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden!');">
-                                                        <input type="hidden" name="action" value="">
-                                                        <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
-                                                        <input type="hidden" name="quick_action" value="delete_permanent">
-                                                        <button type="submit" class="quick-action-btn" title="Endgültig löschen" style="color: #dc3545;">🗑️</button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
-                </form>
+                </div>
                 
             <?php endif; ?>
             
         </main>
         
     </div>
-    
-    <script>
-    // Select All functionality
-    const selectAll = document.getElementById('select-all');
-    if(selectAll) {
-        selectAll.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.post-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            updateBulkBar();
-        });
-    }
-    
-    // Update bulk bar when checkboxes change
-    document.querySelectorAll('.post-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateBulkBar);
-    });
-    
-    function updateBulkBar() {
-        const checked = document.querySelectorAll('.post-checkbox:checked');
-        const bulkBar = document.getElementById('bulkBar');
-        const count = document.getElementById('selectedCount');
-        
-        if(checked.length > 0) {
-            bulkBar.classList.add('active');
-            count.textContent = checked.length + ' ausgewählt';
-        } else {
-            bulkBar.classList.remove('active');
-        }
-    }
-    
-    function clearSelection() {
-        document.querySelectorAll('.post-checkbox').forEach(cb => cb.checked = false);
-        if(document.getElementById('select-all')) {
-            document.getElementById('select-all').checked = false;
-        }
-        updateBulkBar();
-    }
-    </script>
     
 </body>
 </html>

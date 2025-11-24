@@ -196,45 +196,5 @@ class AdminHelper {
         
         return true;
     }
-
-    public static function getPostStats() {
-        $db = DB::get_instance();
-        
-        $stats = [
-            'total' => 0,
-            'published' => 0,
-            'hidden' => 0,
-            'sticky' => 0,
-            'deleted' => 0
-        ];
-        
-        // Total posts (excluding deleted)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status != 5")->first();
-        $stats['total'] = $result['count'] ?? 0;
-        
-        // Published (status = 1)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 1")->first();
-        $stats['published'] = $result['count'] ?? 0;
-        
-        // Hidden (status = 4)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 4")->first();
-        $stats['hidden'] = $result['count'] ?? 0;
-        
-        // Sticky
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE is_sticky = 1 AND status != 5")->first();
-        $stats['sticky'] = $result['count'] ?? 0;
-        
-        // Deleted (status = 5)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
-        $stats['deleted'] = $result['count'] ?? 0;
-        
-        return $stats;
-    }
-
-    public static function getTrashCount() {
-        $db = DB::get_instance();
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
-        return $result["count"] ?? 0;
-    }
 }
 ?>

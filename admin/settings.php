@@ -7,50 +7,159 @@ $message_type = '';
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
+    $config_file = PROJECT_PATH . 'config.ini';
+    $config = parse_ini_file($config_file, true);
     
     // Update general settings
     if($action === 'update_general') {
-        $config_file = PROJECT_PATH . 'data/config.ini';
-        $config = parse_ini_file($config_file, true);
+        // Profile settings
+        if(!isset($config['profile'])) $config['profile'] = [];
+        $config['profile']['title'] = $_POST['title'] ?? $config['profile']['title'] ?? '';
+        $config['profile']['name'] = $_POST['name'] ?? $config['profile']['name'] ?? '';
         
-        // Update values
-        if(isset($_POST['title'])) {
-            $config['title'] = $_POST['title'];
-        }
-        if(isset($_POST['name'])) {
-            $config['name'] = $_POST['name'];
-        }
-        if(isset($_POST['subtitle'])) {
-            $config['subtitle'] = $_POST['subtitle'];
-        }
-        if(isset($_POST['lang'])) {
-            $config['lang'] = $_POST['lang'];
-        }
-        if(isset($_POST['timezone'])) {
-            $config['timezone'] = $_POST['timezone'];
-        }
-        if(isset($_POST['theme'])) {
-            $config['theme'] = $_POST['theme'];
-        }
+        // Top-level settings (for backward compatibility)
+        $config['title'] = $_POST['title'] ?? '';
+        $config['name'] = $_POST['name'] ?? '';
+        $config['subtitle'] = $_POST['subtitle'] ?? '';
+        $config['lang'] = $_POST['lang'] ?? 'de';
+        $config['timezone'] = $_POST['timezone'] ?? 'Europe/Berlin';
+        $config['theme'] = $_POST['theme'] ?? 'theme01';
         
-        // Write config file
-        $content = '';
-        foreach($config as $key => $value) {
-            if(is_array($value)) {
-                $content .= "[$key]\n";
-                foreach($value as $k => $v) {
-                    $content .= "$k = \"$v\"\n";
-                }
-            } else {
-                $content .= "$key = \"$value\"\n";
-            }
-        }
+        // Visitor settings
+        if(!isset($config['visitor'])) $config['visitor'] = [];
+        $config['visitor']['enabled'] = isset($_POST['visitor_enabled']) ? '1' : '0';
+        $config['visitor']['title'] = $_POST['title'] ?? '';
+        $config['visitor']['name'] = $_POST['name'] ?? '';
+        $config['visitor']['subtitle'] = $_POST['subtitle'] ?? '';
+        $config['visitor']['lang'] = $_POST['lang'] ?? 'de';
+        $config['visitor']['timezone'] = $_POST['timezone'] ?? 'Europe/Berlin';
         
-        if(file_put_contents($config_file, $content)) {
-            $message = 'Einstellungen wurden gespeichert';
+        // Custom settings
+        if(!isset($config['custom'])) $config['custom'] = [];
+        $config['custom']['theme'] = $_POST['theme'] ?? 'theme01';
+        
+        // Language settings
+        if(!isset($config['language'])) $config['language'] = [];
+        $config['language']['lang'] = $_POST['lang'] ?? 'de';
+        
+        // System settings
+        if(!isset($config['system'])) $config['system'] = [];
+        $config['system']['timezone'] = $_POST['timezone'] ?? 'Europe/Berlin';
+        $config['system']['debug'] = isset($_POST['debug']) ? '1' : '';
+        $config['system']['logs'] = isset($_POST['logs']) ? '1' : '0';
+        $config['system']['SOFT_DELETE'] = isset($_POST['soft_delete']) ? '1' : '';
+        $config['system']['HARD_DELETE_FILES'] = isset($_POST['hard_delete_files']) ? '1' : '0';
+        $config['system']['AUTO_CLEANUP_IMAGES'] = isset($_POST['auto_cleanup']) ? '1' : '';
+        
+        // Components
+        if(!isset($config['components'])) $config['components'] = [];
+        $config['components']['highlight'] = isset($_POST['highlight']) ? '1' : '0';
+        
+        if(writeConfig($config_file, $config)) {
+            $message = '✅ Allgemeine Einstellungen gespeichert';
             $message_type = 'success';
         } else {
-            $message = 'Fehler beim Speichern der Einstellungen';
+            $message = '❌ Fehler beim Speichern';
+            $message_type = 'error';
+        }
+    }
+    
+    // Update email settings
+    if($action === 'update_email') {
+        if(!isset($config['email'])) $config['email'] = [];
+        $config['email']['notifications_enabled'] = isset($_POST['notifications_enabled']) ? '1' : '0';
+        $config['email']['admin_email'] = $_POST['admin_email'] ?? '';
+        $config['email']['notify_admin_new_comment'] = isset($_POST['notify_admin_new_comment']) ? '1' : '0';
+        $config['email']['notify_user_approved'] = isset($_POST['notify_user_approved']) ? '1' : '0';
+        $config['email']['from_email'] = $_POST['from_email'] ?? '';
+        $config['email']['from_name'] = $_POST['from_name'] ?? '';
+        
+        if(writeConfig($config_file, $config)) {
+            $message = '✅ E-Mail Einstellungen gespeichert';
+            $message_type = 'success';
+        } else {
+            $message = '❌ Fehler beim Speichern';
+            $message_type = 'error';
+        }
+    }
+    
+    // Update database settings
+    if($action === 'update_database') {
+        if(!isset($config['database'])) $config['database'] = [];
+        $config['database']['mysql_host'] = $_POST['mysql_host'] ?? 'db';
+        $config['database']['mysql_port'] = $_POST['mysql_port'] ?? '3306';
+        $config['database']['mysql_user'] = $_POST['mysql_user'] ?? '';
+        
+        // Only update password if provided
+        if(!empty($_POST['mysql_pass'])) {
+            $config['database']['mysql_pass'] = $_POST['mysql_pass'];
+        }
+        
+        $config['database']['db_name'] = $_POST['db_name'] ?? 'blog';
+        
+        if(writeConfig($config_file, $config)) {
+            $message = '✅ Datenbank Einstellungen gespeichert (Neustart des Containers erforderlich!)';
+            $message_type = 'success';
+        } else {
+            $message = '❌ Fehler beim Speichern';
+            $message_type = 'error';
+        }
+    }
+    
+    // Update admin settings
+    if($action === 'update_admin') {
+        if(!isset($config['admin'])) $config['admin'] = [];
+        $config['admin']['force_login'] = isset($_POST['force_login']) ? '1' : '0';
+        $config['admin']['nick'] = $_POST['admin_nick'] ?? 'admin';
+        
+        if(writeConfig($config_file, $config)) {
+            $message = '✅ Admin Einstellungen gespeichert';
+            $message_type = 'success';
+        } else {
+            $message = '❌ Fehler beim Speichern';
+            $message_type = 'error';
+        }
+    }
+    
+    // Change password
+    if($action === 'change_password') {
+        $current_pass = $_POST['current_password'] ?? '';
+        $new_pass = $_POST['new_password'] ?? '';
+        $confirm_pass = $_POST['confirm_password'] ?? '';
+        
+        $stored_hash = $config['admin']['pass'] ?? $config['pass'] ?? '';
+        
+        // Check if old password is plain text or hashed
+        $is_valid = false;
+        if(password_get_info($stored_hash)['algo'] !== null) {
+            // Hashed password
+            $is_valid = password_verify($current_pass, $stored_hash);
+        } else {
+            // Plain text password (old format)
+            $is_valid = ($current_pass === $stored_hash);
+        }
+        
+        if($is_valid) {
+            if($new_pass === $confirm_pass && strlen($new_pass) >= 6) {
+                $new_hash = password_hash($new_pass, PASSWORD_DEFAULT);
+                
+                if(!isset($config['admin'])) $config['admin'] = [];
+                $config['admin']['pass'] = $new_hash;
+                $config['pass'] = $new_hash; // Backward compatibility
+                
+                if(writeConfig($config_file, $config)) {
+                    $message = '✅ Passwort wurde geändert';
+                    $message_type = 'success';
+                } else {
+                    $message = '❌ Fehler beim Speichern';
+                    $message_type = 'error';
+                }
+            } else {
+                $message = '❌ Passwörter stimmen nicht überein oder sind zu kurz (min. 6 Zeichen)';
+                $message_type = 'error';
+            }
+        } else {
+            $message = '❌ Aktuelles Passwort ist falsch';
             $message_type = 'error';
         }
     }
@@ -66,7 +175,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             finfo_close($finfo);
             
             if(in_array($mime, $allowed)) {
-                $upload_dir = PROJECT_PATH . 'data/images/';
+                $upload_dir = PROJECT_PATH . 'static/images/';
                 if(!is_dir($upload_dir)) {
                     @mkdir($upload_dir, 0755, true);
                 }
@@ -75,92 +184,54 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $dest = $upload_dir . 'cover.' . $ext;
                 
                 if(move_uploaded_file($file['tmp_name'], $dest)) {
-                    // Update config
-                    $config_file = PROJECT_PATH . 'data/config.ini';
-                    $config = parse_ini_file($config_file, true);
-                    $config['cover'] = 'data/images/cover.' . $ext;
+                    if(!isset($config['profile'])) $config['profile'] = [];
+                    $config['profile']['cover'] = 'static/images/cover.' . $ext;
+                    $config['cover'] = 'static/images/cover.' . $ext;
                     
-                    $content = '';
-                    foreach($config as $key => $value) {
-                        if(is_array($value)) {
-                            $content .= "[$key]\n";
-                            foreach($value as $k => $v) {
-                                $content .= "$k = \"$v\"\n";
-                            }
-                        } else {
-                            $content .= "$key = \"$value\"\n";
-                        }
+                    if(writeConfig($config_file, $config)) {
+                        $message = '✅ Cover-Bild hochgeladen';
+                        $message_type = 'success';
                     }
-                    
-                    file_put_contents($config_file, $content);
-                    
-                    $message = 'Cover-Bild wurde hochgeladen';
-                    $message_type = 'success';
                 } else {
-                    $message = 'Fehler beim Hochladen';
+                    $message = '❌ Fehler beim Hochladen';
                     $message_type = 'error';
                 }
             } else {
-                $message = 'Nur Bilder erlaubt (JPG, PNG, GIF, WebP)';
+                $message = '❌ Nur Bilder erlaubt (JPG, PNG, GIF, WebP)';
                 $message_type = 'error';
             }
         }
     }
     
-    // Change password
-    if($action === 'change_password') {
-        $current_pass = $_POST['current_password'] ?? '';
-        $new_pass = $_POST['new_password'] ?? '';
-        $confirm_pass = $_POST['confirm_password'] ?? '';
-        
-        // Verify current password
-        $config = parse_ini_file(PROJECT_PATH . 'data/config.ini', true);
-        $stored_hash = $config['pass'] ?? '';
-        
-        if(password_verify($current_pass, $stored_hash)) {
-            if($new_pass === $confirm_pass) {
-                if(strlen($new_pass) >= 6) {
-                    $new_hash = password_hash($new_pass, PASSWORD_DEFAULT);
-                    
-                    $config_file = PROJECT_PATH . 'data/config.ini';
-                    $config['pass'] = $new_hash;
-                    
-                    $content = '';
-                    foreach($config as $key => $value) {
-                        if(is_array($value)) {
-                            $content .= "[$key]\n";
-                            foreach($value as $k => $v) {
-                                $content .= "$k = \"$v\"\n";
-                            }
-                        } else {
-                            $content .= "$key = \"$value\"\n";
-                        }
-                    }
-                    
-                    if(file_put_contents($config_file, $content)) {
-                        $message = 'Passwort wurde geändert';
-                        $message_type = 'success';
-                    } else {
-                        $message = 'Fehler beim Speichern';
-                        $message_type = 'error';
-                    }
-                } else {
-                    $message = 'Passwort muss mindestens 6 Zeichen lang sein';
-                    $message_type = 'error';
-                }
-            } else {
-                $message = 'Passwörter stimmen nicht überein';
-                $message_type = 'error';
-            }
-        } else {
-            $message = 'Aktuelles Passwort ist falsch';
-            $message_type = 'error';
-        }
-    }
+    // Reload config after changes
+    $config = parse_ini_file($config_file, true);
 }
 
 // Load current config
-$config = parse_ini_file(PROJECT_PATH . 'data/config.ini', true);
+$config = parse_ini_file(PROJECT_PATH . 'config.ini', true);
+
+// Helper function to write config
+function writeConfig($file, $config) {
+    $content = '';
+    foreach($config as $key => $value) {
+        if(is_array($value)) {
+            $content .= "[$key]\n";
+            foreach($value as $k => $v) {
+                $content .= "$k = \"$v\"\n";
+            }
+        } else {
+            $content .= "$key = \"$value\"\n";
+        }
+    }
+    return file_put_contents($file, $content);
+}
+
+// Get config value with fallback
+function getConfig($config, $section, $key, $default = '') {
+    if(isset($config[$section][$key])) return $config[$section][$key];
+    if(isset($config[$key])) return $config[$key];
+    return $default;
+}
 
 // Available themes
 $themes = [];
@@ -172,18 +243,18 @@ foreach($theme_files as $theme_file) {
 
 // Available languages
 $languages = [
-    'en' => 'English',
-    'de' => 'Deutsch',
-    'es' => 'Español',
-    'fr' => 'Français',
-    'it' => 'Italiano',
-    'pt' => 'Português',
-    'ru' => 'Русский',
-    'zh' => '中文',
-    'ja' => '日本語'
+    'en' => '🇬🇧 English',
+    'de' => '🇩🇪 Deutsch',
+    'es' => '🇪🇸 Español',
+    'fr' => '🇫🇷 Français',
+    'it' => '🇮🇹 Italiano',
+    'pt' => '🇵🇹 Português',
+    'ru' => '🇷🇺 Русский',
+    'zh' => '🇨🇳 中文',
+    'ja' => '🇯🇵 日本語'
 ];
 
-// Available timezones (common ones)
+// Available timezones
 $timezones = [
     'UTC' => 'UTC',
     'Europe/Berlin' => 'Europe/Berlin (CET/CEST)',
@@ -194,7 +265,6 @@ $timezones = [
     'Europe/Zurich' => 'Europe/Zurich (CET/CEST)',
     'America/New_York' => 'America/New York (EST/EDT)',
     'America/Chicago' => 'America/Chicago (CST/CDT)',
-    'America/Denver' => 'America/Denver (MST/MDT)',
     'America/Los_Angeles' => 'America/Los Angeles (PST/PDT)',
     'Asia/Tokyo' => 'Asia/Tokyo (JST)',
     'Asia/Shanghai' => 'Asia/Shanghai (CST)',
@@ -208,40 +278,80 @@ function escape($str) {
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Einstellungen - <?php echo escape(Config::get("title")); ?></title>
+    <title>⚙️ Einstellungen - <?php echo escape(getConfig($config, 'profile', 'title', 'Blog')); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     
     <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
+    <link href="../static/styles/<?php echo rawurlencode(getConfig($config, 'custom', 'theme', 'theme01')); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
     
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
-    
     <style>
-    .settings-grid {
-        display: grid;
-        gap: 20px;
+    .settings-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e5e5e5;
+        overflow-x: auto;
+    }
+    
+    .tab-button {
+        padding: 12px 20px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    
+    .tab-button:hover {
+        color: #1877f2;
+    }
+    
+    .tab-button.active {
+        color: #1877f2;
+        border-bottom-color: #1877f2;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
     }
     
     .settings-section {
         background: white;
         border-radius: 8px;
         padding: 25px;
+        margin-bottom: 20px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     
-    .settings-section-title {
-        font-size: 18px;
+    .section-title {
+        font-size: 16px;
         font-weight: 600;
         margin-bottom: 20px;
         padding-bottom: 10px;
         border-bottom: 2px solid #f0f0f0;
     }
     
+    .form-grid {
+        display: grid;
+        gap: 20px;
+    }
+    
+    .form-grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 0;
     }
     
     .form-label {
@@ -252,7 +362,7 @@ function escape($str) {
         color: #333;
     }
     
-    .form-input {
+    .form-input, .form-select, .form-textarea {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid #e5e5e5;
@@ -261,27 +371,12 @@ function escape($str) {
         transition: border-color 0.2s;
     }
     
-    .form-input:focus {
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
         outline: none;
         border-color: #1877f2;
     }
     
-    .form-select {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #e5e5e5;
-        border-radius: 6px;
-        font-size: 14px;
-        background: white;
-        cursor: pointer;
-    }
-    
     .form-textarea {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #e5e5e5;
-        border-radius: 6px;
-        font-size: 14px;
         min-height: 100px;
         resize: vertical;
     }
@@ -292,10 +387,28 @@ function escape($str) {
         margin-top: 5px;
     }
     
+    .form-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .form-checkbox label {
+        cursor: pointer;
+        margin: 0;
+        font-weight: normal;
+    }
+    
     .btn-save {
         background: #1877f2;
         color: white;
-        padding: 10px 20px;
+        padding: 12px 24px;
         border-radius: 6px;
         border: none;
         cursor: pointer;
@@ -306,20 +419,16 @@ function escape($str) {
     
     .btn-save:hover {
         background: #166fe5;
-    }
-    
-    .current-cover {
-        max-width: 300px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
     }
     
     .message {
-        padding: 12px 20px;
+        padding: 15px 20px;
         border-radius: 6px;
         margin-bottom: 20px;
         font-size: 14px;
+        font-weight: 500;
     }
     
     .message-success {
@@ -334,11 +443,34 @@ function escape($str) {
         border: 1px solid #f5c6cb;
     }
     
-    .theme-preview {
+    .current-cover {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #1877f2;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .theme-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
-        margin-top: 10px;
+        gap: 15px;
     }
     
     .theme-option {
@@ -354,7 +486,7 @@ function escape($str) {
     .theme-card {
         border: 3px solid #e5e5e5;
         border-radius: 8px;
-        padding: 15px;
+        padding: 20px;
         text-align: center;
         transition: all 0.2s;
     }
@@ -366,31 +498,8 @@ function escape($str) {
     
     .theme-card:hover {
         border-color: #1877f2;
+        transform: translateY(-2px);
     }
-    
-    .theme-name {
-        font-size: 12px;
-        font-weight: 600;
-        margin-top: 5px;
-    }
-    
-    .password-strength {
-        height: 4px;
-        background: #e5e5e5;
-        border-radius: 2px;
-        margin-top: 8px;
-        overflow: hidden;
-    }
-    
-    .password-strength-bar {
-        height: 100%;
-        width: 0%;
-        transition: all 0.3s;
-    }
-    
-    .strength-weak { background: #dc3545; width: 33%; }
-    .strength-medium { background: #ffc107; width: 66%; }
-    .strength-strong { background: #28a745; width: 100%; }
     </style>
 </head>
 <body class="admin-body">
@@ -400,7 +509,7 @@ function escape($str) {
         <div class="admin-container">
             <h1>⚙️ Einstellungen</h1>
             <div class="admin-user">
-                <span>👤 <?php echo escape(Config::get("name")); ?></span>
+                <span>👤 <?php echo escape(getConfig($config, 'profile', 'name', 'Admin')); ?></span>
                 <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
             </div>
         </div>
@@ -429,98 +538,141 @@ function escape($str) {
             </div>
             <?php endif; ?>
             
-            <div class="settings-grid">
-                
-                <!-- General Settings -->
-                <div class="settings-section">
-                    <h2 class="settings-section-title">📝 Allgemeine Einstellungen</h2>
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="tab-button active" data-tab="general">📝 Allgemein</button>
+                <button class="tab-button" data-tab="appearance">🎨 Aussehen</button>
+                <button class="tab-button" data-tab="email">📧 E-Mail</button>
+                <button class="tab-button" data-tab="database">🗄️ Datenbank</button>
+                <button class="tab-button" data-tab="admin">🔐 Admin</button>
+                <button class="tab-button" data-tab="system">⚙️ System</button>
+                <button class="tab-button" data-tab="info">ℹ️ Info</button>
+            </div>
+            
+            <!-- TAB: General Settings -->
+            <div class="tab-content active" id="tab-general">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_general">
                     
-                    <form method="POST" enctype="multipart/form-data">
-                        <input type="hidden" name="action" value="update_general">
+                    <div class="settings-section">
+                        <h2 class="section-title">📝 Blog Informationen</h2>
                         
-                        <div class="form-group">
-                            <label class="form-label">Blog-Titel</label>
-                            <input type="text" name="title" class="form-input" value="<?php echo escape($config['title'] ?? ''); ?>" required>
-                            <div class="form-help">Der Titel deines Blogs (wird im Browser-Tab angezeigt)</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Dein Name</label>
-                            <input type="text" name="name" class="form-input" value="<?php echo escape($config['name'] ?? ''); ?>" required>
-                            <div class="form-help">Dein Anzeigename</div>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Blog-Titel *</label>
+                                <input type="text" name="title" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'profile', 'title', '')); ?>" required>
+                                <div class="form-help">Der Titel deines Blogs</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Dein Name *</label>
+                                <input type="text" name="name" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'profile', 'name', '')); ?>" required>
+                                <div class="form-help">Dein Anzeigename</div>
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">Untertitel / Beschreibung</label>
-                            <textarea name="subtitle" class="form-textarea"><?php echo escape($config['subtitle'] ?? ''); ?></textarea>
+                            <textarea name="subtitle" class="form-textarea"><?php echo escape(getConfig($config, 'visitor', 'subtitle', '')); ?></textarea>
                             <div class="form-help">Eine kurze Beschreibung deines Blogs</div>
                         </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h2 class="section-title">🌍 Region & Sprache</h2>
                         
-                        <div class="form-group">
-                            <label class="form-label">Sprache</label>
-                            <select name="lang" class="form-select">
-                                <?php foreach($languages as $code => $name): ?>
-                                    <option value="<?php echo $code; ?>" <?php echo ($config['lang'] ?? 'en') === $code ? 'selected' : ''; ?>>
-                                        <?php echo $name; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Sprache</label>
+                                <select name="lang" class="form-select">
+                                    <?php 
+                                    $current_lang = getConfig($config, 'language', 'lang', 'de');
+                                    foreach($languages as $code => $name): 
+                                    ?>
+                                        <option value="<?php echo $code; ?>" <?php echo $current_lang === $code ? 'selected' : ''; ?>>
+                                            <?php echo $name; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Zeitzone</label>
+                                <select name="timezone" class="form-select">
+                                    <?php 
+                                    $current_tz = getConfig($config, 'system', 'timezone', 'Europe/Berlin');
+                                    foreach($timezones as $tz => $label): 
+                                    ?>
+                                        <option value="<?php echo $tz; ?>" <?php echo $current_tz === $tz ? 'selected' : ''; ?>>
+                                            <?php echo $label; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h2 class="section-title">👁️ Besucher-Ansicht</h2>
                         
-                        <div class="form-group">
-                            <label class="form-label">Zeitzone</label>
-                            <select name="timezone" class="form-select">
-                                <?php foreach($timezones as $tz => $label): ?>
-                                    <option value="<?php echo $tz; ?>" <?php echo ($config['timezone'] ?? 'UTC') === $tz ? 'selected' : ''; ?>>
-                                        <?php echo $label; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="visitor_enabled" id="visitor_enabled" 
+                                   <?php echo getConfig($config, 'visitor', 'enabled') === '1' ? 'checked' : ''; ?>>
+                            <label for="visitor_enabled">Blog für Besucher sichtbar (ohne Login)</label>
                         </div>
-                        
-                        <button type="submit" class="btn-save">💾 Speichern</button>
-                    </form>
-                </div>
-                
-                <!-- Theme Settings -->
+                        <div class="form-help">Wenn deaktiviert, müssen sich Besucher einloggen</div>
+                    </div>
+                    
+                    <button type="submit" class="btn-save">💾 Einstellungen speichern</button>
+                </form>
+            </div>
+            
+            <!-- TAB: Appearance -->
+            <div class="tab-content" id="tab-appearance">
                 <div class="settings-section">
-                    <h2 class="settings-section-title">🎨 Theme</h2>
+                    <h2 class="section-title">🎨 Theme auswählen</h2>
                     
                     <form method="POST">
                         <input type="hidden" name="action" value="update_general">
                         
-                        <div class="form-group">
-                            <label class="form-label">Wähle ein Theme</label>
-                            <div class="theme-preview">
-                                <?php foreach($themes as $theme): ?>
-                                    <label class="theme-option">
-                                        <input type="radio" name="theme" value="<?php echo $theme; ?>" <?php echo ($config['theme'] ?? 'theme01') === $theme ? 'checked' : ''; ?>>
-                                        <div class="theme-card">
-                                            <div style="width: 40px; height: 40px; background: #1877f2; border-radius: 50%; margin: 0 auto;"></div>
-                                            <div class="theme-name"><?php echo ucfirst($theme); ?></div>
-                                        </div>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
+                        <div class="theme-grid">
+                            <?php 
+                            $current_theme = getConfig($config, 'custom', 'theme', 'theme01');
+                            foreach($themes as $theme): 
+                            ?>
+                                <label class="theme-option">
+                                    <input type="radio" name="theme" value="<?php echo $theme; ?>" 
+                                           <?php echo $current_theme === $theme ? 'checked' : ''; ?>>
+                                    <div class="theme-card">
+                                        <div style="width: 50px; height: 50px; background: #1877f2; border-radius: 50%; margin: 0 auto 10px;"></div>
+                                        <div><?php echo ucfirst($theme); ?></div>
+                                    </div>
+                                </label>
+                            <?php endforeach; ?>
                         </div>
                         
+                        <br>
                         <button type="submit" class="btn-save">💾 Theme speichern</button>
                     </form>
                 </div>
                 
-                <!-- Cover Image -->
                 <div class="settings-section">
-                    <h2 class="settings-section-title">🖼️ Cover-Bild</h2>
+                    <h2 class="section-title">🖼️ Cover-Bild</h2>
                     
-                    <?php if(!empty($config['cover']) && file_exists(PROJECT_PATH . $config['cover'])): ?>
-                        <img src="../<?php echo escape($config['cover']); ?>" alt="Current Cover" class="current-cover">
+                    <?php 
+                    $cover = getConfig($config, 'profile', 'cover', '');
+                    if($cover && file_exists(PROJECT_PATH . $cover)): 
+                    ?>
+                        <img src="../<?php echo escape($cover); ?>" alt="Cover" class="current-cover">
                     <?php endif; ?>
                     
                     <form method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="update_cover">
                         
                         <div class="form-group">
-                            <label class="form-label">Neues Cover-Bild hochladen</label>
+                            <label class="form-label">Neues Cover hochladen</label>
                             <input type="file" name="cover" class="form-input" accept="image/*">
                             <div class="form-help">Empfohlen: 1200x400px oder größer (JPG, PNG, GIF, WebP)</div>
                         </div>
@@ -529,9 +681,163 @@ function escape($str) {
                     </form>
                 </div>
                 
-                <!-- Password Change -->
                 <div class="settings-section">
-                    <h2 class="settings-section-title">🔒 Passwort ändern</h2>
+                    <h2 class="section-title">✨ Komponenten</h2>
+                    
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update_general">
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="highlight" id="highlight" 
+                                   <?php echo getConfig($config, 'components', 'highlight') === '1' ? 'checked' : ''; ?>>
+                            <label for="highlight">Syntax-Highlighting für Code aktivieren</label>
+                        </div>
+                        
+                        <br>
+                        <button type="submit" class="btn-save">💾 Speichern</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- TAB: Email Settings -->
+            <div class="tab-content" id="tab-email">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_email">
+                    
+                    <div class="settings-section">
+                        <h2 class="section-title">📧 E-Mail Benachrichtigungen</h2>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="notifications_enabled" id="notifications_enabled" 
+                                   <?php echo getConfig($config, 'email', 'notifications_enabled') === '1' ? 'checked' : ''; ?>>
+                            <label for="notifications_enabled">E-Mail Benachrichtigungen aktivieren</label>
+                        </div>
+                        
+                        <br>
+                        
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Admin E-Mail</label>
+                                <input type="email" name="admin_email" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'email', 'admin_email', '')); ?>">
+                                <div class="form-help">Empfänger für Benachrichtigungen</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Absender E-Mail</label>
+                                <input type="email" name="from_email" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'email', 'from_email', '')); ?>">
+                                <div class="form-help">Von-Adresse für ausgehende Mails</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Absender Name</label>
+                            <input type="text" name="from_name" class="form-input" 
+                                   value="<?php echo escape(getConfig($config, 'email', 'from_name', '')); ?>">
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h2 class="section-title">🔔 Benachrichtigungs-Optionen</h2>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="notify_admin_new_comment" id="notify_admin_new_comment" 
+                                   <?php echo getConfig($config, 'email', 'notify_admin_new_comment') === '1' ? 'checked' : ''; ?>>
+                            <label for="notify_admin_new_comment">Bei neuen Kommentaren benachrichtigen</label>
+                        </div>
+                        
+                        <br>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="notify_user_approved" id="notify_user_approved" 
+                                   <?php echo getConfig($config, 'email', 'notify_user_approved') === '1' ? 'checked' : ''; ?>>
+                            <label for="notify_user_approved">Benutzer bei Freigabe benachrichtigen</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-save">💾 E-Mail Einstellungen speichern</button>
+                </form>
+            </div>
+            
+            <!-- TAB: Database Settings -->
+            <div class="tab-content" id="tab-database">
+                <div class="warning-box">
+                    <strong>⚠️ ACHTUNG:</strong> Änderungen an den Datenbank-Einstellungen erfordern einen Neustart des Docker-Containers!
+                </div>
+                
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_database">
+                    
+                    <div class="settings-section">
+                        <h2 class="section-title">🗄️ MySQL Datenbank</h2>
+                        
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Host</label>
+                                <input type="text" name="mysql_host" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'database', 'mysql_host', 'db')); ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Port</label>
+                                <input type="text" name="mysql_port" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'database', 'mysql_port', '3306')); ?>">
+                            </div>
+                        </div>
+                        
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Datenbankname</label>
+                                <input type="text" name="db_name" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'database', 'db_name', 'blog')); ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Benutzername</label>
+                                <input type="text" name="mysql_user" class="form-input" 
+                                       value="<?php echo escape(getConfig($config, 'database', 'mysql_user', '')); ?>">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Passwort</label>
+                            <input type="password" name="mysql_pass" class="form-input" placeholder="••••••••">
+                            <div class="form-help">Leer lassen um Passwort nicht zu ändern</div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-save">💾 Datenbank-Einstellungen speichern</button>
+                </form>
+            </div>
+            
+            <!-- TAB: Admin Settings -->
+            <div class="tab-content" id="tab-admin">
+                <div class="settings-section">
+                    <h2 class="section-title">🔐 Admin-Zugang</h2>
+                    
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update_admin">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Admin Benutzername</label>
+                            <input type="text" name="admin_nick" class="form-input" 
+                                   value="<?php echo escape(getConfig($config, 'admin', 'nick', 'admin')); ?>">
+                        </div>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="force_login" id="force_login" 
+                                   <?php echo getConfig($config, 'admin', 'force_login') === '1' ? 'checked' : ''; ?>>
+                            <label for="force_login">Login erzwingen (schützt Admin-Bereich)</label>
+                        </div>
+                        
+                        <br>
+                        <button type="submit" class="btn-save">💾 Speichern</button>
+                    </form>
+                </div>
+                
+                <div class="settings-section">
+                    <h2 class="section-title">🔑 Passwort ändern</h2>
                     
                     <form method="POST">
                         <input type="hidden" name="action" value="change_password">
@@ -543,10 +849,7 @@ function escape($str) {
                         
                         <div class="form-group">
                             <label class="form-label">Neues Passwort</label>
-                            <input type="password" name="new_password" id="newPassword" class="form-input" required minlength="6">
-                            <div class="password-strength">
-                                <div class="password-strength-bar" id="strengthBar"></div>
-                            </div>
+                            <input type="password" name="new_password" class="form-input" required minlength="6">
                             <div class="form-help">Mindestens 6 Zeichen</div>
                         </div>
                         
@@ -558,25 +861,113 @@ function escape($str) {
                         <button type="submit" class="btn-save">🔐 Passwort ändern</button>
                     </form>
                 </div>
-                
-                <!-- System Info -->
-                <div class="settings-section">
-                    <h2 class="settings-section-title">ℹ️ System-Informationen</h2>
+            </div>
+            
+            <!-- TAB: System Settings -->
+            <div class="tab-content" id="tab-system">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_general">
                     
-                    <div class="form-group">
-                        <strong>PHP Version:</strong> <?php echo PHP_VERSION; ?>
+                    <div class="settings-section">
+                        <h2 class="section-title">🗑️ Lösch-Verhalten</h2>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="soft_delete" id="soft_delete" 
+                                   <?php echo !empty(getConfig($config, 'system', 'SOFT_DELETE')) ? 'checked' : ''; ?>>
+                            <label for="soft_delete">Soft Delete (Beiträge in Papierkorb verschieben statt löschen)</label>
+                        </div>
+                        
+                        <br>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="hard_delete_files" id="hard_delete_files" 
+                                   <?php echo getConfig($config, 'system', 'HARD_DELETE_FILES') === '1' ? 'checked' : ''; ?>>
+                            <label for="hard_delete_files">Dateien beim Löschen permanent entfernen</label>
+                        </div>
+                        
+                        <br>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="auto_cleanup" id="auto_cleanup" 
+                                   <?php echo !empty(getConfig($config, 'system', 'AUTO_CLEANUP_IMAGES')) ? 'checked' : ''; ?>>
+                            <label for="auto_cleanup">Automatische Bereinigung ungenutzter Bilder</label>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <strong>Server:</strong> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?>
+                    
+                    <div class="settings-section">
+                        <h2 class="section-title">🐛 Debug & Logs</h2>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="debug" id="debug" 
+                                   <?php echo !empty(getConfig($config, 'system', 'debug')) ? 'checked' : ''; ?>>
+                            <label for="debug">Debug-Modus aktivieren</label>
+                        </div>
+                        
+                        <br>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="logs" id="logs" 
+                                   <?php echo getConfig($config, 'system', 'logs') === '1' ? 'checked' : ''; ?>>
+                            <label for="logs">Logs aktivieren</label>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <strong>Blog-Pfad:</strong> <code><?php echo PROJECT_PATH; ?></code>
-                    </div>
-                    <div class="form-group">
-                        <strong>Datenbank:</strong> <?php echo DB::connection(); ?>
+                    
+                    <button type="submit" class="btn-save">💾 System-Einstellungen speichern</button>
+                </form>
+            </div>
+            
+            <!-- TAB: System Info -->
+            <div class="tab-content" id="tab-info">
+                <div class="settings-section">
+                    <h2 class="section-title">ℹ️ System-Informationen</h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <strong>PHP Version:</strong><br>
+                            <?php echo PHP_VERSION; ?>
+                        </div>
+                        
+                        <div class="form-group">
+                            <strong>Webserver:</strong><br>
+                            <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?>
+                        </div>
+                        
+                        <div class="form-group">
+                            <strong>Blog Version:</strong><br>
+                            <?php echo getConfig($config, 'system', 'version', '1.0'); ?>
+                        </div>
+                        
+                        <div class="form-group">
+                            <strong>Blog-Pfad:</strong><br>
+                            <code><?php echo PROJECT_PATH; ?></code>
+                        </div>
+                        
+                        <div class="form-group">
+                            <strong>Datenbank:</strong><br>
+                            <?php echo getConfig($config, 'database', 'db_connection', 'mysql'); ?> 
+                            (<?php echo getConfig($config, 'database', 'db_name', 'blog'); ?>)
+                        </div>
+                        
+                        <div class="form-group">
+                            <strong>Zeitzone:</strong><br>
+                            <?php echo date_default_timezone_get(); ?>
+                        </div>
                     </div>
                 </div>
                 
+                <div class="settings-section">
+                    <h2 class="section-title">📂 Verzeichnisse</h2>
+                    
+                    <div class="form-group">
+                        <strong>Bilder:</strong> <code><?php echo getConfig($config, 'directories', 'images_path', 'data/i/'); ?></code>
+                    </div>
+                    <div class="form-group">
+                        <strong>Thumbnails:</strong> <code><?php echo getConfig($config, 'directories', 'thumbnails_path', 'data/t/'); ?></code>
+                    </div>
+                    <div class="form-group">
+                        <strong>Logs:</strong> <code><?php echo getConfig($config, 'directories', 'logs_path', 'data/logs/'); ?></code>
+                    </div>
+                </div>
             </div>
             
         </main>
@@ -584,32 +975,23 @@ function escape($str) {
     </div>
     
     <script>
-    // Password strength indicator
-    const newPassword = document.getElementById('newPassword');
-    const strengthBar = document.getElementById('strengthBar');
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
     
-    if(newPassword) {
-        newPassword.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
             
-            if(password.length >= 6) strength++;
-            if(password.length >= 10) strength++;
-            if(/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-            if(/[0-9]/.test(password)) strength++;
-            if(/[^a-zA-Z0-9]/.test(password)) strength++;
+            // Remove active class from all
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
             
-            strengthBar.className = 'password-strength-bar';
-            
-            if(strength <= 2) {
-                strengthBar.classList.add('strength-weak');
-            } else if(strength <= 3) {
-                strengthBar.classList.add('strength-medium');
-            } else {
-                strengthBar.classList.add('strength-strong');
-            }
+            // Add active class to clicked
+            button.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
         });
-    }
+    });
     </script>
     
 </body>

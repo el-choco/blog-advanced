@@ -355,7 +355,7 @@ function escape($str) {
                                                     </button>
                                                 </form>
                                                 
-                                                <a href="../#id=<?php echo $post['id']; ?>" class="quick-action-btn" title="Bearbeiten">✏️</a>
+                                                <a href="edit.php?id=<?php echo $post['id']; ?>" class="quick-action-btn" title="Bearbeiten">✏️</a>
                                                 
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('Beitrag in den Papierkorb verschieben?');">
                                                     <input type="hidden" name="action" value="">

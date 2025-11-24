@@ -166,6 +166,42 @@ class AdminHelper {
     }
     
     // Bulk update posts
+    public static function bulkUpdate($post_ids, $action) {
+        $count = 0;
+        
+        foreach($post_ids as $post_id) {
+            $data = [];
+            
+            switch($action) {
+                case 'sticky':
+                    $data['sticky'] = true;
+                    break;
+                case 'unsticky':
+                    $data['sticky'] = false;
+                    break;
+                case 'hide':
+                    $data['hidden'] = true;
+                    break;
+                case 'show':
+                    $data['hidden'] = false;
+                    break;
+                case 'delete':
+                    $data['deleted'] = true;
+                    break;
+                case 'restore':
+                    $data['deleted'] = false;
+                    break;
+            }
+            
+            if(self::updatePost($post_id, $data)) {
+                $count++;
+            }
+        }
+        
+        return $count;
+    }
+    
+    // Permanently delete post from database
     public static function permanentDelete($post_id) {
         $db = DB::get_instance();
         
@@ -195,46 +231,6 @@ class AdminHelper {
         $db->query("DELETE FROM posts WHERE id = ?", $post_id);
         
         return true;
-    }
-
-    public static function getPostStats() {
-        $db = DB::get_instance();
-        
-        $stats = [
-            'total' => 0,
-            'published' => 0,
-            'hidden' => 0,
-            'sticky' => 0,
-            'deleted' => 0
-        ];
-        
-        // Total posts (excluding deleted)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status != 5")->first();
-        $stats['total'] = $result['count'] ?? 0;
-        
-        // Published (status = 1)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 1")->first();
-        $stats['published'] = $result['count'] ?? 0;
-        
-        // Hidden (status = 4)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 4")->first();
-        $stats['hidden'] = $result['count'] ?? 0;
-        
-        // Sticky
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE is_sticky = 1 AND status != 5")->first();
-        $stats['sticky'] = $result['count'] ?? 0;
-        
-        // Deleted (status = 5)
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
-        $stats['deleted'] = $result['count'] ?? 0;
-        
-        return $stats;
-    }
-
-    public static function getTrashCount() {
-        $db = DB::get_instance();
-        $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
-        return $result["count"] ?? 0;
     }
 }
 ?>

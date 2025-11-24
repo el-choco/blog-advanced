@@ -328,10 +328,10 @@ function escape($str) {
                                         </td>
                                         <td><?php echo AdminHelper::formatDate($post['time']); ?></td>
                                         <td>
-                                            <?php if($post['sticky']): ?>
+                                            <?php if($post['is_sticky']): ?>
                                                 <span class="badge badge-sticky">📌 Sticky</span>
                                             <?php endif; ?>
-                                            <?php if($post['hidden']): ?>
+                                            <?php if($post['status'] == 4): ?>
                                                 <span class="badge badge-hidden">👁️ Versteckt</span>
                                             <?php endif; ?>
                                         </td>
@@ -341,7 +341,7 @@ function escape($str) {
                                                     <input type="hidden" name="action" value="">
                                                     <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
                                                     <input type="hidden" name="quick_action" value="toggle_sticky">
-                                                    <button type="submit" class="quick-action-btn" title="<?php echo $post['sticky'] ? 'Sticky entfernen' : 'Als Sticky markieren'; ?>">
+                                                    <button type="submit" class="quick-action-btn" title="<?php echo $post['is_sticky'] ? 'Sticky entfernen' : 'Als Sticky markieren'; ?>">
                                                         📌
                                                     </button>
                                                 </form>
@@ -350,12 +350,12 @@ function escape($str) {
                                                     <input type="hidden" name="action" value="">
                                                     <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
                                                     <input type="hidden" name="quick_action" value="toggle_hidden">
-                                                    <button type="submit" class="quick-action-btn" title="<?php echo ($post['hidden']) ? 'Sichtbar machen' : 'Verstecken'; ?>">
+                                                    <button type="submit" class="quick-action-btn" title="<?php echo ($post['status'] == 4) ? 'Sichtbar machen' : 'Verstecken'; ?>">
                                                         👁️
                                                     </button>
                                                 </form>
                                                 
-                                                <a href="../#id=<?php echo $post['id']; ?>" class="quick-action-btn" title="Bearbeiten">✏️</a>
+                                                <a href="edit.php?id=<?php echo $post['id']; ?>" class="quick-action-btn" title="Bearbeiten">✏️</a>
                                                 
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('Beitrag in den Papierkorb verschieben?');">
                                                     <input type="hidden" name="action" value="">
