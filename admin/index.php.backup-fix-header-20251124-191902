@@ -27,15 +27,16 @@ function escape($str) {
 </head>
 <body class="admin-body">
 
-    <div class="admin-header">
-        <div class="admin-container">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="header-content">
             <h1>📊 Admin Dashboard</h1>
-            <div class="admin-user">
-                <span>👤 <?php echo escape(Config::get("name")); ?></span>
-                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+            <div class="header-actions">
+                <a href="../" class="btn btn-secondary">← Zum Blog</a>
+                <a href="logout.php" class="btn btn-danger">Abmelden</a>
             </div>
         </div>
-    </div>
+    </header>
 
     <div class="admin-layout">
 

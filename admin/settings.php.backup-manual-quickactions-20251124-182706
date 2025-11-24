@@ -971,42 +971,6 @@ function escape($str) {
                 </div>
             </div>
             
-
-            <!-- Quick Actions -->
-            <div class="admin-panel">
-                <div class="panel-header">
-                    <h2>Schnellzugriff</h2>
-                </div>
-                <div class="panel-body">
-                    <div class="quick-actions">
-                        <a href="../#new-post" class="quick-action-card">
-                            <div class="qa-icon">✏️</div>
-                            <div class="qa-label">Neuer Beitrag</div>
-                        </a>
-                        <a href="backups.php" class="quick-action-card">
-                            <div class="qa-icon">💾</div>
-                            <div class="qa-label">Backups</div>
-                        </a>
-                        <a href="comments.php" class="quick-action-card">
-                            <div class="qa-icon">💬</div>
-                            <div class="qa-label">Kommentare</div>
-                        </a>
-                        <a href="posts.php" class="quick-action-card">
-                            <div class="qa-icon">📝</div>
-                            <div class="qa-label">Beiträge verwalten</div>
-                        </a>
-                        <a href="media.php" class="quick-action-card">
-                            <div class="qa-icon">📁</div>
-                            <div class="qa-label">Dateien</div>
-                        </a>
-                        <a href="trash.php" class="quick-action-card">
-                            <div class="qa-icon">🗑️</div>
-                            <div class="qa-label">Papierkorb</div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
         </main>
         
     </div>
