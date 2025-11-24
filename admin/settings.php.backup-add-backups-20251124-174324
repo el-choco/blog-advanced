@@ -524,7 +524,6 @@ function escape($str) {
                 <a href="posts.php">📝 Beiträge</a>
                 <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
-                <a href="backups.php">💾 Backups</a>
                 <a href="trash.php">🗑️ Papierkorb</a>
                 <a href="settings.php" class="active">⚙️ Einstellungen</a>
             </nav>

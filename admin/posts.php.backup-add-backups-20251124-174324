@@ -236,7 +236,6 @@ function escape($str) {
                 <a href="posts.php" class="active">📝 Beiträge</a>
                 <a href="comments.php">💬 Kommentare</a>
                 <a href="media.php">📁 Dateien</a>
-                <a href="backups.php">💾 Backups</a>
                 <a href="trash.php">🗑️ Papierkorb <?php if($trash_count > 0): ?><span class="badge"><?php echo $trash_count; ?></span><?php endif; ?></a>
                 <a href="settings.php">⚙️ Einstellungen</a>
             </nav>

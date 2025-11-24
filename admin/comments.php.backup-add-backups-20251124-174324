@@ -113,7 +113,6 @@ function getStatusBadge($status) {
                 <a href="posts.php">📝 Beiträge</a>
                 <a href="comments.php" class="active">💬 Kommentare <span class="badge"><?php echo $pending_count; ?></span></a>
                 <a href="media.php">📁 Dateien</a>
-                <a href="backups.php">💾 Backups</a>
                 <a href="trash.php">🗑️ Papierkorb</a>
                 <a href="settings.php">⚙️ Einstellungen</a>
             </nav>
