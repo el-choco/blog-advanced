@@ -5,55 +5,43 @@ mysql_port = "3306"
 mysql_user = "bloguser"
 mysql_pass = "blogpass123"
 db_name = "blog"
-
 [profile]
 title = "Pacos-Tech-Blog"
 name = "Paco"
 pic_small = "static/images/profile.jpg"
 pic_big = "static/images/profile_big.jpg"
 cover = "static/images/cover.jpg"
-
 [language]
 lang = "de"
-
 [components]
-highlight = "1"
-
-
+highlight = "0"
 [custom]
 theme = "theme02"
-
 [admin]
 force_login = "1"
 nick = "admin"
 pass = "admin"
-
 [friends]
-
 [directories]
 images_path = "data/i/"
 thumbnails_path = "data/t/"
 logs_path = "data/logs/"
-
 [proxy]
-
 [system]
 timezone = "Europe/Berlin"
 version = "1.42"
-debug = "0"
+debug = ""
 logs = "0"
-SOFT_DELETE = "0"
-HARD_DELETE_FILES = "1"
+SOFT_DELETE = ""
+HARD_DELETE_FILES = "0"
 AUTO_CLEANUP_IMAGES = ""
-
 [visitor]
-enabled = "1"
+enabled = "0"
 title = ""
 name = ""
 subtitle = ""
 lang = "de"
 timezone = "Europe/Berlin"
-
 [email]
 notifications_enabled = "1"
 admin_email = "paquele@gmail.com"
@@ -63,7 +51,13 @@ from_email = "noreply@pacos-blog.dynv6.net"
 from_name = "Pacos-Tech-Blog"
 title = "Pacos-Tech-Blog"
 name = "Paco"
-subtitle = "alles rund um docker..."
+subtitle = ""
+lang = "de"
+timezone = "Europe/Berlin"
+theme = "theme01"
+title = ""
+name = ""
+subtitle = ""
 lang = "de"
 timezone = "Europe/Berlin"
 theme = "theme02"

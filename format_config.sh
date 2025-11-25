@@ -1,3 +1,21 @@
+#!/bin/bash
+#=================================================================
+# 🧹 CONFIG.INI FORMATTER
+# Formatiert die config.ini mit sauberen Zwischenräumen
+#=================================================================
+
+CONFIG_FILE="config.ini"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "❌ $CONFIG_FILE nicht gefunden!"
+    exit 1
+fi
+
+# Backup
+cp "$CONFIG_FILE" "${CONFIG_FILE}.backup-$(date +%Y%m%d-%H%M%S)"
+
+# Erstelle formatierte Version
+cat > "$CONFIG_FILE" << 'ENDCONFIG'
 [database]
 db_connection = "mysql"
 mysql_host = "db"
@@ -18,7 +36,6 @@ lang = "de"
 
 [components]
 highlight = "1"
-
 
 [custom]
 theme = "theme02"
@@ -67,3 +84,9 @@ subtitle = "alles rund um docker..."
 lang = "de"
 timezone = "Europe/Berlin"
 theme = "theme02"
+ENDCONFIG
+
+echo "✅ config.ini formatiert!"
+echo ""
+echo "📋 Vorschau:"
+cat "$CONFIG_FILE"

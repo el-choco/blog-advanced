@@ -95,7 +95,7 @@ if (Config::get_safe("version", false)) {
 	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 
-	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css">'
+	<?php echo Config::get_safe("highlight", false) ? '<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css" />'.PHP_EOL : ''; ?>
 	<style>
 	#emojiPicker {
 		display: flex;
@@ -694,11 +694,8 @@ if (Config::get_safe("version", false)) {
 
 	// Markdown button handler
 	document.addEventListener('click', function(e) {
-                console.log('🎯 Markdown click event listener fired');
 		const btn = e.target.closest('.markdown-btn');
-                console.log('🔍 btn =', btn);
-		console.log('✅ Button found!', btn);
-                if (!btn) return;
+		if (!btn) return;
 		
 		e.preventDefault();
 		const mdType = btn.getAttribute('data-md');
@@ -757,12 +754,10 @@ if (Config::get_safe("version", false)) {
 				}
 				break;
 			case 'code':
-                        console.log('✅ CODE case reached');
 				before = '`';
 				after = '`';
 				break;
 			case 'codeblock':
-                        console.log('✅ CODEBLOCK case reached');
 				const lang = prompt('Language, optional, e.g. javascript:', '');
 				before = '\n```' + (lang || '') + '\n';
 				after = '\n```\n';
@@ -776,7 +771,6 @@ if (Config::get_safe("version", false)) {
 				after = '\n2. Item 2\n3. Item 3\n';
 				break;
 			case 'quote':
-                        console.log('✅ QUOTE case reached');
 				before = '\n> ';
 				after = '\n';
 				break;
@@ -806,8 +800,7 @@ if (Config::get_safe("version", false)) {
 	// HTML button handler
 	document.addEventListener('click', function(e) {
 		const btn = e.target.closest('.html-btn');
-		console.log('✅ Button found!', btn);
-                if (!btn) return;
+		if (!btn) return;
 		
 		e.preventDefault();
 		const htmlType = btn.getAttribute('data-html');

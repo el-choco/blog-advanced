@@ -95,7 +95,7 @@ if (Config::get_safe("version", false)) {
 	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 
-	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css">'
+	<?php echo Config::get_safe("highlight", false) ? '<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css" />'.PHP_EOL : ''; ?>
 	<style>
 	#emojiPicker {
 		display: flex;
@@ -694,11 +694,8 @@ if (Config::get_safe("version", false)) {
 
 	// Markdown button handler
 	document.addEventListener('click', function(e) {
-                console.log('🎯 Markdown click event listener fired');
 		const btn = e.target.closest('.markdown-btn');
-                console.log('🔍 btn =', btn);
-		console.log('✅ Button found!', btn);
-                if (!btn) return;
+		if (!btn) return;
 		
 		e.preventDefault();
 		const mdType = btn.getAttribute('data-md');
@@ -757,12 +754,10 @@ if (Config::get_safe("version", false)) {
 				}
 				break;
 			case 'code':
-                        console.log('✅ CODE case reached');
 				before = '`';
 				after = '`';
 				break;
 			case 'codeblock':
-                        console.log('✅ CODEBLOCK case reached');
 				const lang = prompt('Language, optional, e.g. javascript:', '');
 				before = '\n```' + (lang || '') + '\n';
 				after = '\n```\n';
@@ -776,7 +771,6 @@ if (Config::get_safe("version", false)) {
 				after = '\n2. Item 2\n3. Item 3\n';
 				break;
 			case 'quote':
-                        console.log('✅ QUOTE case reached');
 				before = '\n> ';
 				after = '\n';
 				break;
@@ -806,8 +800,7 @@ if (Config::get_safe("version", false)) {
 	// HTML button handler
 	document.addEventListener('click', function(e) {
 		const btn = e.target.closest('.html-btn');
-		console.log('✅ Button found!', btn);
-                if (!btn) return;
+		if (!btn) return;
 		
 		e.preventDefault();
 		const htmlType = btn.getAttribute('data-html');
@@ -887,6 +880,217 @@ if (Config::get_safe("version", false)) {
 	});
 	console.log("✅ Markdown, HTML & Emoji Editor initialized");
 })();
+
+        // ========================================
+        // MARKDOWN & HTML TOOLBAR FUNKTIONEN
+        // ========================================
+        
+        // Markdown Button Click Handler
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.markdown-btn');
+            if (!btn) return;
+            
+            const type = btn.getAttribute('data-md');
+            const textarea = document.getElementById('new-post-text');
+            if (!textarea) return;
+            
+            insertMarkdown(type, textarea);
+        });
+        
+        // HTML Button Click Handler
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.html-btn');
+            if (!btn) return;
+            
+            const type = btn.getAttribute('data-html');
+            const textarea = document.getElementById('new-post-text');
+            if (!textarea) return;
+            
+            insertHTML(type, textarea);
+        });
+        
+        // Insert Markdown Function
+        function insertMarkdown(type, textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            const beforeText = textarea.value.substring(0, start);
+            const afterText = textarea.value.substring(end);
+            
+            let insertText = '';
+            let cursorOffset = 0;
+            
+            switch(type) {
+                case 'bold':
+                    insertText = '**' + (selectedText || 'text') + '**';
+                    cursorOffset = selectedText ? insertText.length : 2;
+                    break;
+                    
+                case 'italic':
+                    insertText = '*' + (selectedText || 'text') + '*';
+                    cursorOffset = selectedText ? insertText.length : 1;
+                    break;
+                    
+                case 'strike':
+                    insertText = '~~' + (selectedText || 'text') + '~~';
+                    cursorOffset = selectedText ? insertText.length : 2;
+                    break;
+                    
+                case 'h1':
+                    insertText = '# ' + (selectedText || 'Heading 1');
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'h2':
+                    insertText = '## ' + (selectedText || 'Heading 2');
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'h3':
+                    insertText = '### ' + (selectedText || 'Heading 3');
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'link':
+                    const url = prompt('<?php echo __("Enter URL"); ?>');
+                    if (url) {
+                        insertText = '[' + (selectedText || 'Link Text') + '](' + url + ')';
+                        cursorOffset = insertText.length;
+                    }
+                    break;
+                    
+                case 'image':
+                    const imgUrl = prompt('<?php echo __("Enter Image URL"); ?>');
+                    if (imgUrl) {
+                        const altText = prompt('<?php echo __("Alt Text optional"); ?>') || 'image';
+                        insertText = '![' + altText + '](' + imgUrl + ')';
+                        cursorOffset = insertText.length;
+                    }
+                    break;
+                    
+                case 'code':
+                    insertText = '`' + (selectedText || 'code') + '`';
+                    cursorOffset = selectedText ? insertText.length : 1;
+                    break;
+                    
+                case 'codeblock':
+                    const lang = prompt('<?php echo __("Language optional"); ?>') || '';
+                    insertText = '```' + lang + '\n' + (selectedText || 'code') + '\n```';
+                    cursorOffset = 3 + lang.length + 1;
+                    break;
+                    
+                case 'ul':
+                    insertText = '- ' + (selectedText || 'List item');
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'ol':
+                    insertText = '1. ' + (selectedText || 'List item');
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'quote':
+                    insertText = '> ' + (selectedText || 'Quote');
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'hr':
+                    insertText = '\n---\n';
+                    cursorOffset = insertText.length;
+                    break;
+                    
+                case 'table':
+                    insertText = '| Header 1 | Header 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |';
+                    cursorOffset = insertText.length;
+                    break;
+            }
+            
+            if (insertText) {
+                textarea.value = beforeText + insertText + afterText;
+                textarea.focus();
+                textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+            }
+        }
+        
+        // Insert HTML Function
+        function insertHTML(type, textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            const beforeText = textarea.value.substring(0, start);
+            const afterText = textarea.value.substring(end);
+            
+            let insertText = '';
+            let cursorOffset = 0;
+            
+            switch(type) {
+                case 'center':
+                    insertText = '<center>' + (selectedText || 'text') + '</center>';
+                    cursorOffset = selectedText ? insertText.length : 8;
+                    break;
+                    
+                case 'right':
+                    insertText = '<div style="text-align:right">' + (selectedText || 'text') + '</div>';
+                    cursorOffset = selectedText ? insertText.length : 30;
+                    break;
+                    
+                case 'left':
+                    insertText = '<div style="text-align:left">' + (selectedText || 'text') + '</div>';
+                    cursorOffset = selectedText ? insertText.length : 29;
+                    break;
+                    
+                case 'color':
+                    const color = prompt('<?php echo __("Enter Color"); ?>');
+                    if (color) {
+                        insertText = '<span style="color:' + color + '">' + (selectedText || 'text') + '</span>';
+                        cursorOffset = insertText.length;
+                    }
+                    break;
+                    
+                case 'mark':
+                    insertText = '<mark>' + (selectedText || 'text') + '</mark>';
+                    cursorOffset = selectedText ? insertText.length : 6;
+                    break;
+                    
+                case 'small':
+                    insertText = '<small>' + (selectedText || 'text') + '</small>';
+                    cursorOffset = selectedText ? insertText.length : 7;
+                    break;
+                    
+                case 'big':
+                    insertText = '<big>' + (selectedText || 'text') + '</big>';
+                    cursorOffset = selectedText ? insertText.length : 5;
+                    break;
+                    
+                case 'underline':
+                    insertText = '<u>' + (selectedText || 'text') + '</u>';
+                    cursorOffset = selectedText ? insertText.length : 3;
+                    break;
+                    
+                case 'sup':
+                    insertText = '<sup>' + (selectedText || 'text') + '</sup>';
+                    cursorOffset = selectedText ? insertText.length : 5;
+                    break;
+                    
+                case 'sub':
+                    insertText = '<sub>' + (selectedText || 'text') + '</sub>';
+                    cursorOffset = selectedText ? insertText.length : 5;
+                    break;
+                    
+                case 'spoiler':
+                    const spoilerTitle = prompt('<?php echo __("Spoiler Title"); ?>') || 'Click to show';
+                    insertText = '<details><summary>' + spoilerTitle + '</summary>\n' + (selectedText || 'Hidden content') + '\n</details>';
+                    cursorOffset = insertText.length;
+                    break;
+            }
+            
+            if (insertText) {
+                textarea.value = beforeText + insertText + afterText;
+                textarea.focus();
+                textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+            }
+        }
+
 </script>
 </body>
 </html>

@@ -807,3 +807,56 @@ textarea#postText {
 #emojiPicker .emoji:active {
 	transform: scale(1.1);
 }
+
+/* ============================================
+   📦 CODE & CODEBLOCK STYLING
+   ============================================ */
+
+/* Inline Code */
+code {
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+/* Code Blocks */
+pre {
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 10px 0;
+    border-left: 4px solid #05fa67;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid #50fa7b;
+    padding-left: 15px;
+    margin: 10px 0;
+    color: #6c757d;
+    font-style: italic;
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 3px;
+}
+
+/* Horizontal Rule */
+hr {
+    border: 0;
+    border-top: 2px solid #6272a4;
+    margin: 20px 0;
+}
+

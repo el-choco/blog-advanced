@@ -95,7 +95,7 @@ if (Config::get_safe("version", false)) {
 	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 
-	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css">'
+	<?php echo Config::get_safe("highlight", false) ? '<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css" />'.PHP_EOL : ''; ?>
 	<style>
 	#emojiPicker {
 		display: flex;
@@ -611,6 +611,7 @@ if (Config::get_safe("version", false)) {
 		
 		const newText = text.substring(0, start) + textBefore + selectedText + textAfter + text.substring(end);
 		textarea.value = newText;
+                        console.log('✅ newText:', JSON.stringify(newText.substring(Math.max(0, start - 20), start + before.length + selectedText.length + after.length + 20)));
 		
 		// Set cursor position
 		const newPos = start + textBefore.length + selectedText.length;
@@ -757,6 +758,7 @@ if (Config::get_safe("version", false)) {
 				}
 				break;
 			case 'code':
+                        console.log('🐛 DEBUG code:');
                         console.log('✅ CODE case reached');
 				before = '`';
 				after = '`';
@@ -791,8 +793,10 @@ if (Config::get_safe("version", false)) {
 		}
 		
 		if (before !== '' || after !== '') {
+                        console.log('🔍 before:', JSON.stringify(before));                        console.log('🔍 after:', JSON.stringify(after));                        console.log('🔍 selectedText:', JSON.stringify(selectedText));                        console.log('🔍 start:', start, 'end:', end);
 			const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
 			textarea.value = newText;
+                        console.log('✅ newText:', JSON.stringify(newText.substring(Math.max(0, start - 20), start + before.length + selectedText.length + after.length + 20)));
 			
 			const newPos = start + before.length + selectedText.length;
 			textarea.selectionStart = textarea.selectionEnd = newPos;
@@ -874,8 +878,10 @@ if (Config::get_safe("version", false)) {
 		}
 		
 		if (before !== '' || after !== '') {
+                        console.log('🔍 before:', JSON.stringify(before));                        console.log('🔍 after:', JSON.stringify(after));                        console.log('🔍 selectedText:', JSON.stringify(selectedText));                        console.log('🔍 start:', start, 'end:', end);
 			const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
 			textarea.value = newText;
+                        console.log('✅ newText:', JSON.stringify(newText.substring(Math.max(0, start - 20), start + before.length + selectedText.length + after.length + 20)));
 			
 			const newPos = start + before.length + selectedText.length;
 			textarea.selectionStart = textarea.selectionEnd = newPos;
