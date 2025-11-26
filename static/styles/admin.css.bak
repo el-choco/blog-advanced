@@ -314,7 +314,7 @@
    ============================================ */
 
 .inline-editor-row {
-    background: #f8f9fa ! important;
+    background: #f8f9fa !important;
 }
 
 .inline-editor-container {
@@ -346,11 +346,6 @@
     margin-bottom: 20px;
 }
 
-.editor-column,
-.preview-column {
-    min-width: 0; /* Wichtig fÃ¼r Grid!  */
-}
-
 .editor-column h4,
 .preview-column h4 {
     margin: 0 0 10px 0;
@@ -361,7 +356,6 @@
 
 .inline-editor-textarea {
     width: 100%;
-    box-sizing: border-box;
     min-height: 300px;
     padding: 15px;
     border: 2px solid #e5e5e5;
@@ -404,8 +398,6 @@
 }
 
 .inline-editor-preview {
-    width: 100%;
-    box-sizing: border-box;
     min-height: 300px;
     padding: 15px;
     background: #fff;
@@ -518,4 +510,22 @@
     .preview-column {
         display: none; /* Hide preview on mobile */
     }
+}
+/* Fix: Editor/Preview nicht überlappen */
+.inline-editor-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.editor-column,
+.preview-column {
+    min-width: 0; /* Wichtig für Grid! */
+}
+
+.inline-editor-textarea,
+.inline-editor-preview {
+    width: 100%;
+    box-sizing: border-box;
 }

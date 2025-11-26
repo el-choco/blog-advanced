@@ -1,15 +1,6 @@
 <?php
 require_once 'common.php';
 
-// CSRF Token Setup
-if(empty($_SESSION['token'])){
-    if (function_exists('random_bytes')) {
-        $_SESSION['token'] = bin2hex(random_bytes(5));
-    } else {
-        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
-    }
-}
-
 $stats = AdminHelper::getStats();
 $recent_posts = array_slice(AdminHelper::getAllPosts(), 0, 5);
 
@@ -139,7 +130,7 @@ function escape($str) {
                                 </tr>
                             <?php else: ?>
                                 <?php foreach($recent_posts as $post): ?>
-                                    <tr data-post-id="<?php echo $post['id']; ?>">
+                                    <tr>
                                         <td><code>#<?php echo escape($post['id']); ?></code></td>
                                         <td>
                                             <div class="post-preview">
@@ -154,39 +145,7 @@ function escape($str) {
                                         <td>
                                             <div class="action-buttons">
                                                 <a href="../#id=<?php echo $post['id']; ?>" class="btn btn-sm" title="Anzeigen">👁️</a>
-                                                <button class="btn btn-sm inline-edit-btn" data-post-id="<?php echo $post['id']; ?>" title="Inline bearbeiten">✏️</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- Inline Editor Row (hidden by default) -->
-                                    <tr class="inline-editor-row" id="inline-editor-<?php echo $post['id']; ?>" style="display: none;">
-                                        <td colspan="5">
-                                            <div class="inline-editor-container">
-                                                <div class="inline-editor-header">
-                                                    <h3>✏️ Beitrag #<?php echo $post['id']; ?> bearbeiten</h3>
-                                                    <button class="btn btn-sm close-editor" data-post-id="<?php echo $post['id']; ?>">✖️ Schließen</button>
-                                                </div>
-                                                <div class="inline-editor-body">
-                                                    <div class="editor-column">
-                                                        <h4>📝 Editor</h4>
-                                                        <textarea class="inline-editor-textarea" id="editor-<?php echo $post['id']; ?>" rows="15"></textarea>
-                                                        <div class="editor-toolbar">
-                                                            <button class="toolbar-btn" data-action="bold" title="Bold">**B**</button>
-                                                            <button class="toolbar-btn" data-action="italic" title="Italic">*I*</button>
-                                                            <button class="toolbar-btn" data-action="code" title="Code">`code`</button>
-                                                            <button class="toolbar-btn" data-action="link" title="Link">🔗</button>
-                                                            <button class="toolbar-btn" data-action="image" title="Image">🖼️</button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="preview-column">
-                                                        <h4>👁️ Live-Preview</h4>
-                                                        <div class="inline-editor-preview" id="preview-<?php echo $post['id']; ?>"></div>
-                                                    </div>
-                                                </div>
-                                                <div class="inline-editor-footer">
-                                                    <button class="btn btn-sm" onclick="closeInlineEditor(<?php echo $post['id']; ?>)">Abbrechen</button>
-                                                    <button class="btn btn-primary" onclick="saveInlinePost(<?php echo $post['id']; ?>)">💾 Speichern</button>
-                                                </div>
+                                                <a href="posts.php?edit=<?php echo $post['id']; ?>" class="btn btn-sm" title="Bearbeiten">✏️</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -235,22 +194,6 @@ function escape($str) {
         </main>
 
     </div>
-
-    <!-- jQuery (for AJAX) -->
-    <script src="../static/scripts/jquery.min.js"></script>
-    
-    <!-- CSRF Token Setup -->
-    <script>
-    $. ajaxSetup({
-        headers: {
-            'Csrf-Token': '<?php echo $_SESSION['token']; ?>'
-        }
-    });
-    console. log('🔑 CSRF Token configured');
-    </script>
-    
-    <!-- Admin JavaScript -->
-    <script src="../static/scripts/admin.js"></script>
 
 </body>
 </html>

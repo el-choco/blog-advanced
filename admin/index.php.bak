@@ -1,15 +1,6 @@
 <?php
 require_once 'common.php';
 
-// CSRF Token Setup
-if(empty($_SESSION['token'])){
-    if (function_exists('random_bytes')) {
-        $_SESSION['token'] = bin2hex(random_bytes(5));
-    } else {
-        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
-    }
-}
-
 $stats = AdminHelper::getStats();
 $recent_posts = array_slice(AdminHelper::getAllPosts(), 0, 5);
 
@@ -238,16 +229,6 @@ function escape($str) {
 
     <!-- jQuery (for AJAX) -->
     <script src="../static/scripts/jquery.min.js"></script>
-    
-    <!-- CSRF Token Setup -->
-    <script>
-    $. ajaxSetup({
-        headers: {
-            'Csrf-Token': '<?php echo $_SESSION['token']; ?>'
-        }
-    });
-    console. log('🔑 CSRF Token configured');
-    </script>
     
     <!-- Admin JavaScript -->
     <script src="../static/scripts/admin.js"></script>
