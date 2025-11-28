@@ -1,0 +1,42 @@
+# ============================================
+# Blog Advanced - SQLite
+# ============================================
+version: '3. 8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog-advanced-web
+    ports:
+      - "8080:80"
+    volumes:
+      - . :/var/www/html
+      - ./data:/var/www/html/data
+      - ./uploads:/var/www/html/uploads
+      - sqlite_data:/var/www/html/database
+    environment:
+      - DB_TYPE=sqlite
+      - DB_PATH=/var/www/html/database/blog.db
+    networks:
+      - blog-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+      mkdir -p /var/www/html/database &&
+      chmod 777 /var/www/html/database &&
+      if [ ! -f /var/www/html/database/blog.db ]; then
+        echo 'Erstelle neue SQLite Datenbank...' &&
+        sqlite3 /var/www/html/database/blog.db < /var/www/html/app/db/sqlite/01_schema.sql &&
+        chmod 666 /var/www/html/database/blog.db
+      fi &&
+      apache2-foreground
+      "
+
+volumes:
+  sqlite_data:
+
+networks:
+  blog-network:
+    driver: bridge

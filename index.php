@@ -533,13 +533,6 @@ if (Config::get_safe("version", false)) {
 		</div>
 	</div>
 
-	<!-- Trash/Recycle Bin Toggle (only visible when logged in) -->
-	<script>
-	var trashEnabled = <?php echo User::is_logged_in() ? 'true' : 'false'; ?>;
-	var softDeleteEnabled = <?php echo Config::get_safe('SOFT_DELETE', true) ? 'true' : 'false'; ?>;
-	var hardDeleteFilesEnabled = <?php echo Config::get_safe('HARD_DELETE_FILES', true) ? 'true' : 'false'; ?>;
-	</script>
-
     <?php if(User::is_logged_in()): ?>
 		<?php endif; ?>
 			<div id="b_feed">
@@ -574,6 +567,29 @@ if (Config::get_safe("version", false)) {
 	</div>
 	<script src="static/scripts/jquery.min.js"></script>
 	<script>$["\x61\x6A\x61\x78\x53\x65\x74\x75\x70"]({"\x68\x65\x61\x64\x65\x72\x73":{"\x43\x73\x72\x66-\x54\x6F\x6B\x65\x6E":"<?php echo $_SESSION['token'];?>"}});</script>
+	
+	<script>
+	var trashEnabled = <?php echo User::is_logged_in() ?  'true' : 'false'; ?>;
+	var softDeleteEnabled = <?php echo Config::get_safe('SOFT_DELETE', true) ? 'true' : 'false'; ?>;
+	var hardDeleteFilesEnabled = <?php echo Config::get_safe('HARD_DELETE_FILES', true) ? 'true' : 'false'; ?>;
+
+	// Translation strings for JavaScript
+	var LANG = {
+		comments: 'Kommentare',
+		leaveComment: 'Kommentar hinterlassen',
+		yourName: 'Dein Name',
+		yourComment: 'Dein Kommentar',
+		postComment: 'Kommentar posten',
+		noComments: 'Noch keine Kommentare.  Sei der Erste!',
+		waitingApproval: 'Wartet auf Freigabe',
+		secondsAgo: 'vor {0} Sekunden',
+		minutesAgo: 'vor {0} Minuten',
+		hoursAgo: 'vor {0} Stunden',
+		errorPosting: 'Fehler beim Posten',
+		commentSuccess: 'Kommentar gepostet! ',
+		commentFailed: 'Fehler beim Posten. Bitte nochmal versuchen.'
+	};
+	</script>
 
 	<script src="static/scripts/lightbox.js"></script>
 	<script src="static/scripts/datepick.js<?php echo $versionSuffix?>"></script>

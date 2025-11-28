@@ -1,0 +1,65 @@
+# ============================================
+# Blog Advanced - PostgreSQL
+# ============================================
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog-advanced-web
+    ports:
+      - "8080:80"
+    volumes:
+      - . :/var/www/html
+      - ./data:/var/www/html/data
+      - ./uploads:/var/www/html/uploads
+    environment:
+      - DB_TYPE=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=blog
+      - DB_USER=bloguser
+      - DB_PASS=blogpass123
+    depends_on:
+      - db
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: blog-advanced-db-postgres
+    environment:
+      POSTGRES_DB: blog
+      POSTGRES_USER: bloguser
+      POSTGRES_PASSWORD: blogpass123
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./app/db/postgres/01_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: blog-advanced-adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+
+networks:
+  blog-network:
+    driver: bridge

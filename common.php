@@ -36,3 +36,9 @@ if(false !== ($TZ = Config::get_safe('timezone', getenv('TZ')))) {
 // Start session
 ini_set('session.cookie_httponly', 1);
 session_start();
+
+if (!function_exists('escape')) {
+    function escape($str) {
+        return htmlspecialchars($str ??  '', ENT_QUOTES, 'UTF-8');
+    }
+}

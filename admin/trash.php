@@ -18,11 +18,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if($quick_action === 'restore') {
             // Status 1 = Published (wiederhergestellt)
             $db->query("UPDATE posts SET status = ? WHERE id = ?", [1, $post_id]);
-            $message = 'Beitrag wiederhergestellt';
+            $message = $lang['Post restored'];
             $message_type = 'success';
         } elseif($quick_action === 'delete_permanent') {
             if(AdminHelper::permanentDelete($post_id)) {
-                $message = 'Beitrag endgültig gelöscht';
+                $message = $lang['Post permanently deleted'];
                 $message_type = 'success';
             }
         }
@@ -39,27 +39,31 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
         }
         
-        $message = "$count Beiträge wurden endgültig gelöscht";
+        $message = "$count " . $lang['posts were permanently deleted'];
         $message_type = 'success';
     }
 }
 
 // Get trash posts
 $trash_posts = AdminHelper::getAllPosts(true);
-
-function escape($str) {
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-}
 ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Papierkorb - <?php echo escape(Config::get("title")); ?></title>
+    <title><?php echo escape($lang['Trash']); ?> - <?php echo escape(Config::get("title")); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     
     <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
+    <?php
+    // Theme sicher bereinigen (4-Zeilen-Variante)
+    $theme = Config::get_safe('theme', 'theme01');
+    $theme = trim((string)$theme);
+    $theme = preg_replace('/\.css$/i', '', $theme);
+    $theme = preg_replace('/[^a-zA-Z0-9_-]/', '', $theme);
+    if ($theme === '') { $theme = 'theme01'; }
+    ?>
+    <link href="../static/styles/<?php echo htmlspecialchars($theme, ENT_QUOTES, 'UTF-8'); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
     
@@ -189,10 +193,10 @@ function escape($str) {
     <!-- Admin Header -->
     <div class="admin-header">
         <div class="admin-container">
-            <h1>🗑️ Papierkorb</h1>
+            <h1>🗑️ <?php echo escape($lang['Trash']); ?></h1>
             <div class="admin-user">
                 <span>👤 <?php echo escape(Config::get("name")); ?></span>
-                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+                <a href="../" class="btn btn-sm">← <?php echo escape($lang['Back to Blog']); ?></a>
             </div>
         </div>
     </div>
@@ -202,13 +206,13 @@ function escape($str) {
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar">
             <nav class="admin-nav">
-                <a href="index.php">📊 Dashboard</a>
-                <a href="posts.php">📝 Beiträge</a>
-                <a href="comments.php">💬 Kommentare</a>
-                <a href="media.php">📁 Dateien</a>
-                <a href="backups.php">💾 Backups</a>
-                <a href="trash.php" class="active">🗑️ Papierkorb <span class="badge"><?php echo count($trash_posts); ?></span></a>
-                <a href="settings.php">⚙️ Einstellungen</a>
+                <a href="index.php">📊 <?php echo escape($lang['Dashboard']); ?></a>
+                <a href="posts.php">📝 <?php echo escape($lang['Posts']); ?></a>
+                <a href="comments.php">💬 <?php echo escape($lang['Comments']); ?></a>
+                <a href="media.php">📁 <?php echo escape($lang['Files']); ?></a>
+                <a href="backups.php">💾 <?php echo escape($lang['Backups']); ?></a>
+                <a href="trash.php" class="active">🗑️ <?php echo escape($lang['Trash']); ?> <span class="badge"><?php echo count($trash_posts); ?></span></a>
+                <a href="settings.php">⚙️ <?php echo escape($lang['Settings']); ?></a>
             </nav>
         </aside>
         
@@ -225,8 +229,8 @@ function escape($str) {
             <div class="trash-warning">
                 <div class="trash-warning-icon">⚠️</div>
                 <div class="trash-warning-text">
-                    <div class="trash-warning-title">Gelöschte Beiträge</div>
-                    <div>Beiträge im Papierkorb können wiederhergestellt oder endgültig gelöscht werden.</div>
+                    <div class="trash-warning-title"><?php echo escape($lang['Deleted Posts']); ?></div>
+                    <div><?php echo escape($lang['Posts in trash can be restored or permanently deleted']); ?></div>
                 </div>
             </div>
             
@@ -237,8 +241,8 @@ function escape($str) {
                     <div class="panel-body">
                         <div class="empty-trash">
                             <div class="empty-trash-icon">🗑️</div>
-                            <h2>Papierkorb ist leer</h2>
-                            <p>Keine gelöschten Beiträge vorhanden</p>
+                            <h2><?php echo escape($lang['Trash is empty']); ?></h2>
+                            <p><?php echo escape($lang['No deleted posts']); ?></p>
                         </div>
                     </div>
                 </div>
@@ -248,11 +252,11 @@ function escape($str) {
                 <!-- Trash Actions -->
                 <div class="trash-actions">
                     <div>
-                        <strong><?php echo count($trash_posts); ?> Beiträge</strong> im Papierkorb
+                        <strong><?php echo count($trash_posts); ?> <?php echo escape($lang['posts in trash']); ?></strong>
                     </div>
-                    <form method="POST" onsubmit="return confirm('Wirklich ALLE Beiträge im Papierkorb endgültig löschen?');">
+                    <form method="POST" onsubmit="return confirm('<?php echo escape($lang['Empty trash confirmation']); ?>');">
                         <input type="hidden" name="action" value="empty_trash">
-                        <button type="submit" class="btn-danger">🗑️ Papierkorb leeren</button>
+                        <button type="submit" class="btn-danger">🗑️ <?php echo escape($lang['Empty Trash']); ?></button>
                     </form>
                 </div>
                 
@@ -263,9 +267,9 @@ function escape($str) {
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Inhalt</th>
-                                    <th>Gelöscht am</th>
-                                    <th>Aktionen</th>
+                                    <th><?php echo escape($lang['Content']); ?></th>
+                                    <th><?php echo escape($lang['Deleted on']); ?></th>
+                                    <th><?php echo escape($lang['Actions']); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -287,14 +291,14 @@ function escape($str) {
                                                     <input type="hidden" name="action" value="">
                                                     <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
                                                     <input type="hidden" name="quick_action" value="restore">
-                                                    <button type="submit" class="quick-action-btn" title="Wiederherstellen">♻️</button>
+                                                    <button type="submit" class="quick-action-btn" title="<?php echo escape($lang['Restore']); ?>">♻️</button>
                                                 </form>
                                                 
-                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden!');">
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm('<?php echo escape($lang['Delete permanently confirmation']); ?>');">
                                                     <input type="hidden" name="action" value="">
                                                     <input type="hidden" name="post_id" value="<?php echo escape($post['id']); ?>">
                                                     <input type="hidden" name="quick_action" value="delete_permanent">
-                                                    <button type="submit" class="quick-action-btn" title="Endgültig löschen" style="color: #dc3545;">🗑️</button>
+                                                    <button type="submit" class="quick-action-btn" title="<?php echo escape($lang['Delete Permanently']); ?>" style="color: #dc3545;">🗑️</button>
                                                 </form>
                                             </div>
                                         </td>
@@ -311,33 +315,33 @@ function escape($str) {
             <!-- Quick Actions -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2>Schnellzugriff</h2>
+                    <h2><?php echo escape($lang['Quick Access']); ?></h2>
                 </div>
                 <div class="panel-body">
                     <div class="quick-actions">
                         <a href="../#new-post" class="quick-action-card">
                             <div class="qa-icon">✏️</div>
-                            <div class="qa-label">Neuer Beitrag</div>
+                            <div class="qa-label"><?php echo escape($lang['New Post']); ?></div>
                         </a>
                         <a href="backups.php" class="quick-action-card">
                             <div class="qa-icon">💾</div>
-                            <div class="qa-label">Backups</div>
+                            <div class="qa-label"><?php echo escape($lang['Backups']); ?></div>
                         </a>
                         <a href="comments.php" class="quick-action-card">
                             <div class="qa-icon">💬</div>
-                            <div class="qa-label">Kommentare</div>
+                            <div class="qa-label"><?php echo escape($lang['Comments']); ?></div>
                         </a>
                         <a href="posts.php" class="quick-action-card">
                             <div class="qa-icon">📝</div>
-                            <div class="qa-label">Beiträge verwalten</div>
+                            <div class="qa-label"><?php echo escape($lang['Manage Posts']); ?></div>
                         </a>
                         <a href="media.php" class="quick-action-card">
                             <div class="qa-icon">📁</div>
-                            <div class="qa-label">Dateien</div>
+                            <div class="qa-label"><?php echo escape($lang['Files']); ?></div>
                         </a>
                         <a href="trash.php" class="quick-action-card">
                             <div class="qa-icon">🗑️</div>
-                            <div class="qa-label">Papierkorb</div>
+                            <div class="qa-label"><?php echo escape($lang['Trash']); ?></div>
                         </a>
                     </div>
                 </div>

@@ -82,7 +82,7 @@ if docker exec blog-advanced-db mysql -u bloguser -pblogpass123 blog -e "SHOW TA
     if [ "$TABLE_COUNT" -lt 2 ]; then
         echo ""
         echo -e "${GREEN}📊 Importing database schema...${NC}"
-        if docker exec -i blog-advanced-db mysql -u bloguser -pblogpass123 blog < migrations/schema.sql; then
+        if docker exec -i blog-advanced-db mysql -u bloguser -pblogpass123 blog < app/db/mysql/01_schema.sql; then
             echo -e "${GREEN}✅ Database schema imported successfully${NC}"
         else
             echo -e "${YELLOW}⚠️  Schema import failed (this is OK if already imported)${NC}"

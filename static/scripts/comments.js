@@ -1,4 +1,7 @@
-// Comments System
+/**
+ * Comments System
+ * Handles comment submission, loading, and rendering
+ */
 var Comments = {
     postId: null,
     container: null,
@@ -6,6 +9,7 @@ var Comments = {
     commentsList: null,
     csrfToken: null,
 
+    /*** Initialize comments for a specific post */
     init: function(postId) {
         console.log('💬 Initializing Comments for post', postId);
         this.postId = postId;
@@ -18,10 +22,10 @@ var Comments = {
                         this.container.data('csrf-token') ||
                         window.csrfToken;
 
-        console.log('🔐 CSRF Token:', this.csrfToken ? 'Found' : 'MISSING!');
+        console.log('🔐 CSRF Token:', this.csrfToken ?  'Found' : 'MISSING! ');
 
         if (!this.container.length) {
-            console.error('❌ Comments container not found for post', postId);
+            console. error('❌ Comments container not found for post', postId);
             return;
         }
 
@@ -34,14 +38,20 @@ var Comments = {
         console.log('✅ Comments initialized for post', postId);
     },
 
+    /**
+     * Bind form submit event
+     */
     bindFormSubmit: function() {
         var self = this;
-        this.form.on('submit', function(e) {
+        this. form.on('submit', function(e) {
             e.preventDefault();
             self.submitComment();
         });
     },
 
+    /**
+     * Submit a new comment
+     */
     submitComment: function() {
         var self = this;
         var formData = {
@@ -55,7 +65,7 @@ var Comments = {
         console.log('📤 Submitting comment:', formData);
 
         $.ajax({
-            url: 'ajax.php',
+            url: 'ajax. php',
             method: 'POST',
             data: formData,
             dataType: 'json',
@@ -66,25 +76,28 @@ var Comments = {
                 console.log('📥 Comment response:', response);
 
                 if (response.error) {
-                    self.showStatus('error', response.msg || 'Error posting comment');
+                    self.showStatus('error', response.msg || LANG.errorPosting);
                 } else {
-                    self.showStatus('success', response.message || 'Comment posted successfully!');
+                    self.showStatus('success', response.message || LANG.commentSuccess);
                     self.form[0].reset();
 
-                    // Reload comments
+                    // Reload comments after short delay
                     setTimeout(function() {
                         self.loadComments();
                     }, 500);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('❌ AJAX error:', status, error);
+                console. error('❌ AJAX error:', status, error);
                 console.error('Response:', xhr.responseText);
-                self.showStatus('error', 'Failed to post comment. Please try again.');
+                self.showStatus('error', LANG.commentFailed);
             }
         });
     },
 
+    /**
+     * Load comments from server
+     */
     loadComments: function() {
         var self = this;
 
@@ -95,7 +108,7 @@ var Comments = {
             method: 'GET',
             data: {
                 action: 'comment_get',
-                post_id: this.postId
+                post_id: this. postId
             },
             dataType: 'json',
             success: function(response) {
@@ -114,19 +127,22 @@ var Comments = {
         });
     },
 
+    /**
+     * Render comments list
+     */
     renderComments: function(comments) {
         console.log('🎨 Rendering', comments.length, 'comments');
 
         this.commentsList.empty();
 
         if (comments.length === 0) {
-            this.commentsList.html('<p class="no-comments">Noch keine Kommentare. Sei der Erste!</p>');
+            this.commentsList.html('<p class="no-comments">' + LANG.noComments + '</p>');
             return;
         }
 
         comments.forEach(function(comment) {
             var isPending = comment.status === 'pending';
-            var statusBadge = isPending ? '<span class="comment-status-badge pending">Wartet auf Freigabe</span>' : '';
+            var statusBadge = isPending ? '<span class="comment-status-badge pending">' + LANG.waitingApproval + '</span>' : '';
 
             var commentHTML = `
                 <div class="comment ${isPending ? 'pending' : ''}" data-comment-id="${comment.id}">
@@ -140,32 +156,48 @@ var Comments = {
             `;
 
             this.commentsList.append(commentHTML);
-        }.bind(this));
+        }. bind(this));
     },
 
+    /**
+     * Update comment count
+     */
     updateCount: function(count) {
         this.container.find('.comment-count').text(count);
         console.log('📊 Updated count to', count);
     },
 
+    /**
+     * Show status message (success or error)
+     */
     showStatus: function(type, message) {
         var statusDiv = this.form.find('.comment-status');
-        statusDiv.removeClass('success error').addClass(type).text(message).show();
+        statusDiv.removeClass('success error'). addClass(type). text(message). show();
 
         setTimeout(function() {
             statusDiv.fadeOut();
         }, 5000);
     },
 
+    /**
+     * Format date relative to now (e.g., "2 hours ago")
+     */
     formatDate: function(dateString) {
         var date = new Date(dateString);
         var now = new Date();
-        var diff = Math.floor((now - date) / 1000);
+        var diff = Math.floor((now - date) / 1000); // seconds
 
-        if (diff < 60) return 'vor ' + diff + ' Sekunden';
-        if (diff < 3600) return 'vor ' + Math.floor(diff / 60) + ' Minuten';
-        if (diff < 86400) return 'vor ' + Math.floor(diff / 3600) + ' Stunden';
+        if (diff < 60) {
+            return LANG. secondsAgo.replace('{0}', diff);
+        }
+        if (diff < 3600) {
+            return LANG. minutesAgo.replace('{0}', Math.floor(diff / 60));
+        }
+        if (diff < 86400) {
+            return LANG. hoursAgo.replace('{0}', Math.floor(diff / 3600));
+        }
 
+        // Fallback to formatted date
         return date.toLocaleDateString('de-DE', {
             day: '2-digit',
             month: '2-digit',
@@ -175,6 +207,9 @@ var Comments = {
         });
     },
 
+    /**
+     * Escape HTML to prevent XSS
+     */
     escapeHtml: function(text) {
         var div = document.createElement('div');
         div.textContent = text;

@@ -25,7 +25,7 @@ services:
       MYSQL_PASSWORD: blogpass123
     volumes:
       - db_data:/var/lib/mysql
-      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./app/db/mysql/01_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     ports:
       - "3307:3306"
     networks:

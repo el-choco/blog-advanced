@@ -8,8 +8,8 @@ if (!User::is_logged_in()) {
 }
 
 // Create CSRF token if not exists
-if(empty($_SESSION['token'])){
-    if(function_exists('random_bytes')){
+if (empty($_SESSION['token'])) {
+    if (function_exists('random_bytes')) {
         $_SESSION['token'] = bin2hex(random_bytes(5));
     } else {
         $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
@@ -45,7 +45,7 @@ if ($filter_status === 'all') {
         SELECT c.*, p.plain_text as post_excerpt
         FROM comments c
         LEFT JOIN posts p ON c.post_id = p.id
-        WHERE c.status = ?
+        WHERE c.status = ? 
         ORDER BY c.created_at DESC
         LIMIT ? OFFSET ?
     ", $filter_status, $per_page, $offset)->all();
@@ -62,45 +62,54 @@ $spam_count = $db->query("SELECT COUNT(*) as count FROM comments WHERE status = 
 
 $total_pages = ceil($total / $per_page);
 
-function escape($str) {
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-}
-
 function getStatusBadge($status) {
+    global $lang;
     switch($status) {
-        case 'pending': return '<span class="badge badge-warning">⏳ Ausstehend</span>';
-        case 'approved': return '<span class="badge badge-success">✅ Genehmigt</span>';
-        case 'spam': return '<span class="badge badge-danger">🚫 Spam</span>';
-        default: return '<span class="badge">❓ Unbekannt</span>';
+        case 'pending': return '<span class="badge badge-warning">⏳ ' . escape($lang['Pending']) . '</span>';
+        case 'approved': return '<span class="badge badge-success">✅ ' . escape($lang['Approved']) . '</span>';
+        case 'spam': return '<span class="badge badge-danger">🚫 ' . escape($lang['Spam']) . '</span>';
+        default: return '<span class="badge">❓ ' . escape($lang['Unknown']) . '</span>';
     }
 }
 ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Kommentare - <?php echo escape(Config::get("title")); ?></title>
+    <title><?php echo escape($lang['Comments']); ?> - <?php echo escape(Config::get("title")); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     
     <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
+    <?php
+    // Theme sicher bereinigen (4‑Zeilen‑Variante)
+    $theme = Config::get_safe('theme', 'theme01');
+    $theme = trim((string)$theme);
+    $theme = preg_replace('/\.css$/i', '', $theme);
+    $theme = preg_replace('/[^a-zA-Z0-9_-]/', '', $theme);
+    if ($theme === '') { $theme = 'theme01'; }
+    ?>
+    <link href="../static/styles/<?php echo htmlspecialchars($theme, ENT_QUOTES, 'UTF-8'); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
     
     <script src="../static/scripts/jquery.min.js"></script>
     <script>
-    // Setup CSRF token for AJAX requests
-    $["\x61\x6A\x61\x78\x53\x65\x74\x75\x70"]({"\x68\x65\x61\x64\x65\x72\x73":{"\x43\x73\x72\x66-\x54\x6F\x6B\x65\x6E":"<?php echo $_SESSION['token'];?>"}});
+    // Setup CSRF token for AJAX requests (klar und ohne Obfuscation)
+    $.ajaxSetup({
+        headers: {
+            'Csrf-Token': '<?php echo $_SESSION['token']; ?>'
+        }
+    });
     </script>
 </head>
 <body class="admin-body">
     
     <div class="admin-header">
         <div class="admin-container">
-            <h1>💬 Kommentare verwalten</h1>
+            <h1>💬 <?php echo escape($lang['Manage Comments']); ?></h1>
             <div class="admin-user">
                 <span>👤 <?php echo escape(Config::get("name")); ?></span>
-                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+                <a href="../" class="btn btn-sm">← <?php echo escape($lang['Back to Blog']); ?></a>
             </div>
         </div>
     </div>
@@ -109,13 +118,13 @@ function getStatusBadge($status) {
         
         <aside class="admin-sidebar">
             <nav class="admin-nav">
-                <a href="index.php">📊 Dashboard</a>
-                <a href="posts.php">📝 Beiträge</a>
-                <a href="comments.php" class="active">💬 Kommentare <span class="badge"><?php echo $pending_count; ?></span></a>
-                <a href="media.php">📁 Dateien</a>
-                <a href="backups.php">💾 Backups</a>
-                <a href="trash.php">🗑️ Papierkorb</a>
-                <a href="settings.php">⚙️ Einstellungen</a>
+                <a href="index.php">📊 <?php echo escape($lang['Dashboard']); ?></a>
+                <a href="posts.php">📝 <?php echo escape($lang['Posts']); ?></a>
+                <a href="comments.php" class="active">💬 <?php echo escape($lang['Comments']); ?> <span class="badge"><?php echo $pending_count; ?></span></a>
+                <a href="media.php">📁 <?php echo escape($lang['Files']); ?></a>
+                <a href="backups.php">💾 <?php echo escape($lang['Backups']); ?></a>
+                <a href="trash.php">🗑️ <?php echo escape($lang['Trash']); ?></a>
+                <a href="settings.php">⚙️ <?php echo escape($lang['Settings']); ?></a>
             </nav>
         </aside>
         
@@ -124,16 +133,16 @@ function getStatusBadge($status) {
             <!-- Filter Tabs -->
             <div class="filter-tabs" style="margin-bottom: 20px;">
                 <a href="?status=all" class="tab <?php echo $filter_status === 'all' ? 'active' : ''; ?>">
-                    Alle (<?php echo $total; ?>)
+                    <?php echo escape($lang['All']); ?> (<?php echo $total; ?>)
                 </a>
                 <a href="?status=pending" class="tab <?php echo $filter_status === 'pending' ? 'active' : ''; ?>">
-                    ⏳ Ausstehend (<?php echo $pending_count; ?>)
+                    ⏳ <?php echo escape($lang['Pending']); ?> (<?php echo $pending_count; ?>)
                 </a>
                 <a href="?status=approved" class="tab <?php echo $filter_status === 'approved' ? 'active' : ''; ?>">
-                    ✅ Genehmigt (<?php echo $approved_count; ?>)
+                    ✅ <?php echo escape($lang['Approved']); ?> (<?php echo $approved_count; ?>)
                 </a>
                 <a href="?status=spam" class="tab <?php echo $filter_status === 'spam' ? 'active' : ''; ?>">
-                    🚫 Spam (<?php echo $spam_count; ?>)
+                    🚫 <?php echo escape($lang['Spam']); ?> (<?php echo $spam_count; ?>)
                 </a>
             </div>
             
@@ -142,18 +151,18 @@ function getStatusBadge($status) {
                 <div class="panel-body">
                     <?php if(empty($comments)): ?>
                         <p style="text-align: center; padding: 40px; color: #999;">
-                            Keine Kommentare gefunden.
+                            <?php echo escape($lang['No comments found']); ?>
                         </p>
                     <?php else: ?>
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>Autor</th>
-                                    <th>Kommentar</th>
-                                    <th>Beitrag</th>
-                                    <th>Datum</th>
-                                    <th>Status</th>
-                                    <th>Aktionen</th>
+                                    <th><?php echo escape($lang['Author']); ?></th>
+                                    <th><?php echo escape($lang['Comment']); ?></th>
+                                    <th><?php echo escape($lang['Post']); ?></th>
+                                    <th><?php echo escape($lang['Date']); ?></th>
+                                    <th><?php echo escape($lang['Status']); ?></th>
+                                    <th><?php echo escape($lang['Actions']); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -168,7 +177,7 @@ function getStatusBadge($status) {
                                         <td>
                                             <div style="max-width: 300px; word-wrap: break-word;">
                                                 <?php echo escape(substr($comment['content'], 0, 150)); ?>
-                                                <?php if(strlen($comment['content']) > 150): ?>...<?php endif; ?>
+                                                <?php if(strlen($comment['content']) > 150): ?>... <?php endif; ?>
                                             </div>
                                         </td>
                                         <td>
@@ -183,10 +192,10 @@ function getStatusBadge($status) {
                                         <td>
                                             <div class="action-buttons">
                                                 <?php if($comment['status'] !== 'approved'): ?>
-                                                    <button class="btn btn-sm btn-success approve-btn" data-id="<?php echo $comment['id']; ?>" title="Genehmigen">✅</button>
+                                                    <button class="btn btn-sm btn-success approve-btn" data-id="<?php echo $comment['id']; ?>" title="<?php echo escape($lang['Approve']); ?>">✅</button>
                                                 <?php endif; ?>
-                                                <button class="btn btn-sm btn-danger spam-btn" data-id="<?php echo $comment['id']; ?>" title="Spam">🚫</button>
-                                                <button class="btn btn-sm btn-secondary delete-btn" data-id="<?php echo $comment['id']; ?>" title="Löschen">🗑️</button>
+                                                <button class="btn btn-sm btn-danger spam-btn" data-id="<?php echo $comment['id']; ?>" title="<?php echo escape($lang['Mark as Spam']); ?>">🚫</button>
+                                                <button class="btn btn-sm btn-secondary delete-btn" data-id="<?php echo $comment['id']; ?>" title="<?php echo escape($lang['Delete Permanently']); ?>">🗑️</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -213,33 +222,33 @@ function getStatusBadge($status) {
             <!-- Quick Actions -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2>Schnellzugriff</h2>
+                    <h2><?php echo escape($lang['Quick Access']); ?></h2>
                 </div>
                 <div class="panel-body">
                     <div class="quick-actions">
                         <a href="../#new-post" class="quick-action-card">
                             <div class="qa-icon">✏️</div>
-                            <div class="qa-label">Neuer Beitrag</div>
+                            <div class="qa-label"><?php echo escape($lang['New Post']); ?></div>
                         </a>
                         <a href="backups.php" class="quick-action-card">
                             <div class="qa-icon">💾</div>
-                            <div class="qa-label">Backups</div>
+                            <div class="qa-label"><?php echo escape($lang['Backups']); ?></div>
                         </a>
                         <a href="comments.php" class="quick-action-card">
                             <div class="qa-icon">💬</div>
-                            <div class="qa-label">Kommentare</div>
+                            <div class="qa-label"><?php echo escape($lang['Comments']); ?></div>
                         </a>
                         <a href="posts.php" class="quick-action-card">
                             <div class="qa-icon">📝</div>
-                            <div class="qa-label">Beiträge verwalten</div>
+                            <div class="qa-label"><?php echo escape($lang['Manage Posts']); ?></div>
                         </a>
                         <a href="media.php" class="quick-action-card">
                             <div class="qa-icon">📁</div>
-                            <div class="qa-label">Dateien</div>
+                            <div class="qa-label"><?php echo escape($lang['Files']); ?></div>
                         </a>
                         <a href="trash.php" class="quick-action-card">
                             <div class="qa-icon">🗑️</div>
-                            <div class="qa-label">Papierkorb</div>
+                            <div class="qa-label"><?php echo escape($lang['Trash']); ?></div>
                         </a>
                     </div>
                 </div>
@@ -260,8 +269,8 @@ function getStatusBadge($status) {
                 action: 'comment_approve',
                 id: commentId
             }, function(response) {
-                if(response.error) {
-                    alert('Fehler: ' + response.msg);
+                if (response.error) {
+                    alert('<?php echo escape($lang['Error']); ?>: ' + response.msg);
                 } else {
                     row.fadeOut(300, function() {
                         location.reload();
@@ -272,7 +281,7 @@ function getStatusBadge($status) {
         
         // Mark as spam
         $('.spam-btn').click(function() {
-            if(!confirm('Als Spam markieren?')) return;
+            if (!confirm('<?php echo escape($lang['Mark as spam confirmation']); ?>')) return;
             
             var commentId = $(this).data('id');
             var row = $('tr[data-comment-id="' + commentId + '"]');
@@ -281,8 +290,8 @@ function getStatusBadge($status) {
                 action: 'comment_spam',
                 id: commentId
             }, function(response) {
-                if(response.error) {
-                    alert('Fehler: ' + response.msg);
+                if (response.error) {
+                    alert('<?php echo escape($lang['Error']); ?>: ' + response.msg);
                 } else {
                     row.fadeOut(300, function() {
                         location.reload();
@@ -293,7 +302,7 @@ function getStatusBadge($status) {
         
         // Delete comment
         $('.delete-btn').click(function() {
-            if(!confirm('Kommentar wirklich löschen?')) return;
+            if (!confirm('<?php echo escape($lang['Delete comment confirmation']); ?>')) return;
             
             var commentId = $(this).data('id');
             var row = $('tr[data-comment-id="' + commentId + '"]');
@@ -302,8 +311,8 @@ function getStatusBadge($status) {
                 action: 'comment_delete',
                 id: commentId
             }, function(response) {
-                if(response.error) {
-                    alert('Fehler: ' + response.msg);
+                if (response.error) {
+                    alert('<?php echo escape($lang['Error']); ?>: ' + response.msg);
                 } else {
                     row.fadeOut(300);
                 }

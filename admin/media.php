@@ -29,14 +29,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         
         if($is_allowed && file_exists($file_path)) {
             if(@unlink($file_path)) {
-                $message = 'Datei wurde gelöscht';
+                $message = $lang['File deleted'];
                 $message_type = 'success';
             } else {
-                $message = 'Fehler beim Löschen der Datei';
+                $message = $lang['Error deleting file'];
                 $message_type = 'error';
             }
         } else {
-            $message = 'Datei nicht gefunden oder nicht erlaubt';
+            $message = $lang['File not found or not allowed'];
             $message_type = 'error';
         }
     }
@@ -68,7 +68,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
         }
         
-        $message = "$count Dateien wurden gelöscht";
+        $message = "$count " . $lang['files were deleted'];
         $message_type = 'success';
     }
 }
@@ -152,10 +152,6 @@ $count_files = count(array_filter($media_files, fn($f) => $f['type'] === 'file')
 // Calculate total size
 $total_size = array_sum(array_column($media_files, 'size'));
 
-function escape($str) {
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-}
-
 function formatFileSize($bytes) {
     if($bytes >= 1073741824) {
         return number_format($bytes / 1073741824, 2) . ' GB';
@@ -171,12 +167,19 @@ function formatFileSize($bytes) {
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Dateien - <?php echo escape(Config::get("title")); ?></title>
+    <title><?php echo escape($lang['Files']); ?> - <?php echo escape(Config::get("title")); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     
     <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
+    <?php
+    $theme = Config::get_safe('theme', 'theme01');
+    $theme = trim((string)$theme);
+    $theme = preg_replace('/\.css$/i', '', $theme);
+    $theme = preg_replace('/[^a-zA-Z0-9_-]/', '', $theme);
+    if ($theme === '') { $theme = 'theme01'; }
+    ?>
+    <link href="../static/styles/<?php echo htmlspecialchars($theme, ENT_QUOTES, 'UTF-8'); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
     
@@ -345,7 +348,8 @@ function formatFileSize($bytes) {
         background: #f0f2f5;
     }
     
-    .bulk-actions-bar { display: none !important;
+    .bulk-actions-bar {
+        display: none !important;
         background: #fff3cd;
         padding: 15px;
         border-radius: 6px;
@@ -395,10 +399,10 @@ function formatFileSize($bytes) {
     <!-- Admin Header -->
     <div class="admin-header">
         <div class="admin-container">
-            <h1>📁 Dateien</h1>
+            <h1>📁 <?php echo escape($lang['Files']); ?></h1>
             <div class="admin-user">
                 <span>👤 <?php echo escape(Config::get("name")); ?></span>
-                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+                <a href="../" class="btn btn-sm">← <?php echo escape($lang['Back to Blog']); ?></a>
             </div>
         </div>
     </div>
@@ -408,13 +412,13 @@ function formatFileSize($bytes) {
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar">
             <nav class="admin-nav">
-                <a href="index.php">📊 Dashboard</a>
-                <a href="posts.php">📝 Beiträge</a>
-                <a href="comments.php">💬 Kommentare</a>
-                <a href="media.php" class="active">📁 Dateien <span class="badge"><?php echo $count_all; ?></span></a>
-                <a href="backups.php">💾 Backups</a>
-                <a href="trash.php">🗑️ Papierkorb</a>
-                <a href="settings.php">⚙️ Einstellungen</a>
+                <a href="index.php">📊 <?php echo escape($lang['Dashboard']); ?></a>
+                <a href="posts.php">📝 <?php echo escape($lang['Posts']); ?></a>
+                <a href="comments.php">💬 <?php echo escape($lang['Comments']); ?></a>
+                <a href="media.php" class="active">📁 <?php echo escape($lang['Files']); ?> <span class="badge"><?php echo $count_all; ?></span></a>
+                <a href="backups.php">💾 <?php echo escape($lang['Backups']); ?></a>
+                <a href="trash.php">🗑️ <?php echo escape($lang['Trash']); ?></a>
+                <a href="settings.php">⚙️ <?php echo escape($lang['Settings']); ?></a>
             </nav>
         </aside>
         
@@ -430,19 +434,19 @@ function formatFileSize($bytes) {
             <!-- Stats -->
             <div class="media-stats">
                 <div class="media-stat-card">
-                    <div class="media-stat-label">Gesamt Dateien</div>
+                    <div class="media-stat-label"><?php echo escape($lang['Total Files']); ?></div>
                     <div class="media-stat-value"><?php echo $count_all; ?></div>
                 </div>
                 <div class="media-stat-card">
-                    <div class="media-stat-label">Bilder</div>
+                    <div class="media-stat-label"><?php echo escape($lang['Images']); ?></div>
                     <div class="media-stat-value"><?php echo $count_images; ?></div>
                 </div>
                 <div class="media-stat-card">
-                    <div class="media-stat-label">Andere Dateien</div>
+                    <div class="media-stat-label"><?php echo escape($lang['Other Files']); ?></div>
                     <div class="media-stat-value"><?php echo $count_files; ?></div>
                 </div>
                 <div class="media-stat-card">
-                    <div class="media-stat-label">Gesamtgröße</div>
+                    <div class="media-stat-label"><?php echo escape($lang['Total Size']); ?></div>
                     <div class="media-stat-value" style="font-size: 20px;"><?php echo formatFileSize($total_size); ?></div>
                 </div>
             </div>
@@ -450,13 +454,13 @@ function formatFileSize($bytes) {
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <a href="?filter=all" class="filter-tab <?php echo $filter === 'all' ? 'active' : ''; ?>">
-                    Alle <span class="filter-count"><?php echo $count_all; ?></span>
+                    <?php echo escape($lang['All']); ?> <span class="filter-count"><?php echo $count_all; ?></span>
                 </a>
                 <a href="?filter=images" class="filter-tab <?php echo $filter === 'images' ? 'active' : ''; ?>">
-                    🖼️ Bilder <span class="filter-count"><?php echo $count_images; ?></span>
+                    🖼️ <?php echo escape($lang['Images']); ?> <span class="filter-count"><?php echo $count_images; ?></span>
                 </a>
                 <a href="?filter=files" class="filter-tab <?php echo $filter === 'files' ? 'active' : ''; ?>">
-                    📄 Dateien <span class="filter-count"><?php echo $count_files; ?></span>
+                    📄 <?php echo escape($lang['Files']); ?> <span class="filter-count"><?php echo $count_files; ?></span>
                 </a>
             </div>
             
@@ -467,8 +471,8 @@ function formatFileSize($bytes) {
                     <div class="panel-body">
                         <div class="empty-media">
                             <div class="empty-media-icon">📁</div>
-                            <h2>Keine Dateien vorhanden</h2>
-                            <p>Lade Bilder oder Dateien in deinen Posts hoch</p>
+                            <h2><?php echo escape($lang['No files available']); ?></h2>
+                            <p><?php echo escape($lang['Upload images or files in your posts']); ?></p>
                         </div>
                     </div>
                 </div>
@@ -480,9 +484,9 @@ function formatFileSize($bytes) {
                     <input type="hidden" name="action" value="bulk_delete">
                     
                     <div class="bulk-actions-bar" id="bulkBar">
-                        <span id="selectedCount">0 ausgewählt</span>
-                        <button type="submit" class="btn-danger" onclick="return confirm('Wirklich ausgewählte Dateien löschen?');">🗑️ Löschen</button>
-                        <button type="button" class="btn btn-sm" onclick="clearSelection()">Abbrechen</button>
+                        <span id="selectedCount">0 <?php echo escape($lang['selected']); ?></span>
+                        <button type="submit" class="btn-danger" onclick="return confirm('<?php echo escape($lang['Delete selected files confirmation']); ?>');">🗑️ <?php echo escape($lang['Delete Permanently']); ?></button>
+                        <button type="button" class="btn btn-sm" onclick="clearSelection()"><?php echo escape($lang['Cancel']); ?></button>
                     </div>
                     
                     <!-- Media Grid -->
@@ -511,9 +515,9 @@ function formatFileSize($bytes) {
                                     </div>
                                     
                                     <div class="media-actions">
-                                        <a href="../<?php echo escape($file['url']); ?>" target="_blank" class="media-action-btn" title="Öffnen">👁️</a>
-                                        <a href="../<?php echo escape($file['url']); ?>" download class="media-action-btn" title="Download">⬇️</a>
-                                        <button type="button" class="media-action-btn" title="Löschen" onclick="deleteFile('<?php echo escape($file['path']); ?>', '<?php echo escape($file['name']); ?>')">🗑️</button>
+                                        <a href="../<?php echo escape($file['url']); ?>" target="_blank" class="media-action-btn" title="<?php echo escape($lang['Open']); ?>">👁️</a>
+                                        <a href="../<?php echo escape($file['url']); ?>" download class="media-action-btn" title="<?php echo escape($lang['Download']); ?>">⬇️</a>
+                                        <button type="button" class="media-action-btn" title="<?php echo escape($lang['Delete Permanently']); ?>" onclick="deleteFile('<?php echo escape($file['path']); ?>', '<?php echo escape($file['name']); ?>')">🗑️</button>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -527,33 +531,33 @@ function formatFileSize($bytes) {
             <!-- Quick Actions -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2>Schnellzugriff</h2>
+                    <h2><?php echo escape($lang['Quick Access']); ?></h2>
                 </div>
                 <div class="panel-body">
                     <div class="quick-actions">
                         <a href="../#new-post" class="quick-action-card">
                             <div class="qa-icon">✏️</div>
-                            <div class="qa-label">Neuer Beitrag</div>
+                            <div class="qa-label"><?php echo escape($lang['New Post']); ?></div>
                         </a>
                         <a href="backups.php" class="quick-action-card">
                             <div class="qa-icon">💾</div>
-                            <div class="qa-label">Backups</div>
+                            <div class="qa-label"><?php echo escape($lang['Backups']); ?></div>
                         </a>
                         <a href="comments.php" class="quick-action-card">
                             <div class="qa-icon">💬</div>
-                            <div class="qa-label">Kommentare</div>
+                            <div class="qa-label"><?php echo escape($lang['Comments']); ?></div>
                         </a>
                         <a href="posts.php" class="quick-action-card">
                             <div class="qa-icon">📝</div>
-                            <div class="qa-label">Beiträge verwalten</div>
+                            <div class="qa-label"><?php echo escape($lang['Manage Posts']); ?></div>
                         </a>
                         <a href="media.php" class="quick-action-card">
                             <div class="qa-icon">📁</div>
-                            <div class="qa-label">Dateien</div>
+                            <div class="qa-label"><?php echo escape($lang['Files']); ?></div>
                         </a>
                         <a href="trash.php" class="quick-action-card">
                             <div class="qa-icon">🗑️</div>
-                            <div class="qa-label">Papierkorb</div>
+                            <div class="qa-label"><?php echo escape($lang['Trash']); ?></div>
                         </a>
                     </div>
                 </div>
@@ -590,7 +594,7 @@ function formatFileSize($bytes) {
         
         if(checked.length > 0) {
             bulkBar.classList.add('active');
-            count.textContent = checked.length + ' ausgewählt';
+            count.textContent = checked.length + ' <?php echo escape($lang['selected']); ?>';
         } else {
             bulkBar.classList.remove('active');
         }
@@ -605,7 +609,7 @@ function formatFileSize($bytes) {
     }
     
     function deleteFile(path, name) {
-        if(confirm('Datei "' + name + '" wirklich löschen?')) {
+        if(confirm('<?php echo escape($lang['Delete file confirmation']); ?> "' + name + '"?')) {
             document.getElementById('deleteFilePath').value = path;
             document.getElementById('deleteForm').submit();
         }

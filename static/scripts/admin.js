@@ -7,9 +7,10 @@
 (function() {
     'use strict';
 
-    // Get CSRF Token from cookie or meta tag
+    /**
+     * Get CSRF Token from cookie or meta tag
+     */
     function getCsrfToken() {
-        // Try to get from cookie
         const cookies = document.cookie.split(';');
         for (let cookie of cookies) {
             const [name, value] = cookie.trim().split('=');
@@ -18,41 +19,48 @@
             }
         }
         
-        // Try to get from meta tag
         const metaTag = document.querySelector('meta[name="csrf-token"]');
         if (metaTag) {
             return metaTag.getAttribute('content');
         }
         
-        // Try to get from localStorage
         return localStorage.getItem('csrf_token') || '';
     }
 
-    // Open Inline Editor
+    /**
+     * Get translation string (fallback to English if not available)
+     */
+    function __(key, fallback) {
+        if (typeof ADMIN_LANG !== 'undefined' && ADMIN_LANG[key]) {
+            return ADMIN_LANG[key];
+        }
+        return fallback || key;
+    }
+
+    /**
+     * Open Inline Editor
+     */
     window.openInlineEditor = function(postId) {
         console.log('🔧 Opening editor for post:', postId);
         
-        // Hide all other editors
         document.querySelectorAll('.inline-editor-row').forEach(row => {
             row.style.display = 'none';
         });
 
-        // Show this editor
         const editorRow = document.getElementById('inline-editor-' + postId);
-        if (!editorRow) {
+        if (! editorRow) {
             console.error('❌ Editor row not found:', 'inline-editor-' + postId);
             return;
         }
 
         editorRow.style.display = 'table-row';
 
-        // Load post content via AJAX
-        $.ajax({
+        $. ajax({
             url: '../ajax.php',
             method: 'POST',
             dataType: 'json',
             data: {
-                action: 'edit_data',  // ✅ KORRIGIERT von 'do' zu 'action'
+                action: 'edit_data',
                 id: postId,
                 csrf_token: getCsrfToken()
             },
@@ -69,46 +77,48 @@
                         console.error('❌ Textarea not found:', 'editor-' + postId);
                     }
                 } else {
-                    console.error('❌ Keine plain_text Daten:', response);
-                    alert('Fehler: Post-Daten konnten nicht geladen werden');
+                    console.error('❌ No plain_text data:', response);
+                    alert(__('errorPostData', 'Error: Post data could not be loaded'));
                 }
             },
             error: function(xhr, status, error) {
                 console.error('❌ AJAX Error:', xhr.responseText);
-                alert('Fehler beim Laden des Beitrags!\n\n' + xhr.responseText);
+                alert(__('errorLoadingPost', 'Error loading post! ') + '\n\n' + xhr.responseText);
             }
         });
 
-        // Scroll to editor
         setTimeout(() => {
             editorRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
     };
 
-    // Close Inline Editor
+    /**
+     * Close Inline Editor
+     */
     window.closeInlineEditor = function(postId) {
         const editorRow = document.getElementById('inline-editor-' + postId);
         if (editorRow) {
-            editorRow.style.display = 'none';
+            editorRow. style.display = 'none';
         }
     };
 
-    // Save Post
-    window.saveInlinePost = function(postId) {
+    /**
+     * Save Post
+     */
+    window. saveInlinePost = function(postId) {
         const textarea = document.getElementById('editor-' + postId);
         if (!textarea) return;
 
-        const content = textarea.value;
+        const content = textarea. value;
 
         console.log('💾 Saving post:', postId);
 
-        // Save via AJAX
         $.ajax({
             url: '../ajax.php',
             method: 'POST',
             dataType: 'json',
             data: {
-                action: 'update',  // ✅ KORRIGIERT von 'do' zu 'action'
+                action: 'update',
                 id: postId,
                 text: content,
                 csrf_token: getCsrfToken()
@@ -116,68 +126,55 @@
             success: function(response) {
                 console.log('✅ Save Response:', response);
                 
-                if (response && !response.error) {
-                    alert('✅ Beitrag gespeichert!');
+                if (response && ! response.error) {
+                    alert('✅ ' + __('postSaved', 'Post saved! '));
                     closeInlineEditor(postId);
-                    // Reload page to show updated content
                     location.reload();
                 } else {
-                    alert('❌ Fehler beim Speichern: ' + (response.msg || 'Unbekannter Fehler'));
+                    alert('❌ ' + __('errorSaving', 'Error saving:') + ' ' + (response.msg || 'Unknown error'));
                 }
             },
             error: function(xhr) {
                 console.error('❌ Save Error:', xhr.responseText);
-                alert('❌ Netzwerkfehler beim Speichern!\n\n' + xhr.responseText);
+                alert('❌ ' + __('networkErrorSaving', 'Network error saving! ') + '\n\n' + xhr.responseText);
             }
         });
     };
 
-    // Update Live Preview
+    /**
+     * Update Live Preview
+     */
     function updatePreview(postId) {
         const textarea = document.getElementById('editor-' + postId);
         const preview = document.getElementById('preview-' + postId);
         
         if (!textarea || !preview) return;
 
-        const content = textarea.value;
-        
-        // Simple Markdown to HTML conversion
+        const content = textarea. value;
         let html = content;
 
-        // Headers
-        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^### (. +)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-        // Bold
-        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-        // Italic
-        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-        // Code
-        html = html.replace(/`(.+?)`/g, '<code>$1</code>');
-
-        // Links
+        html = html.replace(/^# (. +)$/gm, '<h1>$1</h1>');
+        html = html.replace(/\*\*(.+? )\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(. +?)\*/g, '<em>$1</em>');
+        html = html.replace(/`(. +?)`/g, '<code>$1</code>');
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-        // Images
-        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;">');
-
-        // Line breaks
+        html = html. replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;">');
         html = html.replace(/\n/g, '<br>');
 
         preview.innerHTML = html;
     }
 
-    // Event Listeners
+    /**
+     * Event Listeners
+     */
     document.addEventListener('DOMContentLoaded', function() {
         
-        console.log('🚀 Initializing Admin Inline Editor...');
+        console.log('🚀 Initializing Admin Inline Editor.. .');
         
-        // Inline Edit Button Click
         const editButtons = document.querySelectorAll('.inline-edit-btn');
-        console.log('📝 Found edit buttons:', editButtons.length);
+        console.log('📝 Found edit buttons:', editButtons. length);
         
         editButtons.forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -188,7 +185,6 @@
             });
         });
 
-        // Close Editor Button
         document.querySelectorAll('.close-editor').forEach(btn => {
             btn.addEventListener('click', function() {
                 const postId = this.getAttribute('data-post-id');
@@ -196,7 +192,6 @@
             });
         });
 
-        // Live Preview Update
         document.querySelectorAll('.inline-editor-textarea').forEach(textarea => {
             textarea.addEventListener('input', function() {
                 const postId = this.id.replace('editor-', '');
@@ -204,13 +199,12 @@
             });
         });
 
-        // Toolbar Buttons
         document.querySelectorAll('.toolbar-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const action = this.getAttribute('data-action');
                 const textarea = this.closest('.inline-editor-body').querySelector('textarea');
                 
-                if (!textarea) return;
+                if (! textarea) return;
 
                 const start = textarea.selectionStart;
                 const end = textarea.selectionEnd;
@@ -231,14 +225,14 @@
                         after = '`';
                         break;
                     case 'link':
-                        const url = prompt('URL eingeben:', 'https://');
+                        const url = prompt(__('enterURL', 'Enter URL:'), 'https://');
                         if (url) {
                             before = '[';
                             after = '](' + url + ')';
                         }
                         break;
                     case 'image':
-                        const imgUrl = prompt('Bild-URL eingeben:', 'https://');
+                        const imgUrl = prompt(__('enterImageURL', 'Enter Image URL:'), 'https://');
                         if (imgUrl) {
                             before = '![Alt-Text](';
                             after = imgUrl + ')';
@@ -247,12 +241,11 @@
                 }
 
                 if (before || after) {
-                    const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
+                    const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value. substring(end);
                     textarea.value = newText;
                     textarea.focus();
-                    textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+                    textarea.setSelectionRange(start + before. length, start + before.length + selectedText.length);
                     
-                    // Update preview
                     const postId = textarea.id.replace('editor-', '');
                     updatePreview(postId);
                 }

@@ -1,8 +1,0 @@
-# Ignore all backup files
-*.backup-*
-
-# But track this .gitignore
-!.gitignore
-
-# Optional: README
-!README.md

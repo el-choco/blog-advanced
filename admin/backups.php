@@ -1,7 +1,7 @@
 <?php
 require_once 'common.php';
 
-$page_title = 'Backup-Verwaltung';
+$page_title = $lang['Backup Management'];
 $error = null;
 $success = null;
 
@@ -16,25 +16,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         switch ($action) {
             case 'create':
                 $backup = Backup::create();
-                $success = 'Backup erfolgreich erstellt: ' . $backup['filename'];
+                $success = $lang['Backup created successfully'] . ': ' . $backup['filename'];
                 break;
                 
             case 'restore':
                 $filename = $_POST['file'] ?? '';
                 if (empty($filename)) {
-                    throw new Exception('Keine Backup-Datei angegeben');
+                    throw new Exception($lang['No backup file specified']);
                 }
                 Backup::restore($filename);
-                $success = 'Backup erfolgreich wiederhergestellt';
+                $success = $lang['Backup restored successfully'];
                 break;
                 
             case 'delete':
                 $filename = $_POST['file'] ?? '';
                 if (empty($filename)) {
-                    throw new Exception('Keine Backup-Datei angegeben');
+                    throw new Exception($lang['No backup file specified']);
                 }
                 Backup::delete($filename);
-                $success = 'Backup erfolgreich gelöscht';
+                $success = $lang['Backup deleted successfully'];
                 break;
         }
     } catch (Exception $e) {
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 try {
     $backups = Backup::get_list();
     $total_size = array_sum(array_column($backups, 'size'));
-    $last_backup = !empty($backups) ? $backups[0]['created'] : null;
+    $last_backup = ! empty($backups) ? $backups[0]['created'] : null;
 } catch (Exception $e) {
     $error = $e->getMessage();
     $backups = [];
@@ -64,21 +64,25 @@ function format_bytes($bytes) {
     }
     return round($bytes, 2) . ' ' . $units[$i];
 }
-
-function escape($str) {
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-}
 ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>💾 Backups - <?php echo escape(Config::get("title")); ?></title>
+    <title>💾 <?php echo escape($lang['Backups']); ?> - <?php echo escape(Config::get("title")); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 
     <!-- Main Blog Styles -->
     <link href="../static/styles/main.css" rel="stylesheet" type="text/css" />
-    <link href="../static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css" rel="stylesheet" type="text/css" />
+    <?php
+    // Theme sicher bereinigen (4-Zeilen-Variante)
+    $theme = Config::get_safe('theme', 'theme01');
+    $theme = trim((string)$theme);
+    $theme = preg_replace('/\.css$/i', '', $theme);
+    $theme = preg_replace('/[^a-zA-Z0-9_-]/', '', $theme);
+    if ($theme === '') { $theme = 'theme01'; }
+    ?>
+    <link href="../static/styles/<?php echo htmlspecialchars($theme, ENT_QUOTES, 'UTF-8'); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/custom1.css" rel="stylesheet" type="text/css" />
 
     <!-- Admin Styles -->
@@ -90,10 +94,10 @@ function escape($str) {
 
     <div class="admin-header">
         <div class="admin-container">
-            <h1>💾 Backup-Verwaltung</h1>
+            <h1>💾 <?php echo escape($lang['Backup Management']); ?></h1>
             <div class="admin-user">
                 <span>👤 <?php echo escape(Config::get("name")); ?></span>
-                <a href="../" class="btn btn-sm">← Zurück zum Blog</a>
+                <a href="../" class="btn btn-sm">← <?php echo escape($lang['Back to Blog']); ?></a>
             </div>
         </div>
     </div>
@@ -103,13 +107,13 @@ function escape($str) {
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar">
             <nav class="admin-nav">
-                <a href="index.php">📊 Dashboard</a>
-                <a href="posts.php">📝 Beiträge</a>
-                <a href="comments.php">💬 Kommentare</a>
-                <a href="media.php">📁 Dateien</a>
-                <a href="backups.php" class="active">💾 Backups</a>
-                <a href="trash.php">🗑️ Papierkorb</a>
-                <a href="settings.php">⚙️ Einstellungen</a>
+                <a href="index.php">📊 <?php echo escape($lang['Dashboard']); ?></a>
+                <a href="posts.php">📝 <?php echo escape($lang['Posts']); ?></a>
+                <a href="comments.php">💬 <?php echo escape($lang['Comments']); ?></a>
+                <a href="media.php">📁 <?php echo escape($lang['Files']); ?></a>
+                <a href="backups.php" class="active">💾 <?php echo escape($lang['Backups']); ?></a>
+                <a href="trash.php">🗑️ <?php echo escape($lang['Trash']); ?></a>
+                <a href="settings.php">⚙️ <?php echo escape($lang['Settings']); ?></a>
             </nav>
         </aside>
 
@@ -118,7 +122,7 @@ function escape($str) {
 
             <?php if($error): ?>
                 <div class="alert alert-danger">
-                    ❌ Fehler: <?php echo escape($error); ?>
+                    ❌ <?php echo escape($lang['Error']); ?>: <?php echo escape($error); ?>
                 </div>
             <?php endif; ?>
             
@@ -134,7 +138,7 @@ function escape($str) {
                     <div class="stat-icon">📦</div>
                     <div class="stat-info">
                         <div class="stat-value"><?php echo count($backups); ?></div>
-                        <div class="stat-label">Verfügbare Backups</div>
+                        <div class="stat-label"><?php echo escape($lang['Available Backups']); ?></div>
                     </div>
                 </div>
 
@@ -142,15 +146,15 @@ function escape($str) {
                     <div class="stat-icon">💾</div>
                     <div class="stat-info">
                         <div class="stat-value"><?php echo format_bytes($total_size); ?></div>
-                        <div class="stat-label">Gesamtgröße</div>
+                        <div class="stat-label"><?php echo escape($lang['Total Size']); ?></div>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-icon">📅</div>
                     <div class="stat-info">
-                        <div class="stat-value"><?php echo $last_backup ? date('d.m.Y', $last_backup) : '-'; ?></div>
-                        <div class="stat-label">Letztes Backup</div>
+                        <div class="stat-value"><?php echo $last_backup ? date('d. m.Y', $last_backup) : '-'; ?></div>
+                        <div class="stat-label"><?php echo escape($lang['Last Backup']); ?></div>
                     </div>
                 </div>
             </div>
@@ -158,16 +162,16 @@ function escape($str) {
             <!-- Create Backup -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2>Neues Backup erstellen</h2>
+                    <h2><?php echo escape($lang['Create New Backup']); ?></h2>
                 </div>
                 <div class="panel-body">
                     <form method="POST">
                         <input type="hidden" name="action" value="create">
                         <button type="submit" class="btn btn-primary" style="font-size: 16px;">
-                            ➕ Neues Backup erstellen
+                            ➕ <?php echo escape($lang['Create New Backup']); ?>
                         </button>
                         <p style="margin-top: 10px; color: #666; font-size: 14px;">
-                            Erstellt ein vollständiges Backup der Datenbank als SQL-Datei.
+                            <?php echo escape($lang['Creates a complete database backup as SQL file']); ?>
                         </p>
                     </form>
                 </div>
@@ -176,23 +180,23 @@ function escape($str) {
             <!-- Backup List -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2>Verfügbare Backups</h2>
+                    <h2><?php echo escape($lang['Available Backups']); ?></h2>
                 </div>
                 <div class="panel-body">
                     <?php if(empty($backups)): ?>
                         <div class="empty-state">
                             <div style="font-size: 64px; opacity: 0.3; margin-bottom: 20px;">📦</div>
-                            <h3>Noch keine Backups vorhanden</h3>
-                            <p style="color: #666;">Klicke auf "Neues Backup erstellen" um das erste Backup zu erstellen.</p>
+                            <h3><?php echo escape($lang['No backups available yet']); ?></h3>
+                            <p style="color: #666;"><?php echo escape($lang['Click Create New Backup to create the first backup']); ?></p>
                         </div>
                     <?php else: ?>
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>Dateiname</th>
-                                    <th>Erstellt</th>
-                                    <th>Größe</th>
-                                    <th>Aktionen</th>
+                                    <th><?php echo escape($lang['Filename']); ?></th>
+                                    <th><?php echo escape($lang['Created']); ?></th>
+                                    <th><?php echo escape($lang['Size']); ?></th>
+                                    <th><?php echo escape($lang['Actions']); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -213,8 +217,8 @@ function escape($str) {
                                                     <input type="hidden" name="action" value="restore">
                                                     <input type="hidden" name="file" value="<?php echo escape($backup['filename']); ?>">
                                                     <button type="submit" class="btn btn-sm btn-secondary" 
-                                                            onclick="return confirm('Backup wirklich wiederherstellen?\n\n⚠️ ACHTUNG: Dies überschreibt die aktuelle Datenbank!');"
-                                                            title="Wiederherstellen">
+                                                            onclick="return confirm('<?php echo escape($lang['Restore backup confirmation']); ?>');"
+                                                            title="<?php echo escape($lang['Restore']); ?>">
                                                         🔄
                                                     </button>
                                                 </form>
@@ -223,8 +227,8 @@ function escape($str) {
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="file" value="<?php echo escape($backup['filename']); ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger" 
-                                                            onclick="return confirm('Backup wirklich löschen?');"
-                                                            title="Löschen">
+                                                            onclick="return confirm('<?php echo escape($lang['Delete backup confirmation']); ?>');"
+                                                            title="<?php echo escape($lang['Delete Permanently']); ?>">
                                                         🗑️
                                                     </button>
                                                 </form>
@@ -241,33 +245,33 @@ function escape($str) {
             <!-- Quick Actions -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2>Schnellzugriff</h2>
+                    <h2><?php echo escape($lang['Quick Access']); ?></h2>
                 </div>
                 <div class="panel-body">
                     <div class="quick-actions">
                         <a href="../#new-post" class="quick-action-card">
                             <div class="qa-icon">✏️</div>
-                            <div class="qa-label">Neuer Beitrag</div>
+                            <div class="qa-label"><?php echo escape($lang['New Post']); ?></div>
                         </a>
                         <a href="backups.php" class="quick-action-card">
                             <div class="qa-icon">💾</div>
-                            <div class="qa-label">Backups</div>
+                            <div class="qa-label"><?php echo escape($lang['Backups']); ?></div>
                         </a>
                         <a href="comments.php" class="quick-action-card">
                             <div class="qa-icon">💬</div>
-                            <div class="qa-label">Kommentare</div>
+                            <div class="qa-label"><?php echo escape($lang['Comments']); ?></div>
                         </a>
                         <a href="posts.php" class="quick-action-card">
                             <div class="qa-icon">📝</div>
-                            <div class="qa-label">Beiträge verwalten</div>
+                            <div class="qa-label"><?php echo escape($lang['Manage Posts']); ?></div>
                         </a>
                         <a href="media.php" class="quick-action-card">
                             <div class="qa-icon">📁</div>
-                            <div class="qa-label">Dateien</div>
+                            <div class="qa-label"><?php echo escape($lang['Files']); ?></div>
                         </a>
                         <a href="trash.php" class="quick-action-card">
                             <div class="qa-icon">🗑️</div>
-                            <div class="qa-label">Papierkorb</div>
+                            <div class="qa-label"><?php echo escape($lang['Trash']); ?></div>
                         </a>
                     </div>
                 </div>
