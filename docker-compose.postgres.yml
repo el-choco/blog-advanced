@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     container_name: blog-advanced-web
     ports:
-      - "8080:80"
+      - "3333:80"
     volumes:
       - . :/var/www/html
       - ./data:/var/www/html/data
