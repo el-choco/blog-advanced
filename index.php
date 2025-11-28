@@ -95,7 +95,7 @@ if (Config::get_safe("version", false)) {
 	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 
-	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css">'
+	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css">
 	<style>
 	#emojiPicker {
 		display: flex;
