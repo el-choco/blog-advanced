@@ -1,0 +1,19 @@
+# msmtp config template (system-wide)
+# Achtung: Zugangsdaten hier NICHT committen. Für lokale Tests anpassen oder per Volume überschreiben.
+
+defaults
+auth           on
+tls            on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+logfile        /var/log/msmtp.log
+
+# Beispiel: Gmail SMTP (App-Passwort erforderlich)
+account        gmail
+host           smtp.gmail.com
+port           587
+from           you@example.com
+user           you@example.com
+password       CHANGE_ME
+
+# Standardaccount
+account default : gmail
