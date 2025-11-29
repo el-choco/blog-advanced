@@ -33,18 +33,12 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Apache modules
 RUN a2enmod rewrite headers
 
-# MSMTP configuration #
+# MSMTP configuration (template committed as msmtprc.example)
 COPY msmtprc.example /etc/msmtprc
-
-# Secure permissions: msmtp prefers 600, system-wide can be 644;
-# set 600 to be safe.
 RUN chmod 600 /etc/msmtprc
 
 # PHP sendmail path -> msmtp
 RUN echo "sendmail_path = /usr/bin/msmtp -t" > /usr/local/etc/php/conf.d/sendmail.ini
-
-# Optional: create log file for msmtp if you use 'logfile' in msmtprc
-# RUN touch /var/log/msmtp.log && chmod 666 /var/log/msmtp.log
 
 # Workdir and permissions
 WORKDIR /var/www/html
