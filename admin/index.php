@@ -97,7 +97,7 @@ $recent_posts = array_slice(AdminHelper::getAllPosts(), 0, 5);
                 <div class="stat-card">
                     <div class="stat-icon">🖼️</div>
                     <div class="stat-info">
-                        <div class="stat-value"><?php echo $stats['total_images']); ?></div>
+                        <div class="stat-value"><?php echo $stats['total_images']; ?></div>
                         <div class="stat-label"><?php echo escape($lang['Images']); ?></div>
                     </div>
                 </div>
