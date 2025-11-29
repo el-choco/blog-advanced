@@ -1,0 +1,3 @@
+# Placeholder to keep backups directory in Git.
+# Real backup files should NOT be committed.
+# Created on request to have the folder after git clone.
