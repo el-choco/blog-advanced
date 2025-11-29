@@ -1,0 +1,3 @@
+# Placeholder for backups directory inside data
+# Real backup artifacts (.sql, .zip) should NOT be committed.
+# This file keeps data/backups versioned.
