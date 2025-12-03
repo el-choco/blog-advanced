@@ -1,8 +1,8 @@
 # Base image
 FROM php:8.2-apache
 
-# System packages
-RUN apt-get update && apt-get install -y \
+# System packages (inkl. mariadb-client für mysqldump/mysql)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     msmtp \
     msmtp-mta \
     ca-certificates \
+    mariadb-client \
  && rm -rf /var/lib/apt/lists/*
 
 # PHP extensions
@@ -46,3 +47,6 @@ RUN chown -R www-data:www-data /var/www/html \
  && chmod -R 755 /var/www/html
 
 EXPOSE 80
+
+# Optional: Healthcheck (kannst du aktivieren falls sinnvoll)
+# HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://localhost/ || exit 1

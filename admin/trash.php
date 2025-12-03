@@ -212,6 +212,7 @@ $trash_posts = AdminHelper::getAllPosts(true);
                 <a href="media.php">📁 <?php echo escape($lang['Files']); ?></a>
                 <a href="backups.php">💾 <?php echo escape($lang['Backups']); ?></a>
                 <a href="trash.php" class="active">🗑️ <?php echo escape($lang['Trash']); ?> <span class="badge"><?php echo count($trash_posts); ?></span></a>
+                <a href="categories.php">🏷️ <?php echo escape($lang['Categories']); ?></a>
                 <a href="settings.php">⚙️ <?php echo escape($lang['Settings']); ?></a>
             </nav>
         </aside>

@@ -7,13 +7,17 @@
   'use strict';
 
   function getCsrfToken() {
+    // Prefer meta tag set by server; fall back to cookie/localStorage
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) {
+      const v = metaTag.getAttribute('content') || '';
+      if (v) return v;
+    }
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
       if (name === 'csrf_token') return decodeURIComponent(value || '');
     }
-    const metaTag = document.querySelector('meta[name="csrf-token"]');
-    if (metaTag) return metaTag.getAttribute('content') || '';
     return localStorage.getItem('csrf_token') || '';
   }
 
@@ -80,29 +84,52 @@
     return html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
   }
 
+  // Robust GET helper (avoids null by forcing json and disabling cache)
+  function getJson(url, data, onSuccess, onError) {
+    $.ajax({
+      url: url,
+      method: 'GET',
+      dataType: 'json',
+      cache: false,
+      headers: { 'Csrf-Token': getCsrfToken() }, // matches $.ajaxSetup in PHP templates
+      data: data,
+      success: function (resp, status, xhr) {
+        // Some servers respond with empty body; normalize to {}
+        if (resp === null || typeof resp === 'undefined') {
+          if (typeof onError === 'function') onError({ responseText: 'Empty response (null)', responseJSON: null });
+          return;
+        }
+        if (typeof onSuccess === 'function') onSuccess(resp, status, xhr);
+      },
+      error: function (xhr) {
+        if (typeof onError === 'function') onError(xhr);
+      }
+    });
+  }
+
   window.openInlineEditor = function (postId) {
     document.querySelectorAll('.inline-editor-row').forEach(row => (row.style.display = 'none'));
     const editorRow = document.getElementById('inline-editor-' + postId);
     if (!editorRow) return;
     editorRow.style.display = 'table-row';
 
-    $.ajax({
-      url: '../ajax.php',
-      method: 'POST',
-      dataType: 'json',
-      data: { action: 'edit_data', id: postId, csrf_token: getCsrfToken() },
-      success: function (response) {
-        const textarea = document.getElementById('editor-' + postId);
-        if (response && typeof response.plain_text !== 'undefined' && textarea) {
-          textarea.value = response.plain_text;
-          updatePreview(postId);
-        } else {
-          alert(__('errorPostData', 'Error: Post data could not be loaded'));
-        }
-      },
-      error: function (xhr) {
-        alert(__('errorLoadingPost', 'Error loading post!') + '\n\n' + xhr.responseText);
+    // Absolute path to avoid relative path issues; robust GET wrapper to avoid null
+    getJson('/ajax.php', { action: 'edit_data', id: postId }, function (response) {
+      const textarea = document.getElementById('editor-' + postId);
+      if (response && typeof response.plain_text !== 'undefined' && textarea) {
+        textarea.value = response.plain_text;
+        updatePreview(postId);
+      } else {
+        const msg = (response && response.msg) ? response.msg : '';
+        alert(__('errorPostData', 'Error: Post data could not be loaded') + (msg ? '\n\n' + msg : ''));
       }
+    }, function (xhr) {
+      let extra = '';
+      try {
+        const json = xhr.responseJSON;
+        if (json && json.msg) extra = '\n\n' + json.msg;
+      } catch (e) {}
+      alert(__('errorLoadingPost', 'Error loading post!') + '\n\n' + (xhr.responseText || 'null response') + extra);
     });
 
     setTimeout(() => editorRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
@@ -119,21 +146,28 @@
     const content = textarea.value;
 
     $.ajax({
-      url: '../ajax.php',
+      url: '/ajax.php',
       method: 'POST',
       dataType: 'json',
-      data: { action: 'update', id: postId, text: content, csrf_token: getCsrfToken() },
+      cache: false,
+      headers: { 'Csrf-Token': getCsrfToken() },
+      data: { action: 'update', id: postId, text: content },
       success: function (response) {
         if (response && !response.error) {
           alert('✅ ' + __('postSaved', 'Post saved!'));
           closeInlineEditor(postId);
           location.reload();
         } else {
-          alert('❌ ' + __('errorSaving', 'Error saving:') + ' ' + (response.msg || 'Unknown error'));
+          alert('❌ ' + __('errorSaving', 'Error saving:') + ' ' + ((response && response.msg) ? response.msg : 'Unknown error'));
         }
       },
       error: function (xhr) {
-        alert('❌ ' + __('networkErrorSaving', 'Network error saving!') + '\n\n' + xhr.responseText);
+        let extra = '';
+        try {
+          const json = xhr.responseJSON;
+          if (json && json.msg) extra = '\n\n' + json.msg;
+        } catch (e) {}
+        alert('❌ ' + __('networkErrorSaving', 'Network error saving!') + '\n\n' + (xhr.responseText || ''));
       }
     });
   };
@@ -200,7 +234,6 @@
         }
 
         function insertLinePrefix(prefix) {
-          // gesamte ausgewählte Zeilen prefixen
           const text = textarea.value;
           const lineStart = text.lastIndexOf('\n', start - 1) + 1;
           const lineEnd = text.indexOf('\n', end);
@@ -232,7 +265,6 @@
           case 'h2': insertLinePrefix('## '); break;
           case 'h3': insertLinePrefix('### '); break;
           case 'hr': {
-            // horizontale Linie — füge unterhalb der Auswahl eine Linie ein
             const text = textarea.value;
             const insertPos = end;
             const newText = text.slice(0, insertPos) + '\n\n---\n\n' + text.slice(insertPos);
@@ -245,7 +277,6 @@
           case 'quote': insertLinePrefix('> '); break;
           case 'ul': insertLinePrefix('- '); break;
           case 'ol': {
-            // nummerierte Liste: 1., 2., 3. …
             const text = textarea.value;
             const lineStart = text.lastIndexOf('\n', start - 1) + 1;
             const lineEnd = text.indexOf('\n', end);
@@ -268,7 +299,6 @@
             break;
           }
           case 'spoiler': {
-            // Details-Block (HTML, von markdown-it als HTML unterstützt)
             insert('<details><summary>' + __('Spoiler Title', 'Spoiler Title:') + '</summary>\n\n', '\n\n</details>\n');
             break;
           }

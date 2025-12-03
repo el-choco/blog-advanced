@@ -1,6 +1,6 @@
-# 📝 Blog Advanced - Professional PHP Blog System
+# 📝 Blog Advanced - PHP Blog System
 
-A powerful, self-hosted blogging platform with advanced features including, comments, backup/export, and Progressive Web App capabilities.
+A powerful, self-hosted blogging platform with advanced features including, comments, backups, and Progressive Web App capabilities.
 
 ## ✨ Features
 
@@ -17,18 +17,18 @@ A powerful, self-hosted blogging platform with advanced features including, comm
 - ✅ **Settings Panel** (blog configuration)
 - ✅ **Multi-Language** (10 languages: DE, EN, ES, FR, NL, SK, ZH, BS, CZ, RU)
 - ✅ **Responsive Design** (mobile-friendly)
+- ✅ **Comment System** (nested comments with moderation)
+- ✅ **Inline Editor** (edit posts with live preview)
+- ✅ **Notifications** (email alerts, in-app notifications)
 
 ### Upcoming Features (v2.0 - In Development) (maybe)
-- 🔄 **Multi-User Support** (roles: Super Admin, Admin, Editor, Viewer)
-- 🔄 **Comment System** (nested comments with moderation)
-- 🔄 **Inline Editor** (edit posts with live preview)
+- 🔄 **Multi-User Support** (roles: Super Admin, Admin, Editor, Viewer) (maybe)
 - 🔄 **Advanced Search** (fulltext, filters, saved searches)
 - 🔄 **Calendar View** (posts per day with color coding)
 - 🔄 **Export/Import** (JSON, CSV, ZIP backup)
 - 🔄 **Automated Backups** (scheduled backups)
 - 🔄 **Security Features** (2FA, IP whitelist, brute-force protection)
 - 🔄 **Audit Log** (track all changes)
-- 🔄 **Notifications** (email alerts, in-app notifications)
 - 🔄 **Theme Editor** (customize colors & CSS)
 
 
@@ -42,14 +42,14 @@ A powerful, self-hosted blogging platform with advanced features including, comm
 - Web server: Nginx or Apache
 - MySQL/MariaDB 10.5+ (or compatible)
 - Composer (optional; if you plan to manage dependencies)
+- docker compose
 
 ---
 
 ## Features
 
-- Multi-user roles (Admin, Editor, Viewer)
 - Posts, comments, sticky posts, trash management
-- Backups (export/import), media manager
+- Backups (export), media manager
 - Security (CSRF tokens, sanitized theme selection, optional email notifications)
 - PWA-ready front-end
 - Simple config via `config.ini`
@@ -109,23 +109,27 @@ volumes:
   db_data:
 ```
 
-4) Start containers
+4) make folders writeable:
+- chmod -R  777 path_to_your_folder/blog-advanced/data 
+- chmod -R  777 path_to_your_folder/blog-advanced/uploads 
+
+ 5) Start containers
 ```bash
 docker compose up -d
 ```
 
-5) Configure PHP and Apache inside the container (optional)
+6) Configure PHP and Apache inside the container (optional)
 - Enable required extensions:
 ```bash
 docker exec -it blog-advanced-web bash -lc "apt-get update && apt-get install -y libicu-dev libzip-dev libjpeg62-turbo-dev libpng-dev && docker-php-ext-install intl zip"
 ```
 Note: official image ships with many basics. Adjust steps as needed.
 
-6) Access the app
-- Open http://localhost:3333
-- Go to http://localhost:3333/admin to configure settings, language, timezone, and theme.
+7) Access the app
+- Open http://your_IP:3333
+- Go to http://your_IP:3333/admin to configure settings, language, timezone, and theme.
 
-7) Database configuration
+8) Database configuration
 - Edit `config.ini` (see “Configuration” section) with the DB host `db` and your credentials from docker-compose:
   - mysql_host = db
   - mysql_port = 3306
@@ -133,7 +137,7 @@ Note: official image ships with many basics. Adjust steps as needed.
   - mysql_pass = changeme
   - db_name    = blog
 
-8) Logs and backups
+9) Logs and backups
 - Use the admin “Backups” page to create backups.
 - Configure file paths in `config.ini` as needed.
 
@@ -338,45 +342,78 @@ Security: Never commit credentials. Rotate app passwords if exposed.
 
 ---
 
-## .gitignore Recommendations
-
-Add sensitive or local-only files:
-```
-# Secrets / local config
-config.ini
-msmtprc
-data/*
-*.bak
-*backup*
-*KAPUTT
-internal_backup/
-.env
-```
-Stop tracking existing files with secrets:
-```bash
-git rm --cached config.ini msmtprc 2>/dev/null || true
-git add .gitignore
-git commit -m "Add ignore patterns for secrets and backup artifacts"
-git push
-```
-
----
-
 ## Operations
 
 - Backups: Use Admin → Backups to create and download archives. Store externally.
-- Logs: Keep `data/logs/` readable and rotated.
+- Logs: Keep `data/logs/`**readable** and rotated.
 - Theme: Switch under Admin → Appearance. Theme setting is sanitized to prevent invalid names.
 - Trash: Admin → Trash for restore/permanent delete.
 - Comments: Admin → Comments for moderation (email notifications optional).
-- Upgrading: Pull changes, review `config.ini` diffs, run DB migrations if introduced in future versions.
 
 ---
 
+## **Quick Guide: Updating Your Installation**
+
+**Standard Update: (Bind mount or code in the image doesn't matter):**
+
+**Get the latest changes:**
+
+    git fetch origin
+    git pull origin main
+
+**Rebuild and start the container:**
+
+    docker compose down
+    docker compose build
+    docker compose up -d
+
+**Quick version (combined build on startup):**
+
+    git pull origin main
+    docker compose up -d --build
+
+**If your Compose version doesn't support flags like --build:**
+
+    git pull origin main
+    docker compose down
+    docker compose build
+    docker compose up -d
+
+**Optional (if old code is stubbornly running):**
+
+    docker compose exec web grep -n "tab-language" /var/www/html/admin/settings.php
+    docker compose restart
+
+**If necessary, remove old images and rebuild:**
+
+    docker images
+    docker rmi <image_id_of_web_image>
+    docker compose build && docker compose up -d
+
+**After the Check for updates:**
+
+ `git log -1 --oneline`  (shows the last commit)
+`docker compose ps` (is the container running?)
+
+Hardly reload the browser (Ctrl+F5)
+
+Verify specific functionality (e.g., language tab): 
+`grep -n "tab-language" admin/settings.php` or in the container as above.
+
+**Shortcut for everyday use:**
+
+    git pull origin main
+    docker compose up -d --build
+
+If there are errors or conflicts during the pull:
+
+    git stash push -u -m "before update"
+    git pull origin main
+
+Afterwards, if necessary, git stash pop (or discard changes)
+---
 ## Troubleshooting
 
-- “stale info” when pushing:
-  - `git fetch origin main && git push --force-with-lease origin main`
 - 403/permissions on uploads:
   - Check ownership/permissions for `data/` and `static/images/`.
 - Missing PHP extensions:

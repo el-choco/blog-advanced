@@ -3,6 +3,10 @@
  * - Keeps original app logic (posts, trash, image upload, editor, etc.)
  * - Adds file attachment upload (file input, previews, upload flow)
  * - Improves cross-browser drag/drop and file input handling (no relying on DataTransfer reassignment)
+ * - Adds category hash filter support (#category=slug or #category=123) and frontend badge indicator
+ * - Adds category selection in editor (new and edit) and sends category_id on insert/update
+ * - Ensures newly created posts get category_name via a follow-up load so badge appears immediately
+ * - Guards against duplicate category badges in both posts.load and post_fill
  *
  * Note: Ensure server PHP (php.ini) allows large uploads if you accept very large files (upload_max_filesize, post_max_size).
  */
@@ -140,7 +144,7 @@ function upload_multiple_images(files, modal, callback) {
 				return xhr;
 			},
 			dataType: "json",
-			url: "ajax.php?action=upload_image",
+			url: "/ajax.php?action=upload_image",
 			cache: false,
 			contentType: false,
 			processData: false,
@@ -220,7 +224,7 @@ function upload_multiple_files(files, modal, callback) {
 		form_data.append('file', file);
 
 		$.ajax({
-			url: 'ajax.php?action=upload_file',
+			url: '/ajax.php?action=upload_file',
 			type: 'POST',
 			data: form_data,
 			dataType: 'json',
@@ -253,6 +257,79 @@ function upload_multiple_files(files, modal, callback) {
 	}
 
 	uploadNext();
+}
+
+/* Category cache for resolving names when category_name is missing */
+var categoryCacheById = {};
+function ensureCategoriesCache(callback) {
+    var hasCache = Object.keys(categoryCacheById).length > 0;
+    if (hasCache) { if (typeof callback === 'function') callback(); return; }
+    $.get({
+        dataType: "json",
+        url: "/ajax.php",
+        data: { action: "categories" },
+        success: function(data) {
+            if (Array.isArray(data)) {
+                data.forEach(function(c){ categoryCacheById[parseInt(c.id)] = c.name; });
+            }
+            if (typeof callback === 'function') callback();
+        },
+        error: function(){ if (typeof callback === 'function') callback(); }
+    });
+}
+function getCategoryNameById(id) {
+    id = parseInt(id || 0);
+    if (!id) return null;
+    return categoryCacheById[id] || null;
+}
+
+/* Category select helper: builds a dropdown and hidden input i_category_id */
+function buildCategorySelect($container, selectedId) {
+    var labelText = ($('#prepared').attr('data-cat-label') || 'Kategorie');
+    var noneText  = ($('#prepared').attr('data-cat-none') || 'Keine Kategorie');
+
+    // Avoid duplicates
+    if ($container.find('.editor-category-select').length) {
+        if (selectedId) {
+            $container.find('.editor-category-select').val(String(selectedId));
+            $container.find('.i_category_id').val(String(selectedId));
+        }
+        return;
+    }
+
+    var wrapper = $('<div class="editor-cat-row" style="margin:8px 0;"></div>');
+    var label   = $('<label class="editor-label" style="display:block;margin-bottom:4px;font-weight:600;"></label>').text(labelText);
+    var select  = $('<select class="editor-category-select" style="width:100%;padding:8px 12px;border:1px solid #d0d7de;border-radius:6px;font-size:14px;"></select>');
+    var hidden  = $('<input type="hidden" class="i_category_id" value="">');
+
+    select.append('<option value="">' + noneText + '</option>');
+
+    $.get({
+        dataType: "json",
+        url: "/ajax.php",
+        data: { action: "categories" },
+        success: function(data) {
+            if (Array.isArray(data)) {
+                data.forEach(function(c) {
+                    categoryCacheById[parseInt(c.id)] = c.name; // keep cache fresh
+                    var opt = $('<option></option>').attr('value', c.id).text(c.name);
+                    select.append(opt);
+                });
+                if (selectedId) {
+                    select.val(String(selectedId));
+                    hidden.val(String(selectedId));
+                }
+            }
+        }
+    });
+
+    select.on('change', function() {
+        var val = $(this).val();
+        hidden.val(val ? String(val) : '');
+    });
+
+    wrapper.append(label).append(select).append(hidden);
+    $container.append(wrapper);
 }
 
 // TRASH MANAGEMENT
@@ -296,7 +373,7 @@ var trash = {
 		
 		$.get({
 			dataType: "json",
-			url: "ajax.php",
+			url: "/ajax.php",
 			data: {
 				action: "list_trash",
 				limit: trash.limit,
@@ -344,7 +421,7 @@ var trash = {
 		
 		$.get({
 			dataType: "json",
-			url: "ajax.php",
+			url: "/ajax.php",
 			data: {
 				action: "list_trash",
 				limit: 1,
@@ -354,7 +431,7 @@ var trash = {
 				if (data && !data.error && data.length > 0) {
 					$.get({
 						dataType: "json",
-						url: "ajax.php",
+						url: "/ajax.php",
 						data: {
 							action: "list_trash",
 							limit: 1000,
@@ -364,7 +441,7 @@ var trash = {
 							if (allData && !allData.error) {
 								var count = allData.length;
 								if (count > 0) {
-									$('.trash-count').text('(' + count + ')').show();
+                                    $('.trash-count').text('(' + count + ')').show();
 								} else {
 									$('.trash-count').hide();
 								}
@@ -397,6 +474,9 @@ $(document).ready(function() {
 			}
 		});
 	}
+
+    // Prefetch categories to have cache available for badges resolve
+    ensureCategoriesCache();
 });
 
 // Posts loading
@@ -414,7 +494,9 @@ var posts = {
 		id: null,
 		tag: null,
 		loc: null,
-		person: null
+		person: null,
+		// NEW: category filter (slug or numeric id)
+		category: null
 	},
 
 	tryload: function(){
@@ -462,7 +544,7 @@ var posts = {
 
 		$.get({
 			dataType: "json",
-			url: "ajax.php",
+			url: "/ajax.php",
 			data: {
 				action: "load",
 				limit: posts.limit,
@@ -491,6 +573,27 @@ var posts = {
 				$(posts_data).each(function(i, data){
 					var post = $('#prepared .post_row').clone();
 					post.post_fill(data);
+
+					// Guard against duplicate category badges
+					var hasBadge = post.find(".badge-cat").length > 0;
+					if (!hasBadge && ((typeof data.category_id !== 'undefined' && data.category_id) || (typeof data.category_name !== 'undefined' && data.category_name))) {
+						var catLabel = (data.category_name ? data.category_name : '');
+						// fallback via cache
+						if (!catLabel && data.category_id) {
+							catLabel = getCategoryNameById(data.category_id) || '';
+						}
+						if (catLabel) {
+							var safeLabel = $('<div>').text(catLabel).html(); // escape
+							var badgeHtml = '<span class="badge badge-cat" style="margin-right:8px;display:inline-block;padding:3px 6px;border-radius:4px;background:#e7f3ff;color:#074a8b;border:1px solid #b6d4fe;">🏷️ ' + (safeLabel || '') + '</span>';
+							var titleEl = post.find(".b_title");
+							if (titleEl.length) {
+								titleEl.prepend(badgeHtml);
+							} else {
+								post.find(".b_text").prepend(badgeHtml);
+							}
+						}
+					}
+
 					post.apply_post();
 					$("#posts").append(post);
 				});
@@ -562,7 +665,7 @@ var cnt_funcs = {
 			var imgLink = $('<a class="b_gallery_item"></a>');
 			imgLink.attr("href", imgData.path);
 			imgLink.attr("data-lightbox", lightboxId);
-			imgLink.attr("data-title", "Image " + (index + 1) + " of " + imageCount);
+			imgLink.attr("data-title", "Image " + (index + 1) + ' of ' + imageCount);
 			
 			var img = $('<img>');
 			img.attr("src", imgData.thumb);
@@ -612,7 +715,7 @@ var login = {
 		$(btn).click(function(){
 			$.get({
 				dataType: "json",
-				url: "ajax.php",
+				url: "/ajax.php",
 				data: {
 					action: "logout"
 				},
@@ -673,7 +776,7 @@ var login = {
 			modal.find(".do_login").click(function(){
 				$.post({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {
 						action: "login",
 						nick: modal.find(".nick").val(),
@@ -711,7 +814,7 @@ var login = {
 	init: function(){
 		$.get({
 			dataType: "json",
-			url: "ajax.php",
+			url: "/ajax.php",
 			data: {
 				action: "handshake"
 			},
@@ -758,6 +861,14 @@ var new_post = {
 
 		new_post.obj.apply_edit({"privacy": "private"});
 
+		// Ensure category dropdown exists in the "new post" editor
+		var optionsContainerNP = new_post.obj.find(".options_content");
+		if (optionsContainerNP.length === 0) {
+			optionsContainerNP = $('<div class="options_content"></div>');
+			new_post.obj.find(".edit-form").append(optionsContainerNP);
+		}
+		buildCategorySelect(optionsContainerNP, null);
+
 		$(new_post.obj).find(".save").click(function(){
 			var modal = new_post.obj;
 			var saveBtn = $(this);
@@ -768,7 +879,7 @@ var new_post = {
 
 				$.post({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {
 						action: "insert",
 						text: modal.find(".e_text").val(),
@@ -777,7 +888,8 @@ var new_post = {
 						location: modal.find(".i_location").val(),
 						content_type: finalContentType,
 						content: finalContent,
-						privacy: modal.find(".privacy").data("val")
+						privacy: modal.find(".privacy").data("val"),
+						category_id: modal.find(".i_category_id").val() || null
 					},
 					success: function(data){
 						if(data.error){
@@ -787,19 +899,51 @@ var new_post = {
 							return;
 						}
 
-						uploadQueue = [];
-						uploadedImages = [];
-						uploadFileQueue = [];
-						uploadedFiles = [];
+						// After insert, fetch full post via load (by id) so category_name is present and badge can render
+						$.get({
+							dataType: "json",
+							url: "/ajax.php",
+							data: { action: "load", limit: 1, offset: 0, sort: "default", filter: { id: data.id } },
+							success: function(fullData){
+								uploadQueue = [];
+								uploadedImages = [];
+								uploadFileQueue = [];
+								uploadedFiles = [];
 
-						new_post.clear();
+								new_post.clear();
 
-						var post = $('#prepared .post_row').clone();
-						post.post_fill(data);
-						post.apply_post();
-						posts.add_new(post);
-						
-						modal.find(".e_loading").hide();
+								var renderData = Array.isArray(fullData) && fullData.length ? fullData[0] : data;
+								// If category_name still missing, try resolve from cache
+								if ((!renderData.category_name || renderData.category_name === '') && renderData.category_id) {
+									renderData.category_name = getCategoryNameById(renderData.category_id) || renderData.category_name;
+								}
+
+								var post = $('#prepared .post_row').clone();
+								post.post_fill(renderData);
+								post.apply_post();
+								posts.add_new(post);
+								
+								modal.find(".e_loading").hide();
+							},
+							error: function(){
+								// fallback to original data
+								uploadQueue = [];
+								uploadedImages = [];
+								uploadFileQueue = [];
+								uploadedFiles = [];
+								new_post.clear();
+
+								// try resolve name if missing
+								if ((!data.category_name || data.category_name === '') && data.category_id) {
+									data.category_name = getCategoryNameById(data.category_id) || '';
+								}
+								var post = $('#prepared .post_row').clone();
+								post.post_fill(data);
+								post.apply_post();
+								posts.add_new(post);
+								modal.find(".e_loading").hide();
+							}
+						});
 					}
 				});
 			}
@@ -811,8 +955,8 @@ var new_post = {
 						uploadedImages = imgResults || [];
 						if (uploadFileQueue.length > 0) {
 							upload_multiple_files(uploadFileQueue, modal, function(fileResults) {
-								uploadedFiles = fileResults || [];
-								prepareContentAndSave();
+                                uploadedFiles = fileResults || [];
+                                prepareContentAndSave();
 							});
 						} else {
 							if (uploadedImages.length > 0) {
@@ -883,8 +1027,8 @@ $.fn.error_msg = function(msg){
 
 	err_msg.active = true;
 	err_msg.obj = $("<div></div>");
-	err_msg.obj.addClass("error");
-	err_msg.obj.text(msg);
+	err_msg.addClass("error");
+	err_msg.text(msg);
 
 	var clear = $("<button></button>");
 	clear.addClass("clear");
@@ -1028,7 +1172,7 @@ $.fn.apply_edit = function(data){
 
 				$.get({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {
 						action: "parse_link",
 						link: link
@@ -1080,7 +1224,7 @@ $.fn.apply_edit = function(data){
 					return xhr;
 				},
 				dataType: "json",
-				url: "ajax.php?action=upload_image",
+				url: "/ajax.php?action=upload_image",
 				cache: false,
 				contentType: false,
 				processData: false,
@@ -1216,6 +1360,14 @@ $.fn.apply_edit = function(data){
 			});
 		});
 
+		// Ensure options container exists and add category select (preselect from data.category_id)
+		var optionsContainer = modal.find(".options_content");
+		if (optionsContainer.length === 0) {
+			optionsContainer = $('<div class="options_content"></div>');
+			modal.find(".edit-form").append(optionsContainer);
+		}
+		buildCategorySelect(optionsContainer, data.category_id || null);
+
 		modal.find(".privacy").click(function(){
 			var privacy_btn = $(this);
 
@@ -1295,6 +1447,23 @@ $.fn.post_fill = function(data){
 	});
 
 	post.find(".b_text").html(data.text);
+
+	// Guard: avoid duplicate category badges
+	try {
+		if (post.find(".badge-cat").length === 0 && data.category_id) {
+			var catLabel = data.category_name || getCategoryNameById(data.category_id) || '';
+			if (catLabel !== '') {
+				var safeLabel = $('<div>').text(catLabel).html();
+				var badgeHtml = '<span class="badge badge-cat" style="margin-right:8px;display:inline-block;padding:3px 6px;border-radius:4px;background:#e7f3ff;color:#074a8b;border:1px solid #b6d4fe;">🏷️ ' + safeLabel + '</span>';
+				var titleEl = post.find(".b_title");
+				if (titleEl.length) {
+					titleEl.prepend(badgeHtml);
+				} else {
+					post.find(".b_text").prepend(badgeHtml);
+				}
+			}
+		}
+	} catch(e){}
 
 	post.find(".b_text").find(".tag").click(function(){
 		var tag = $(this).text();
@@ -1437,7 +1606,7 @@ $.fn.apply_post = function(){
 
 				$.get({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {action: "edit_data", id: post_id},
 					success: function(data){
 						if(data.error){
@@ -1463,21 +1632,21 @@ $.fn.apply_post = function(){
 								modal.find(".e_loading .e_meter > span").width(0);
 
 								if (uploadQueue.length > 0) {
-									upload_multiple_images(uploadQueue, modal, function(imgResults) {
-										uploadedImages = imgResults || [];
-										if (uploadFileQueue.length > 0) {
-											upload_multiple_files(uploadFileQueue, modal, function(fileResults) {
-												uploadedFiles = fileResults || [];
-												prepareAndSaveUpdate();
-											});
-										} else {
-											if (uploadedImages.length > 0) {
-												modal.find(".i_content_type").val("images");
-												modal.find(".i_content").val(JSON.stringify(uploadedImages));
-											}
-											saveUpdate();
-										}
-									});
+                                    upload_multiple_images(uploadQueue, modal, function(imgResults) {
+                                        uploadedImages = imgResults || [];
+                                        if (uploadFileQueue.length > 0) {
+                                            upload_multiple_files(uploadFileQueue, modal, function(fileResults) {
+                                                uploadedFiles = fileResults || [];
+                                                prepareAndSaveUpdate();
+                                            });
+                                        } else {
+                                            if (uploadedImages.length > 0) {
+                                                modal.find(".i_content_type").val("images");
+                                                modal.find(".i_content").val(JSON.stringify(uploadedImages));
+                                            }
+                                            saveUpdate();
+                                        }
+                                    });
 								} else if (uploadFileQueue.length > 0) {
 									upload_multiple_files(uploadFileQueue, modal, function(fileResults) {
 										uploadedFiles = fileResults || [];
@@ -1510,7 +1679,7 @@ $.fn.apply_post = function(){
 							function saveUpdate() {
 								$.post({
 									dataType: "json",
-									url: "ajax.php",
+									url: "/ajax.php",
 									data: {
 										action: "update",
 										id: post_id,
@@ -1520,7 +1689,8 @@ $.fn.apply_post = function(){
 										location: modal.find(".i_location").val(),
 										content_type: modal.find(".i_content_type").val(),
 										content: modal.find(".i_content").val(),
-										privacy: modal.find(".privacy").data("val")
+										privacy: modal.find(".privacy").data("val"),
+										category_id: modal.find(".i_category_id").val() || null
 									},
 									success: function(data){
 										if(data.error){
@@ -1536,6 +1706,12 @@ $.fn.apply_post = function(){
 										uploadedFiles = [];
 
 										data.id = post_id;
+
+										// Try to enrich with category_name for badge update
+										if ((!data.category_name || data.category_name === '') && data.category_id) {
+											data.category_name = getCategoryNameById(data.category_id) || data.category_name;
+										}
+
 										post.post_fill(data);
 										modal.close();
 										
@@ -1555,7 +1731,7 @@ $.fn.apply_post = function(){
 
 				$.get({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {action: "get_date", id: post_id},
 					success: function(data){
 						if(data.error){
@@ -1578,7 +1754,7 @@ $.fn.apply_post = function(){
 						$(modal).find(".save").click(function(){
 							$.post({
 								dataType: "json",
-								url: "ajax.php",
+								url: "/ajax.php",
 								data: {
 									action: "set_date",
 									id: post_id,
@@ -1612,7 +1788,7 @@ $.fn.apply_post = function(){
 
 				$.post({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {action: "toggle_sticky", id: post_id},
 					success: function(data){
 						if(data.error){
@@ -1638,7 +1814,7 @@ $.fn.apply_post = function(){
 
 				$.post({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {action: "hide", id: post_id},
 					success: function(data){
 						if(data.error){
@@ -1656,7 +1832,7 @@ $.fn.apply_post = function(){
 
 				$.post({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {action: "show", id: post_id},
 					success: function(data){
 						if(data.error){
@@ -1691,7 +1867,7 @@ $.fn.apply_post = function(){
 				$(modal).find(".delete").click(function(){
 					$.post({
 						dataType: "json",
-						url: "ajax.php",
+						url: "/ajax.php",
 						data: {action: "delete", id: post_id},
 						success: function(data){
 							if(data.error){
@@ -1723,7 +1899,7 @@ $.fn.apply_post = function(){
 
 				$.post({
 					dataType: "json",
-					url: "ajax.php",
+					url: "/ajax.php",
 					data: {action: "restore", id: post_id},
 					success: function(data){
 						if(data.error){
@@ -1751,7 +1927,7 @@ $.fn.apply_post = function(){
 				if(confirm(confirmBody)){
 					$.post({
 						dataType: "json",
-						url: "ajax.php",
+						url: "/ajax.php",
 						data: {action: "permanent_delete", id: post_id},
 						success: function(data){
 							if(data.error){
@@ -1853,3 +2029,79 @@ $(document).on('dragover', function(e) {
 $(window)
 .on("scroll resize touchmove", posts.tryload)
 .on("hashchange", posts.hash_update);
+
+var categoriesBox = {
+    container: null,
+    initialized: false,
+
+    ensureContainer: function() {
+        var sidebar = document.getElementById('right_sidebar');
+        if (sidebar) {
+            this.container = $(sidebar);
+        } else {
+            // Fallback: fixed Box rechts, wenn kein Container existiert
+            this.container = $('<div id="right_sidebar" class="right-sidebar-fixed"></div>');
+            $('body').append(this.container);
+        }
+
+        if (this.container.find('.cat-box').length === 0) {
+            var box = $(
+                '<div class="cat-box">' +
+                    '<div class="cat-box-title">🏷️ Kategorien</div>' +
+                    '<div class="cat-box-list"></div>' +
+                '</div>'
+            );
+            this.container.append(box);
+        }
+    },
+
+    renderList: function(cats) {
+        var list = this.container.find('.cat-box-list');
+        list.empty();
+
+        if (!cats || cats.length === 0) {
+            list.append('<div class="cat-empty">Keine Kategorien</div>');
+            return;
+        }
+
+        cats.forEach(function(c) {
+            var item = $(
+                '<a class="cat-item" href="#category=' + encodeURIComponent(c.slug) + '">' +
+                    '<span class="cat-name"></span>' +
+                    '<span class="cat-count"></span>' +
+                '</a>'
+            );
+            item.find('.cat-name').text(c.name);
+            item.find('.cat-count').text('(' + c.post_count + ')');
+            list.append(item);
+        });
+    },
+
+    load: function() {
+        var self = this;
+        $.get({
+            dataType: "json",
+            url: "/ajax.php",
+            data: { action: "categories" },
+            success: function(data) {
+                if (data && !data.error) {
+                    self.renderList(data);
+                }
+            }
+        });
+    },
+
+    init: function() {
+        if (this.initialized) return;
+        this.ensureContainer();
+        this.load();
+        this.initialized = true;
+    }
+};
+
+$(function() {
+    // Verzögerte Initialisierung, damit Grundlayout steht
+    setTimeout(function() {
+        categoriesBox.init();
+    }, 200);
+});

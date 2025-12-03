@@ -49,34 +49,26 @@ class AdminHelper {
             'total_files'   => 0
         ];
 
-        // Count posts from database
         $db = DB::get_instance();
 
-        // Total posts (not in trash)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status <> 5")->first();
         $stats['total_posts'] = $result['count'];
 
-        // Public posts (status = 1)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 1")->first();
         $stats['public_posts'] = $result['count'];
 
-        // Hidden posts (status = 4)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 4")->first();
         $stats['hidden_posts'] = $result['count'];
 
-        // Sticky posts
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE is_sticky = 1 AND status <> 5")->first();
         $stats['sticky_posts'] = $result['count'];
 
-        // Trash posts (status = 5)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
         $stats['trash_posts'] = $result['count'];
 
-        // Count images (estimate - posts with content_type = 'images')
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE content_type IN ('image', 'images') AND status <> 5")->first();
         $stats['total_images'] = $result['count'];
 
-        // Files in uploads/files directory (if exists)
         if (is_dir(PROJECT_PATH . 'uploads/files/')) {
             $files = glob(PROJECT_PATH . 'uploads/files/*');
             $stats['total_files'] = count(array_filter($files, 'is_file'));
@@ -85,19 +77,62 @@ class AdminHelper {
         return $stats;
     }
 
-    // Get all posts with details
-    public static function getAllPosts($include_trash = false) {
+    /**
+     * Get all posts with details
+     * Supports (optional) filter, sort, search for admin table
+     * filter: all|published|hidden|sticky and category (slug or id) via $category param
+     * sort: newest|oldest
+     */
+    public static function getAllPosts($include_trash = false, $filter = 'all', $sort = 'newest', $search = '', $category = '') {
         $posts = [];
         $db = DB::get_instance();
 
-        // Build query
+        $where = [];
+        $params = [];
+
         if ($include_trash) {
-            $query = "SELECT * FROM posts WHERE status = 5 ORDER BY datetime DESC";
+            $where[] = "status = 5";
         } else {
-            $query = "SELECT * FROM posts WHERE status <> 5 ORDER BY datetime DESC";
+            $where[] = "status <> 5";
         }
 
-        $result = $db->query($query)->all();
+        if ($filter === 'published') {
+            $where[] = "status = 1";
+        } else if ($filter === 'hidden') {
+            $where[] = "status = 4";
+        } else if ($filter === 'sticky') {
+            $where[] = "is_sticky = 1 AND status <> 5";
+        }
+
+        if (!empty($search)) {
+            $where[] = "plain_text LIKE " . DB::concat("'%'", "?", "'%'");
+            $params[] = $search;
+        }
+
+        // Kategorie-Filter
+        $join = "";
+        if (!empty($category)) {
+            if (is_numeric($category)) {
+                $where[] = "posts.category_id = ?";
+                $params[] = intval($category);
+            } else {
+                $join = "LEFT JOIN categories c ON c.id = posts.category_id";
+                $where[] = "c.slug = ?";
+                $params[] = $category;
+            }
+        }
+
+        $order = ($sort === 'oldest') ? "ASC" : "DESC";
+
+        $sql = "
+            SELECT posts.*
+            FROM posts
+            $join
+            WHERE " . implode(" AND ", $where) . "
+            ORDER BY datetime $order
+        ";
+
+        $result = $db->query($sql, ...$params)->all();
 
         foreach ($result as $row) {
             $posts[] = [
@@ -113,19 +148,18 @@ class AdminHelper {
                     ? (is_array($c = json_decode($row['content'], true)) ? count($c) : 1)
                     : 0,
                 'content_type' => $row['content_type'] ?? '',
-                'content'      => $row['content'] ?? ''
+                'content'      => $row['content'] ?? '',
+                'category_id'  => $row['category_id'] ?? null
             ];
         }
 
         return $posts;
     }
 
-    // Format timestamp
     public static function formatDate($timestamp) {
         return date('d.m.Y H:i', $timestamp);
     }
 
-    // Get status badge HTML
     public static function getStatusBadge($post) {
         if ($post['deleted']) {
             return '<span class="badge badge-danger">🗑️ Trash</span>';
@@ -142,7 +176,6 @@ class AdminHelper {
         return '<span class="badge badge-success">✅ Public</span>';
     }
 
-    // Get excerpt from text
     public static function getExcerpt($text, $length = 100) {
         $text = strip_tags($text);
         if (mb_strlen($text) > $length) {
@@ -151,7 +184,6 @@ class AdminHelper {
         return $text;
     }
 
-    // Update post in database
     public static function updatePost($post_id, $data) {
         $db = DB::get_instance();
 
@@ -179,7 +211,6 @@ class AdminHelper {
 
         $sql = "UPDATE posts SET " . implode(', ', $updates) . " WHERE id = ?";
 
-        // Reorder params: updates first, then id
         $id = array_shift($params);
         $params[] = $id;
 
@@ -188,18 +219,15 @@ class AdminHelper {
         return true;
     }
 
-    // Permanent delete a post (and related files)
     public static function permanentDelete($post_id) {
         $db = DB::get_instance();
 
-        // Get post data first to delete associated files
         $post = $db->query("SELECT * FROM posts WHERE id = ?", $post_id)->first();
 
         if (!$post) {
             return false;
         }
 
-        // Delete associated images if any
         if (in_array($post['content_type'], ['image', 'images']) && !empty($post['content'])) {
             $content = json_decode($post['content'], true);
             if (is_array($content)) {
@@ -214,7 +242,6 @@ class AdminHelper {
             }
         }
 
-        // Delete post from database
         $db->query("DELETE FROM posts WHERE id = ?", $post_id);
 
         return true;
@@ -231,23 +258,18 @@ class AdminHelper {
             'deleted'   => 0
         ];
 
-        // Total posts (excluding deleted)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status != 5")->first();
         $stats['total'] = $result['count'] ?? 0;
 
-        // Published (status = 1)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 1")->first();
         $stats['published'] = $result['count'] ?? 0;
 
-        // Hidden (status = 4)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 4")->first();
         $stats['hidden'] = $result['count'] ?? 0;
 
-        // Sticky
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE is_sticky = 1 AND status != 5")->first();
         $stats['sticky'] = $result['count'] ?? 0;
 
-        // Deleted (status = 5)
         $result = $db->query("SELECT COUNT(*) as count FROM posts WHERE status = 5")->first();
         $stats['deleted'] = $result['count'] ?? 0;
 

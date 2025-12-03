@@ -1,11 +1,7 @@
 <?php
-/**
- * Posts Management (posts.php)
- * - Filter / search posts
- * - Quick actions (sticky / hide / delete)
- * - Inline editor with extended Markdown toolbar and live preview
- */
+
 require_once 'common.php';
+require_once PROJECT_PATH . 'app/categories.class.php';
 
 // CSRF Token
 if (empty($_SESSION['token'])) {
@@ -45,22 +41,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 break;
             case 'delete':
-                // Soft delete (status=5 -> trash)
                 $db->query("UPDATE posts SET status = ? WHERE id = ?", [5, $post_id]);
                 $message = $lang['Post moved to trash'];
+                $message_type = 'success';
+                break;
+            case 'set_category':
+                $newCat = (isset($_POST['new_category_id']) && $_POST['new_category_id'] !== '') ? (int)$_POST['new_category_id'] : null;
+                Categories::assignPost($post_id, $newCat);
+                $message = $lang['Saved'] ?? 'Saved';
                 $message_type = 'success';
                 break;
         }
     }
 }
 
-// Filter / sort / search
-$filter  = $_GET['filter'] ?? 'all';
-$sort    = $_GET['sort'] ?? 'newest';
-$search  = $_GET['search'] ?? '';
+// Filter / sort / search (+ Kategorie)
+$filter   = $_GET['filter'] ?? 'all';
+$sort     = $_GET['sort'] ?? 'newest';
+$search   = $_GET['search'] ?? '';
+$category = $_GET['category'] ?? ''; // slug oder id
+
 $stats   = AdminHelper::getPostStats();
-$posts   = AdminHelper::getAllPosts(false, $filter, $sort, $search);
+$posts   = AdminHelper::getAllPosts(false, $filter, $sort, $search, $category);
 $trash_count = AdminHelper::getTrashCount();
+
+// Kategorien laden
+$categories = Categories::all();
+$categories_map = [];
+foreach ($categories as $c) {
+    $categories_map[(int)$c['id']] = $c['name'];
+}
 
 function t($key, $fallback = '') {
     global $lang;
@@ -108,7 +118,8 @@ if ($theme === '') { $theme = 'theme01'; }
     .badge-sticky {background:#ffc107;color:#000;}
     .badge-hidden {background:#6c757d;color:#fff;}
     .badge-info {background:#17a2b8;color:#fff;}
-    .action-buttons {display:flex;gap:6px;}
+    .badge-cat {background:#e7f3ff;color:#074a8b;border:1px solid #b6d4fe;}
+    .action-buttons {display:flex;gap:6px;flex-wrap:wrap;}
     .quick-action-btn {background:#fff;border:1px solid #d0d7de;border-radius:4px;cursor:pointer;font-size:16px;padding:4px 8px;transition:.15s;}
     .quick-action-btn:hover {background:#eef4fa;}
     .post-text-preview {max-width:400px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -159,6 +170,7 @@ if ($theme === '') { $theme = 'theme01'; }
                 <a href="media.php">📁 <?php echo escape(t('Files')); ?></a>
                 <a href="backups.php">💾 <?php echo escape(t('Backups')); ?></a>
                 <a href="trash.php">🗑️ <?php echo escape(t('Trash')); ?> <?php if($trash_count > 0): ?><span class="badge"><?php echo (int)$trash_count; ?></span><?php endif; ?></a>
+                <a href="categories.php">🏷️ <?php echo escape(t('Categories','Categories')); ?></a>
                 <a href="settings.php">⚙️ <?php echo escape(t('Settings')); ?></a>
             </nav>
         </aside>
@@ -204,6 +216,16 @@ if ($theme === '') { $theme = 'theme01'; }
                     <option value="oldest" <?php echo $sort==='oldest'?'selected':''; ?>><?php echo escape(t('Oldest First')); ?></option>
                 </select>
 
+                <!-- Kategorie-Filter -->
+                <select name="category" class="filter-select" onchange="this.form.submit()">
+                    <option value=""><?php echo escape(t('All Categories','All Categories')); ?></option>
+                    <?php foreach ($categories as $c): ?>
+                        <option value="<?php echo escape($c['slug']); ?>" <?php echo ($category===$c['slug'])?'selected':''; ?>>
+                            <?php echo escape($c['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
                 <div class="search-box">
                     <input type="text" name="search" class="search-input" placeholder="<?php echo escape(t('Search posts')); ?>" value="<?php echo escape($search); ?>">
                 </div>
@@ -233,7 +255,10 @@ if ($theme === '') { $theme = 'theme01'; }
                                 <td colspan="5" style="text-align:center;padding:40px;color:#999;"><?php echo escape(t('No posts found')); ?></td>
                             </tr>
                         <?php else: ?>
-                            <?php foreach ($posts as $post): ?>
+                            <?php foreach ($posts as $post): 
+                                $catId  = $post['category_id'] ?? null;
+                                $catName = ($catId && isset($categories_map[(int)$catId])) ? $categories_map[(int)$catId] : null;
+                            ?>
                                 <tr data-post-id="<?php echo (int)$post['id']; ?>">
                                     <td><code>#<?php echo escape($post['id']); ?></code></td>
                                     <td>
@@ -242,6 +267,9 @@ if ($theme === '') { $theme = 'theme01'; }
                                         </div>
                                         <?php if ($post['has_images']): ?>
                                             <span class="badge badge-info">🖼️ <?php echo (int)$post['image_count']; ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($catName): ?>
+                                            <span class="badge badge-cat">🏷️ <?php echo escape($catName); ?></span>
                                         <?php endif; ?>
                                     </td>
                                     <td><?php echo AdminHelper::formatDate($post['time']); ?></td>
@@ -273,6 +301,21 @@ if ($theme === '') { $theme = 'theme01'; }
                                                 <input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
                                                 <input type="hidden" name="quick_action" value="delete">
                                                 <button type="submit" class="quick-action-btn" style="color:#dc3545;" title="<?php echo escape(t('Move to trash')); ?>">🗑️</button>
+                                            </form>
+                                            <!-- Kategorie zuweisen -->
+                                            <form method="POST" style="display:inline-flex;gap:6px;align-items:center;">
+                                                <input type="hidden" name="action" value="">
+                                                <input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+                                                <input type="hidden" name="quick_action" value="set_category">
+                                                <select name="new_category_id" class="filter-select" style="padding:4px 8px;">
+                                                    <option value=""><?php echo escape(t('No category','No category')); ?></option>
+                                                    <?php foreach ($categories as $c): ?>
+                                                        <option value="<?php echo (int)$c['id']; ?>" <?php echo ($catId == (int)$c['id']) ? 'selected' : ''; ?>>
+                                                            <?php echo escape($c['name']); ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <button class="quick-action-btn" title="<?php echo escape(t('Assign Category','Assign Category')); ?>">🏷️</button>
                                             </form>
                                         </div>
                                     </td>
@@ -369,7 +412,9 @@ if ($theme === '') { $theme = 'theme01'; }
         enterURL: '<?php echo escape(t("Enter URL")); ?>',
         enterImageURL: '<?php echo escape(t("Enter Image URL")); ?>',
         'Language optional': '<?php echo escape(t("Language optional")); ?>',
-        'Spoiler Title': '<?php echo escape(t("Spoiler Title")); ?>'
+        'Spoiler Title': '<?php echo escape(t("Spoiler Title")); ?>',
+        'Assign Category': '<?php echo escape(t("Assign Category","Assign Category")); ?>',
+        'No category': '<?php echo escape(t("No category","No category")); ?>'
     };
     </script>
     <script src="../static/scripts/admin.js"></script>

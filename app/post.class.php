@@ -97,13 +97,14 @@ class Post
 			"location" => '',
 			"content_type" => '',
 			"content" => '',
-			"privacy" => ''
+			"privacy" => '',
+			// NEW: category id (nullable)
+			"category_id" => null
 		];
 
 		// Handle only allowed keys
 		$raw_output = array();
 		foreach($default_input as $key => $def){
-			// Key exists in input
 			if(array_key_exists($key, $raw_input)){
 				$raw_output[$key] = $raw_input[$key];
 			} else {
@@ -113,6 +114,16 @@ class Post
 
 		if($raw_output['privacy'] != "public" && $raw_output['privacy'] != "friends"){
 			$raw_output['privacy'] =  "private";
+		}
+
+		// Normalize category_id to int or null
+		if ($raw_output['category_id'] === '' || $raw_output['category_id'] === null) {
+			$raw_output['category_id'] = null;
+		} else {
+			$raw_output['category_id'] = intval($raw_output['category_id']);
+			if ($raw_output['category_id'] <= 0) {
+				$raw_output['category_id'] = null;
+			}
 		}
 
 		return $raw_output;
@@ -611,7 +622,7 @@ class Post
 		self::login_protected();
 
 		return DB::get_instance()->query("
-			SELECT `plain_text`, `feeling`, `persons`, `location`, `privacy`, `content_type`, `content`
+			SELECT `plain_text`, `feeling`, `persons`, `location`, `privacy`, `content_type`, `content`, `category_id`
 			FROM `posts`
 			WHERE `id` = ?
 			AND `status` <> 5
@@ -844,6 +855,12 @@ class Post
 			$person = $r["filter"]["person"];
 		}
 
+		// Category filter (optional): slug or id
+		$catFilter = null;
+		if (!empty($r["filter"]["category"])) {
+			$catFilter = $r["filter"]["category"];
+		}
+
 		if (DB::connection() === 'sqlite') {
 			$datetime = "strftime('%d %m %Y %H:%M', `posts`.`datetime`)";
 		} else if (DB::connection() === 'postgres') {
@@ -854,24 +871,54 @@ class Post
 
 		$like_match = "LIKE ".DB::concat("'%'", "?", "'%'");
 
-		return DB::get_instance()->query("
-			SELECT
-				`id`, `text`, `feeling`, `persons`, `location`, `privacy`, `content_type`, `content`,
-				$datetime AS `datetime`, (`status` <> 1) AS `is_hidden`, `is_sticky`
-			FROM `posts`
-			WHERE ".
-				(!User::is_logged_in() ? (User::is_visitor() ? "`privacy` IN ('public', 'friends') AND " : "`privacy` = 'public' AND ") : "").
+		$visibility = (!User::is_logged_in()
+			? (User::is_visitor() ? "`privacy` IN ('public', 'friends') AND " : "`privacy` = 'public' AND ")
+			: "");
+
+		$where = $visibility.
 				($from ? "`posts`.`datetime` > ? AND " : "").
 				($to ? "`posts`.`datetime` < ? AND " : "").
 				($id ? "`id` = ? AND " : "").
 				($tag ? "`plain_text` $like_match AND " : "").
 				($loc ? "`location` $like_match AND " : "").
 				($person ? "`persons` $like_match AND " : "").
-				"`status` <> 5
+				"`status` <> 5";
+
+		$join = " LEFT JOIN `categories` c ON c.`id` = `posts`.`category_id` ";
+		$catWhere = "";
+		$catParam = null;
+		if ($catFilter !== null && $catFilter !== '') {
+			if (is_numeric($catFilter)) {
+				$catWhere = " AND `posts`.`category_id` = ? ";
+				$catParam = intval($catFilter);
+			} else {
+				$catWhere = " AND c.`slug` = ? ";
+				$catParam = $catFilter;
+			}
+		}
+
+		$sql = "
+			SELECT
+				`posts`.`id`, `posts`.`text`, `posts`.`feeling`, `posts`.`persons`, `posts`.`location`, `posts`.`privacy`,
+				`posts`.`content_type`, `posts`.`content`,
+				$datetime AS `datetime`, (`posts`.`status` <> 1) AS `is_hidden`, `posts`.`is_sticky`,
+				`posts`.`category_id`, c.`name` AS `category_name`
+			FROM `posts`
+			$join
+			WHERE $where
+			$catWhere
 			ORDER BY `is_sticky` DESC, `posts`.`datetime` ".(@$r["sort"] == 'reverse' ? "ASC" : "DESC")."
 			LIMIT ? OFFSET ?
-			", $from, $to, $id, $tag, $loc, $person, $r["limit"], $r["offset"]
-		)->all();
+		";
+
+		$params = [$from, $to, $id, $tag, $loc, $person];
+		if ($catParam !== null) {
+			$params[] = $catParam;
+		}
+		$params[] = ($r["limit"] ?? 50);
+		$params[] = ($r["offset"] ?? 0);
+
+		return DB::get_instance()->query($sql, ...$params)->all();
 	}
 
 	public static function login($r){
