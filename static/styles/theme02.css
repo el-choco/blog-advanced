@@ -1237,9 +1237,9 @@ code {
 }
 
 select {
-  color: var(--primary-text);
+  color: #fff;
   border-radius: 50px;
-  background-color: var(--secondary-background);
+  background-color: #1877f2;
   padding: 8px;
   border: 0;
   outline: none;

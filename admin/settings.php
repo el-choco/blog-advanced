@@ -330,26 +330,118 @@ $timezones = [
     <link href="../static/styles/<?php echo htmlspecialchars($theme_for_view,ENT_QUOTES,'UTF-8'); ?>.css" rel="stylesheet" type="text/css" />
     <link href="../static/styles/admin.css" rel="stylesheet" type="text/css" />
     <style>
+    /* Tabs */
     .settings-tabs{display:flex;gap:10px;margin-bottom:30px;border-bottom:2px solid #e5e5e5;overflow-x:auto;}
     .tab-button{padding:12px 20px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-size:14px;font-weight:600;color:#666;white-space:nowrap;transition:.2s;}
     .tab-button.active{color:#1877f2;border-bottom-color:#1877f2;}
     .tab-button:hover{color:#1877f2;}
     .tab-content{display:none;}
     .tab-content.active{display:block;}
-    .settings-section{background:#fff;border-radius:8px;padding:25px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.1);}
-    .section-title{font-size:16px;font-weight:600;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #f0f0f0;}
-    .form-grid{display:grid;gap:20px;}
-    .form-grid-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
-    .form-label{display:block;font-weight:600;margin-bottom:8px;font-size:14px;color:#333;}
-    .form-input,.form-select,.form-textarea{width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:14px;}
-    .form-textarea{min-height:100px;resize:vertical;}
-    .form-checkbox{display:flex;align-items:center;gap:10px;}
-    .btn-save{background:#1877f2;color:#fff;padding:12px 24px;border:none;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;}
-    .btn-save:hover{background:#166fe5;}
-    .message{padding:15px 20px;border-radius:6px;margin-bottom:20px;font-size:14px;font-weight:500;}
+
+    /* Panel: außen sichtbar */
+    .settings-section{
+        box-sizing:border-box !important;
+        background:#fff !important;
+        border:1px solid #e5e7eb !important;
+        border-radius:12px !important;
+        box-shadow:0 6px 20px -6px rgba(0,0,0,0.12) !important;
+        padding:16px !important;
+        margin-bottom:18px !important;
+    }
+
+    /* Titel */
+    .section-title{
+        font-size:16px !important;
+        font-weight:600 !important;
+        margin-bottom:12px !important;
+        padding-bottom:8px !important;
+        border-bottom:2px solid #f0f0f0 !important;
+        color:#111827 !important;
+    }
+
+    /* Grid */
+    .form-grid{display:grid !important; gap:16px !important;}
+    .form-grid-2{grid-template-columns:1fr 1fr !important;}
+    @media (max-width: 900px){
+        .form-grid-2{grid-template-columns:1fr !important;}
+    }
+
+    /* Labels */
+    .form-label{
+        display:block !important;
+        font-weight:600 !important;
+        margin-bottom:6px !important;
+        font-size:14px !important;
+        color:#374151 !important;
+    }
+
+    /* Inputs, Selects, Textareas */
+    .form-input,.form-select,.form-textarea{
+        box-sizing:border-box !important;
+        width:100% !important;
+        display:block !important;
+        padding:12px !important;
+        border:1px solid #d0d7de !important;
+        border-radius:8px !important;
+        background:#f8fafc !important;
+        outline:none !important;
+        font-size:14px !important;
+        color:#111827 !important;
+    }
+
+    /* Textarea specifics */
+    .form-textarea{
+        min-height:110px !important;
+        resize:vertical !important;
+    }
+
+    /* Checkbox-Row */
+    .form-checkbox{
+        display:flex !important;
+        align-items:center !important;
+        gap:8px !important;
+        margin:8px 0 12px !important;
+    }
+    .form-checkbox input[type="checkbox"]{width:16px !important; height:16px !important;}
+
+    /* Save Buttons */
+    .btn-save{
+        box-sizing:border-box !important;
+        display:inline-block !important;
+        padding:10px 14px !important;
+        border-radius:8px !important;
+        background:linear-gradient(180deg,#3b82f6,#1e67d6) !important;
+        color:#fff !important;
+        border:none !important;
+        box-shadow:0 4px 12px rgba(30,103,214,0.25) !important;
+        cursor:pointer !important;
+        font-weight:600 !important;
+    }
+    .btn-save:hover{filter:brightness(0.98) !important;}
+
+    /* Messages */
+    .message{padding:15px 20px;border-radius:8px;margin-bottom:20px;font-size:14px;font-weight:500;}
     .message-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb;}
     .message-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;}
-    .warning-box{background:#fff3cd;border-left:4px solid #ffc107;padding:15px;border-radius:4px;margin-bottom:20px;}
+
+    /* Warning box */
+    .warning-box{
+        background:#fff8e6 !important;
+        border-left:4px solid #f3cf73 !important;
+        padding:12px !important;
+        border-radius:8px !important;
+        margin-bottom:12px !important;
+        color:#8a6d1e !important;
+    }
+
+    /* Focus state */
+    .form-input:focus,.form-select:focus,.form-textarea:focus{
+        border-color:#3b82f6 !important;
+        box-shadow:0 0 0 3px rgba(59,130,246,0.15) !important;
+        background:#fff !important;
+    }
+
+    /* Theme grid remains */
     .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:15px;}
     .theme-option{position:relative;cursor:pointer;}
     .theme-option input{position:absolute;opacity:0;}
