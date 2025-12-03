@@ -12,8 +12,7 @@
             var $post = $(this);
             
             // Try to get post ID from various sources
-            var postId = $post.attr('data-id') 
-                      || $post.data('id');
+            var postId = $post.attr('data-id') || $post.data('id');
             
             // Extract from date link (most reliable!)
             if (!postId) {
@@ -45,32 +44,32 @@
             $post.data('comments-initialized', true);
             
             // Add comments section HTML
-            var commentsHTML = `
-                <div class="comments-wrapper" style="margin-top:20px; padding:15px; background:#f9f9f9; border-radius:8px;">
-                    <div class="comments-section" data-post-id="${postId}">
-                        <h3 class="comments-title">
-                            <span class="comment-count">0</span> Kommentare
-                        </h3>
-                        <div class="comments-list"></div>
-                        <div class="comment-form-wrapper" style="margin-top:15px; background:white; padding:15px; border-radius:5px;">
-                            <h4>💬 Kommentar hinterlassen</h4>
-                            <form class="comment-form" data-post-id="${postId}">
-                                <input type="text" name="website_check" style="display:none;" tabindex="-1">
-                                <div class="form-group" style="margin-bottom:10px;">
-                                    <input type="text" name="author_name" required placeholder="Dein Name *" 
-                                           style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
-                                </div>
-                                <div class="form-group" style="margin-bottom:10px;">
-                                    <textarea name="content" required rows="4" placeholder="Dein Kommentar *" 
-                                              style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; resize:vertical;"></textarea>
-                                </div>
-                                <button type="submit" class="button blue" style="padding:8px 16px;">Kommentar posten</button>
-                                <div class="comment-status" style="margin-top:10px;"></div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            `;
+            var commentsHTML = [
+                '<div class="comments-wrapper" style="margin-top:20px; padding:16px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 6px 20px -6px rgba(0,0,0,0.12);">',
+                  '<div class="comments-section" data-post-id="', postId ,'">',
+                    '<h3 class="comments-title">',
+                      '<span class="comment-count">0</span> Kommentare',
+                    '</h3>',
+                    '<div class="comments-list"></div>',
+                    '<div class="comment-form-wrapper" style="margin-top:15px;">',
+                      '<h4>💬 Kommentar hinterlassen</h4>',
+                      '<form class="comment-form" data-post-id="', postId ,'">',
+                        '<input type="text" name="website_check" style="display:none;" tabindex="-1">',
+                        '<div class="form-group" style="margin-bottom:10px;">',
+                          '<input type="text" name="author_name" required placeholder="Dein Name *" ',
+                          'style="width:100%; padding:12px; border:1px solid #d0d7de; border-radius:8px; background:#f8fafc;">',
+                        '</div>',
+                        '<div class="form-group" style="margin-bottom:10px;">',
+                          '<textarea name="content" required rows="4" placeholder="Dein Kommentar *" ',
+                          'style="width:100%; padding:12px; border:1px solid #d0d7de; border-radius:8px; resize:vertical; background:#f8fafc;"></textarea>',
+                        '</div>',
+                        '<button type="submit" class="button blue" style="padding:10px 14px; border-radius:8px;">Kommentar posten</button>',
+                        '<div class="comment-status" style="margin-top:10px; display:none;"></div>',
+                      '</form>',
+                    '</div>',
+                  '</div>',
+                '</div>'
+            ].join('');
             $post.append(commentsHTML);
             console.log('  ✅ HTML injected');
             

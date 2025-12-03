@@ -9,24 +9,31 @@ var Comments = {
     commentsList: null,
     csrfToken: null,
 
-    /*** Initialize comments for a specific post */
+    /** Initialize comments for a specific post */
     init: function(postId) {
         console.log('💬 Initializing Comments for post', postId);
+
         this.postId = postId;
         this.container = $('.comments-section[data-post-id="' + postId + '"]');
+
+        if (!this.container.length) {
+            console.error('❌ Comments container not found for post', postId);
+            return;
+        }
+
+        // Cache form and list after container check
         this.form = this.container.find('.comment-form');
         this.commentsList = this.container.find('.comments-list');
 
-        // Get CSRF token from meta tag or data attribute
-        this.csrfToken = $('meta[name="csrf-token"]').attr('content') || 
-                        this.container.data('csrf-token') ||
-                        window.csrfToken;
+        // CSRF token from meta/data/global
+        this.csrfToken =
+            $('meta[name="csrf-token"]').attr('content') ||
+            this.container.data('csrf-token') ||
+            window.csrfToken ||
+            '';
 
-        console.log('🔐 CSRF Token:', this.csrfToken ?  'Found' : 'MISSING! ');
-
-        if (!this.container.length) {
-            console. error('❌ Comments container not found for post', postId);
-            return;
+        if (!this.csrfToken) {
+            console.warn('⚠️ CSRF token missing; backend may reject requests.');
         }
 
         // Bind events
@@ -43,7 +50,11 @@ var Comments = {
      */
     bindFormSubmit: function() {
         var self = this;
-        this. form.on('submit', function(e) {
+        if (!this.form || !this.form.length) {
+            console.warn('⚠️ Comment form not found for post', this.postId);
+            return;
+        }
+        this.form.on('submit', function(e) {
             e.preventDefault();
             self.submitComment();
         });
@@ -54,43 +65,40 @@ var Comments = {
      */
     submitComment: function() {
         var self = this;
+
+        // Backend expects: name + text
         var formData = {
             action: 'comment_add',
             post_id: this.postId,
-            author_name: this.form.find('[name="author_name"]').val(),
-            content: this.form.find('[name="content"]').val(),
-            website_check: this.form.find('[name="website_check"]').val()
+            name: this.form.find('[name="author_name"], [name="name"]').val(),
+            text: this.form.find('[name="content"], [name="text"]').val(),
+            website_check: this.form.find('[name="website_check"]').val() || '',
+            csrf_token: this.csrfToken
         };
 
         console.log('📤 Submitting comment:', formData);
 
         $.ajax({
-            url: 'ajax. php',
+            url: '/ajax.php',
             method: 'POST',
             data: formData,
             dataType: 'json',
-            headers: {
-                'Csrf-Token': self.csrfToken
-            },
+            headers: { 'Csrf-Token': self.csrfToken },
             success: function(response) {
                 console.log('📥 Comment response:', response);
 
-                if (response.error) {
-                    self.showStatus('error', response.msg || LANG.errorPosting);
+                if (response && response.error) {
+                    self.showStatus('error', response.msg || (window.LANG && LANG.errorPosting) || 'Fehler beim Posten');
                 } else {
-                    self.showStatus('success', response.message || LANG.commentSuccess);
-                    self.form[0].reset();
-
-                    // Reload comments after short delay
-                    setTimeout(function() {
-                        self.loadComments();
-                    }, 500);
+                    self.showStatus('success', (response && (response.message || response.msg)) || (window.LANG && LANG.commentSuccess) || 'Kommentar gepostet!');
+                    if (self.form && self.form[0]) self.form[0].reset();
+                    setTimeout(function(){ self.loadComments(); }, 500);
                 }
             },
             error: function(xhr, status, error) {
-                console. error('❌ AJAX error:', status, error);
-                console.error('Response:', xhr.responseText);
-                self.showStatus('error', LANG.commentFailed);
+                console.error('❌ AJAX error:', status, error);
+                console.error('Response:', xhr && xhr.responseText);
+                self.showStatus('error', (window.LANG && LANG.commentFailed) || 'Fehler beim Posten. Bitte nochmal versuchen.');
             }
         });
     },
@@ -104,25 +112,31 @@ var Comments = {
         console.log('📥 Loading comments for post', this.postId);
 
         $.ajax({
-            url: 'ajax.php',
+            url: '/ajax.php',
             method: 'GET',
             data: {
                 action: 'comment_get',
-                post_id: this. postId
+                post_id: this.postId
             },
             dataType: 'json',
             success: function(response) {
                 console.log('📦 Received comments:', response);
 
-                if (response.error) {
+                if (response && response.error) {
                     console.error('❌ Error loading comments:', response.msg);
+                    self.renderComments([]);
+                    self.updateCount(0);
                 } else {
-                    self.renderComments(response.comments || []);
-                    self.updateCount(response.count || 0);
+                    var list = (response && response.comments) || [];
+                    var count = (response && (response.count != null ? response.count : list.length)) || 0;
+                    self.renderComments(list);
+                    self.updateCount(count);
                 }
             },
             error: function(xhr, status, error) {
                 console.error('❌ Failed to load comments:', status, error);
+                self.renderComments([]);
+                self.updateCount(0);
             }
         });
     },
@@ -131,38 +145,45 @@ var Comments = {
      * Render comments list
      */
     renderComments: function(comments) {
-        console.log('🎨 Rendering', comments.length, 'comments');
+        console.log('🎨 Rendering', (comments || []).length, 'comments');
+
+        if (!this.commentsList || !this.commentsList.length) return;
 
         this.commentsList.empty();
 
-        if (comments.length === 0) {
-            this.commentsList.html('<p class="no-comments">' + LANG.noComments + '</p>');
+        if (!comments || comments.length === 0) {
+            this.commentsList.html('<p class="no-comments">' + ((window.LANG && LANG.noComments) || 'Noch keine Kommentare. Sei der Erste!') + '</p>');
             return;
         }
 
+        var self = this;
         comments.forEach(function(comment) {
             var isPending = comment.status === 'pending';
-            var statusBadge = isPending ? '<span class="comment-status-badge pending">' + LANG.waitingApproval + '</span>' : '';
+            var statusBadge = isPending ? '<span class="comment-status-badge pending">' + ((window.LANG && LANG.waitingApproval) || 'Wartet auf Freigabe') + '</span>' : '';
 
-            var commentHTML = `
-                <div class="comment ${isPending ? 'pending' : ''}" data-comment-id="${comment.id}">
-                    <div class="comment-header">
-                        <span class="comment-author">${this.escapeHtml(comment.author_name)}</span>
-                        ${statusBadge}
-                        <span class="comment-date">${this.formatDate(comment.created_at)}</span>
-                    </div>
-                    <div class="comment-content">${this.escapeHtml(comment.content)}</div>
-                </div>
-            `;
+            var author = self.escapeHtml(comment.name || comment.author_name || '');
+            var content = self.escapeHtml(comment.text || comment.content || '');
+            var created = self.formatDate(comment.created_at || new Date().toISOString());
 
-            this.commentsList.append(commentHTML);
-        }. bind(this));
+            var commentHTML =
+                '<div class="comment ' + (isPending ? 'pending' : '') + '" data-comment-id="' + (comment.id || '') + '">' +
+                    '<div class="comment-header">' +
+                        '<span class="comment-author">' + author + '</span>' +
+                        statusBadge +
+                        '<span class="comment-date">' + created + '</span>' +
+                    '</div>' +
+                    '<div class="comment-content">' + content + '</div>' +
+                '</div>';
+
+            self.commentsList.append(commentHTML);
+        });
     },
 
     /**
      * Update comment count
      */
     updateCount: function(count) {
+        if (!this.container || !this.container.length) return;
         this.container.find('.comment-count').text(count);
         console.log('📊 Updated count to', count);
     },
@@ -171,8 +192,10 @@ var Comments = {
      * Show status message (success or error)
      */
     showStatus: function(type, message) {
-        var statusDiv = this.form.find('.comment-status');
-        statusDiv.removeClass('success error'). addClass(type). text(message). show();
+        var statusDiv = this.form && this.form.length ? this.form.find('.comment-status') : $();
+        if (!statusDiv.length) return;
+
+        statusDiv.removeClass('success error').addClass(type).text(message).show();
 
         setTimeout(function() {
             statusDiv.fadeOut();
@@ -188,23 +211,27 @@ var Comments = {
         var diff = Math.floor((now - date) / 1000); // seconds
 
         if (diff < 60) {
-            return LANG. secondsAgo.replace('{0}', diff);
+            return ((window.LANG && LANG.secondsAgo) || 'vor {0} Sekunden').replace('{0}', diff);
         }
         if (diff < 3600) {
-            return LANG. minutesAgo.replace('{0}', Math.floor(diff / 60));
+            return ((window.LANG && LANG.minutesAgo) || 'vor {0} Minuten').replace('{0}', Math.floor(diff / 60));
         }
         if (diff < 86400) {
-            return LANG. hoursAgo.replace('{0}', Math.floor(diff / 3600));
+            return ((window.LANG && LANG.hoursAgo) || 'vor {0} Stunden').replace('{0}', Math.floor(diff / 3600));
         }
 
         // Fallback to formatted date
-        return date.toLocaleDateString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        try {
+            return date.toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch(e) {
+            return date.toISOString();
+        }
     },
 
     /**
@@ -212,7 +239,7 @@ var Comments = {
      */
     escapeHtml: function(text) {
         var div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = text == null ? '' : String(text);
         return div.innerHTML;
     }
 };

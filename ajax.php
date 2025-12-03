@@ -5,6 +5,7 @@
 require_once __DIR__ . '/common.php'; // bootstraps app and defines PROJECT_PATH
 require_once PROJECT_PATH . 'app/categories.class.php';
 require_once PROJECT_PATH . 'app/post.class.php';
+require_once PROJECT_PATH . 'app/comment.class.php'; // bind DB-backed comments
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -82,7 +83,7 @@ try {
 
 		/* ===== Date helpers ===== */
 		case 'get_date':
-			echo json_encode(Post::get_date(['id' => $_GET['id'] ?? 0]));
+			echo json_encode(Post::get_date(['id' => $_GET['id'] ?? $_POST['id'] ?? 0]));
 			break;
 
 		case 'set_date':
@@ -126,7 +127,7 @@ try {
 
 		/* ===== Edit modal ===== */
 		case 'edit_data':
-			$id = $_GET['id'] ?? 0;
+			$id = $_GET['id'] ?? $_POST['id'] ?? 0;
 			echo json_encode(Post::edit_data(['id' => $id]));
 			break;
 
@@ -144,7 +145,7 @@ try {
 			echo json_encode($data);
 			break;
 
-		/* ===== Comments endpoints (matching your scripts) ===== */
+		/* ===== Comments endpoints (DB-backed via Comment class) ===== */
 		case 'comment_get': // GET list for a post
 		{
 			$postId = (int)($_GET['post_id'] ?? 0);
@@ -152,67 +153,96 @@ try {
 				echo json_encode(['error' => true, 'msg' => 'Invalid post_id']);
 				break;
 			}
-			// If you have a comments table, replace the stub below with a SELECT.
-			$rows = [];
-			echo json_encode(['error' => false, 'post_id' => $postId, 'comments' => $rows]);
+			$resp = Comment::comment_get(['post_id' => $postId]);
+			echo json_encode(['error' => false, 'post_id' => $postId, 'comments' => $resp['comments'], 'count' => $resp['count']]);
 			break;
 		}
 
-		case 'comment_add': // POST add comment
+		case 'comment_add': // POST add comment (pending unless auto_approve)
 		{
-			$postId = (int)($_POST['post_id'] ?? 0);
-			$name   = trim((string)($_POST['name'] ?? ''));
-			$text   = trim((string)($_POST['text'] ?? ''));
-			if ($postId <= 0 || $text === '') {
-				echo json_encode(['error' => true, 'msg' => 'Invalid input']);
-				break;
+			$r = [
+				'post_id'       => (int)($_POST['post_id'] ?? 0),
+				'author_name'   => (string)($_POST['author_name'] ?? $_POST['name'] ?? ''),
+				'content'       => (string)($_POST['content'] ?? $_POST['text'] ?? ''),
+				'website_check' => (string)($_POST['website_check'] ?? '')
+			];
+			try {
+				$resp = Comment::comment_add($r);
+				echo json_encode(['error' => false, 'msg' => 'ok', 'comment' => $resp]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
 			}
-			// If you have a comments table, INSERT here.
-			echo json_encode(['error' => false, 'msg' => 'ok']);
 			break;
 		}
 
-		case 'comment_delete': // POST delete comment
+		case 'comment_approve': // POST approve comment
 		{
-			$commentId = (int)($_POST['comment_id'] ?? 0);
-			if ($commentId <= 0) {
-				echo json_encode(['error' => true, 'msg' => 'Invalid comment_id']);
-				break;
+			$id = (int)($_POST['id'] ?? $_POST['comment_id'] ?? 0);
+			try {
+				$resp = Comment::comment_approve(['id' => $id]);
+				echo json_encode(['error' => false, 'msg' => 'approved', 'result' => $resp]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
 			}
-			// If you have a comments table, DELETE here.
-			echo json_encode(['error' => false, 'msg' => 'deleted']);
 			break;
 		}
 
-		case 'comment_count': // GET count for a post
+		case 'comment_spam': // POST mark as spam
+		{
+			$id = (int)($_POST['id'] ?? $_POST['comment_id'] ?? 0);
+			try {
+				$resp = Comment::comment_spam(['id' => $id]);
+				echo json_encode(['error' => false, 'msg' => 'spam', 'result' => $resp]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+
+		case 'comment_delete': // POST move to trash
+		{
+			$id = (int)($_POST['id'] ?? $_POST['comment_id'] ?? 0);
+			try {
+				$resp = Comment::comment_delete(['id' => $id]);
+				echo json_encode(['error' => false, 'msg' => 'deleted', 'result' => $resp]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+
+		case 'comment_count': // GET count for a post (approved + pending if logged in)
 		{
 			$postId = (int)($_GET['post_id'] ?? 0);
 			if ($postId <= 0) {
 				echo json_encode(['error' => true, 'msg' => 'Invalid post_id']);
 				break;
 			}
-			$count = 0;
-			// If you have a comments table, SELECT COUNT(*) here.
-			echo json_encode(['error' => false, 'post_id' => $postId, 'count' => $count]);
+			$resp = Comment::comment_get(['post_id' => $postId]);
+			echo json_encode(['error' => false, 'post_id' => $postId, 'count' => $resp['count']]);
 			break;
 		}
 
 		/* ===== Optional aliases for older scripts ===== */
-		case 'comments': // alias of list
+		case 'comments': // alias list
 		case 'get_comments':
 			$postId = (int)($_GET['id'] ?? 0);
-			echo json_encode(['error' => false, 'post_id' => $postId, 'comments' => []]);
+			$resp = $postId ? Comment::comment_get(['post_id' => $postId]) : ['comments' => [], 'count' => 0];
+			echo json_encode(['error' => false, 'post_id' => $postId, 'comments' => $resp['comments'], 'count' => $resp['count']]);
 			break;
 
-		case 'add_comment': // alias of add
-			$postId = (int)($_POST['id'] ?? 0);
-			$text   = trim((string)($_POST['text'] ?? ''));
-			echo json_encode(['error' => ($postId<=0||$text===''), 'msg' => ($postId<=0||$text==='')?'Invalid input':'ok']);
-			break;
-
-		case 'delete_comment': // alias of delete
-			$commentId = (int)($_POST['comment_id'] ?? 0);
-			echo json_encode(['error' => ($commentId<=0), 'msg' => ($commentId<=0)?'Invalid comment id':'deleted']);
+		case 'add_comment': // alias add
+			$r = [
+				'post_id'     => (int)($_POST['id'] ?? 0),
+				'author_name' => (string)($_POST['name'] ?? ''),
+				'content'     => (string)($_POST['text'] ?? '')
+			];
+			try {
+				$resp = Comment::comment_add($r);
+				echo json_encode(['error' => false, 'msg' => 'ok', 'comment' => $resp]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
 			break;
 
 		default:

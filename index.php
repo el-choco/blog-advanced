@@ -134,6 +134,91 @@ if (Config::get_safe("version", false)) {
 	.file-preview-item { display:inline-block; margin-right:8px; padding:6px 8px; border:1px solid #e6e6e6; border-radius:6px; background:#fafafa; }
 	.file-preview-item .file-name { display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
 	.file-preview-item .remove-file-btn { margin-left:6px; border:0; background:transparent; color:#888; cursor:pointer; font-size:14px; }
+	/* Visible card: only outside */
+	div.comments-wrapper {
+	box-sizing: border-box !important;
+	padding: 16px !important;
+	background: #fff !important;                 /* directly white, like on the right */
+	border: 1px solid #e5e7eb !important;
+	border-radius: 12px !important;
+	box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12) !important;
+	}
+
+	/* Inner Box: transparent, no border/shadow */
+	div.comment-form-wrapper {
+	box-sizing: border-box !important;
+	padding: 0 !important;                        /* no additional inner padding needed */
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	margin-bottom: 0 !important;
+	}
+
+	/* Spacing between fields */
+	div.form-group { margin-bottom: 12px !important; }
+
+	/* Fields */
+	div.comment-form-wrapper input[type="text"],
+	div.comment-form-wrapper textarea {
+	box-sizing: border-box !important;
+	width: 100% !important;
+	display: block !important;
+	padding: 12px !important;
+	background: #f8fafc !important;
+	border: 1px solid #d0d7de !important;
+	border-radius: 8px !important;
+	outline: none !important;
+	}
+
+	div.comment-form-wrapper textarea {
+	min-height: 100px !important;
+	resize: vertical !important;
+	}
+
+	/* Button */
+	div.comment-form-wrapper button[type="submit"],
+	button.button.blue[type="submit"] {
+	box-sizing: border-box !important;
+	display: inline-block !important;
+	padding: 10px 14px !important;
+	border-radius: 8px !important;
+	background: linear-gradient(180deg,#3b82f6,#1e67d6) !important;
+	color: #fff !important;
+	border: none !important;
+	box-shadow: 0 4px 12px rgba(30,103,214,0.25) !important;
+	cursor: pointer !important;
+	}
+
+	/* Hide Honeypot */
+	div.comment-form-wrapper input[name="website_check"] {
+	display: none !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: -9999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	}
+
+	/* Visible Fields */
+	div.comment-form-wrapper input[type="text"]:not([name="website_check"]),
+	div.comment-form-wrapper textarea {
+	box-sizing: border-box !important;
+	width: 100% !important;
+	display: block !important;
+	padding: 12px !important;
+	background: #f8fafc !important;
+	border: 1px solid #d0d7de !important;
+	border-radius: 8px !important;
+	outline: none !important;
+	}
+
+	div.comment-form-wrapper textarea {
+	min-height: 100px !important;
+	resize: vertical !important;
+	}
 	</style>
 	<?php echo $styles_html; ?>
 </head>

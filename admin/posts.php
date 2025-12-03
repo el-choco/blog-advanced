@@ -1,5 +1,11 @@
 <?php
-
+/**
+ * Posts Management (posts.php)
+ * - Filter / search posts
+ * - Quick actions (sticky / hide / delete)
+ * - Inline editor with extended Markdown toolbar and live preview
+ * - Category quick-assign + filter
+ */
 require_once 'common.php';
 require_once PROJECT_PATH . 'app/categories.class.php';
 
@@ -110,7 +116,7 @@ if ($theme === '') { $theme = 'theme01'; }
     .filters-bar {background:#fff;padding:20px;border-radius:8px;margin-bottom:20px;display:flex;gap:15px;flex-wrap:wrap;align-items:center;}
     .filter-select {padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
     .search-box {flex:1;min-width:200px;}
-    .search-input {width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
+    .search-input {width:97%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
     .admin-table {width:100%;border-collapse:collapse;}
     .admin-table th, .admin-table td {padding:10px 12px;border-bottom:1px solid #e5e5e5;font-size:14px;vertical-align:top;}
     .admin-table th {background:#f9f9f9;font-weight:600;text-align:left;}

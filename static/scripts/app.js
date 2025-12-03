@@ -298,8 +298,8 @@ function buildCategorySelect($container, selectedId) {
     }
 
     var wrapper = $('<div class="editor-cat-row" style="margin:8px 0;"></div>');
-    var label   = $('<label class="editor-label" style="display:block;margin-bottom:4px;font-weight:600;"></label>').text(labelText);
-    var select  = $('<select class="editor-category-select" style="width:100%;padding:8px 12px;border:1px solid #d0d7de;border-radius:6px;font-size:14px;"></select>');
+    var label   = $('<label class="editor-label" style="display:block;margin-bottom:4px;font-weight:600;margin-left: 10px;"></label>').text(labelText);
+    var select  = $('<select class="editor-category-select" style="width:20%;padding:8px 12px;border:1px solid #d0d7de;border-radius:6px;font-size:14px;margin-left: 9px;"></select>');
     var hidden  = $('<input type="hidden" class="i_category_id" value="">');
 
     select.append('<option value="">' + noneText + '</option>');
