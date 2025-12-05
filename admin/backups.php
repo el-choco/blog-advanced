@@ -1,7 +1,7 @@
 <?php
 require_once 'common.php';
 
-$page_title = $lang['Backup Management'];
+$page_title = $lang['Backup Management'] ?? 'Backup Management';
 $error = null;
 $success = null;
 
@@ -16,26 +16,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         switch ($action) {
             case 'create':
                 $backup = Backup::create();
-                $success = $lang['Backup created successfully'] . ': ' . $backup['filename'];
+                $success = ($lang['Backup created successfully'] ?? 'Backup created successfully') . ': ' . $backup['filename'];
                 break;
                 
             case 'restore':
                 $filename = $_POST['file'] ?? '';
                 if (empty($filename)) {
-                    throw new Exception($lang['No backup file specified']);
+                    throw new Exception($lang['No backup file specified'] ?? 'No backup file specified');
                 }
                 Backup::restore($filename);
-                $success = $lang['Backup restored successfully'];
+                $success = $lang['Backup restored successfully'] ?? 'Backup restored successfully';
                 break;
                 
             case 'delete':
                 $filename = $_POST['file'] ?? '';
                 if (empty($filename)) {
-                    throw new Exception($lang['No backup file specified']);
+                    throw new Exception($lang['No backup file specified'] ?? 'No backup file specified');
                 }
                 Backup::delete($filename);
-                $success = $lang['Backup deleted successfully'];
+                $success = $lang['Backup deleted successfully'] ?? 'Backup deleted successfully';
                 break;
+                
+            case 'export_json':
+                $result = Backup::export_json();
+                $success = ($lang['JSON export created successfully'] ?? 'JSON export created successfully') . ': ' . $result['filename'];
+                break;
+                
+            case 'export_csv':
+                $result = Backup::export_csv();
+                $success = ($lang['CSV export created successfully'] ?? 'CSV export created successfully') . ': ' . $result['filename'];
+                break;
+                
+            case 'export_full':
+                $result = Backup::export_full();
+                $success = ($lang['Full backup created successfully'] ?? 'Full backup created successfully') . ': ' . $result['filename'];
+                break;
+                
+            case 'import':
+                if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+                    throw new Exception($lang['Please select a file to import'] ?? 'Please select a file to import');
+                }
+                
+                $file = $_FILES['import_file'];
+                $filename = $file['name'];
+                $tmpPath = $file['tmp_name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                
+                if ($ext === 'json') {
+                    $stats = Backup::import_json($tmpPath);
+                    $success = ($lang['Import completed successfully'] ?? 'Import completed successfully') . ': ' .
+                               $stats['categories'] . ' ' . ($lang['categories imported'] ?? 'categories imported') . ', ' .
+                               $stats['posts'] . ' ' . ($lang['posts imported'] ?? 'posts imported') . ', ' .
+                               $stats['comments'] . ' ' . ($lang['comments imported'] ?? 'comments imported');
+                } elseif ($ext === 'zip') {
+                    $stats = Backup::import_full($tmpPath);
+                    $success = ($lang['Full backup restored successfully'] ?? 'Full backup restored successfully') . ': ' .
+                               $stats['categories'] . ' ' . ($lang['categories imported'] ?? 'categories imported') . ', ' .
+                               $stats['posts'] . ' ' . ($lang['posts imported'] ?? 'posts imported') . ', ' .
+                               $stats['comments'] . ' ' . ($lang['comments imported'] ?? 'comments imported') . ', ' .
+                               ($stats['media_files'] ?? 0) . ' ' . ($lang['media files restored'] ?? 'media files restored');
+                } else {
+                    throw new Exception($lang['Invalid file format'] ?? 'Invalid file format');
+                }
+                break;
+                
+            case 'download':
+                $filename = $_POST['file'] ?? '';
+                if (empty($filename)) {
+                    throw new Exception($lang['No backup file specified'] ?? 'No backup file specified');
+                }
+                $filepath = Backup::download($filename);
+                
+                // Send file headers and content
+                $mime = 'application/octet-stream';
+                if (preg_match('/\.json$/', $filename)) {
+                    $mime = 'application/json';
+                } elseif (preg_match('/\.zip$/', $filename)) {
+                    $mime = 'application/zip';
+                } elseif (preg_match('/\.sql$/', $filename)) {
+                    $mime = 'application/sql';
+                }
+                
+                header('Content-Type: ' . $mime);
+                header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
+                header('Content-Length: ' . filesize($filepath));
+                header('Cache-Control: private, max-age=0, must-revalidate');
+                header('Pragma: public');
+                readfile($filepath);
+                exit;
         }
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -63,6 +131,28 @@ function format_bytes($bytes) {
         $i++;
     }
     return round($bytes, 2) . ' ' . $units[$i];
+}
+
+// Helper function to get backup type label
+function get_backup_type_label($type, $lang) {
+    switch ($type) {
+        case 'json': return $lang['JSON Export'] ?? 'JSON Export';
+        case 'csv': return $lang['CSV Export'] ?? 'CSV Export';
+        case 'full': return $lang['Full Backup ZIP'] ?? 'Full Backup ZIP';
+        case 'sql': 
+        default: return $lang['SQL Backup'] ?? 'SQL Backup';
+    }
+}
+
+// Helper function to get backup type icon
+function get_backup_type_icon($type) {
+    switch ($type) {
+        case 'json': return '📋';
+        case 'csv': return '📊';
+        case 'full': return '📦';
+        case 'sql':
+        default: return '🗄️';
+    }
 }
 ?><!DOCTYPE html>
 <html>
@@ -163,48 +253,119 @@ function format_bytes($bytes) {
             <!-- Create Backup -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2><?php echo escape($lang['Create New Backup']); ?></h2>
+                    <h2><?php echo escape($lang['Create New Backup'] ?? 'Create New Backup'); ?></h2>
                 </div>
                 <div class="panel-body">
                     <form method="POST">
                         <input type="hidden" name="action" value="create">
                         <button type="submit" class="btn btn-primary" style="font-size: 16px;">
-                            ➕ <?php echo escape($lang['Create New Backup']); ?>
+                            🗄️ <?php echo escape($lang['Create New Backup'] ?? 'Create New Backup'); ?>
                         </button>
                         <p style="margin-top: 10px; color: #666; font-size: 14px;">
-                            <?php echo escape($lang['Creates a complete database backup as SQL file']); ?>
+                            <?php echo escape($lang['Creates a complete database backup as SQL file'] ?? 'Creates a complete database backup as SQL file'); ?>
                         </p>
                     </form>
+                </div>
+            </div>
+
+            <!-- Export / Import Panel -->
+            <div class="admin-panel">
+                <div class="panel-header">
+                    <h2>📤 <?php echo escape($lang['Export Import'] ?? 'Export / Import'); ?></h2>
+                </div>
+                <div class="panel-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <!-- Export JSON -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 16px;">📋 <?php echo escape($lang['Export JSON'] ?? 'Export JSON'); ?></h3>
+                            <p style="color: #666; font-size: 13px; margin: 0 0 15px 0;">
+                                <?php echo escape($lang['Creates JSON export with posts categories and comments'] ?? 'Creates JSON export with posts, categories and comments'); ?>
+                            </p>
+                            <form method="POST">
+                                <input type="hidden" name="action" value="export_json">
+                                <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                                    <?php echo escape($lang['Export as JSON'] ?? 'Export as JSON'); ?>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Export CSV -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 16px;">📊 <?php echo escape($lang['Export CSV'] ?? 'Export CSV'); ?></h3>
+                            <p style="color: #666; font-size: 13px; margin: 0 0 15px 0;">
+                                <?php echo escape($lang['Creates CSV files in a ZIP archive'] ?? 'Creates CSV files in a ZIP archive'); ?>
+                            </p>
+                            <form method="POST">
+                                <input type="hidden" name="action" value="export_csv">
+                                <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                                    <?php echo escape($lang['Export as CSV ZIP'] ?? 'Export as CSV ZIP'); ?>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Full Backup -->
+                        <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; border: 1px solid #1877f2;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 16px;">📦 <?php echo escape($lang['Full Backup'] ?? 'Full Backup'); ?></h3>
+                            <p style="color: #666; font-size: 13px; margin: 0 0 15px 0;">
+                                <?php echo escape($lang['Creates full backup with database and media files'] ?? 'Creates full backup with database and media files'); ?>
+                            </p>
+                            <form method="POST">
+                                <input type="hidden" name="action" value="export_full">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <?php echo escape($lang['Create Full Backup'] ?? 'Create Full Backup'); ?>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Import -->
+                        <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffc107;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 16px;">📥 <?php echo escape($lang['Import'] ?? 'Import'); ?></h3>
+                            <p style="color: #666; font-size: 13px; margin: 0 0 15px 0;">
+                                <?php echo escape($lang['Supported formats JSON and ZIP'] ?? 'Supported formats: JSON and ZIP (full backup)'); ?>
+                            </p>
+                            <form method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="import">
+                                <input type="file" name="import_file" accept=".json,.zip" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('<?php echo escape($lang['Restore backup confirmation'] ?? 'Really restore backup? This will overwrite the current database!'); ?>');">
+                                    <?php echo escape($lang['Import Backup'] ?? 'Import Backup'); ?>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Backup List -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2><?php echo escape($lang['Available Backups']); ?></h2>
+                    <h2><?php echo escape($lang['Available Backups'] ?? 'Available Backups'); ?></h2>
                 </div>
                 <div class="panel-body">
                     <?php if(empty($backups)): ?>
                         <div class="empty-state">
                             <div style="font-size: 64px; opacity: 0.3; margin-bottom: 20px;">📦</div>
-                            <h3><?php echo escape($lang['No backups available yet']); ?></h3>
-                            <p style="color: #666;"><?php echo escape($lang['Click Create New Backup to create the first backup']); ?></p>
+                            <h3><?php echo escape($lang['No backups available yet'] ?? 'No backups available yet'); ?></h3>
+                            <p style="color: #666;"><?php echo escape($lang['Click Create New Backup to create the first backup'] ?? 'Click Create New Backup to create the first backup'); ?></p>
                         </div>
                     <?php else: ?>
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th><?php echo escape($lang['Filename']); ?></th>
-                                    <th><?php echo escape($lang['Created']); ?></th>
-                                    <th><?php echo escape($lang['Size']); ?></th>
-                                    <th><?php echo escape($lang['Actions']); ?></th>
+                                    <th><?php echo escape($lang['Filename'] ?? 'Filename'); ?></th>
+                                    <th><?php echo escape($lang['Type'] ?? 'Type'); ?></th>
+                                    <th><?php echo escape($lang['Created'] ?? 'Created'); ?></th>
+                                    <th><?php echo escape($lang['Size'] ?? 'Size'); ?></th>
+                                    <th><?php echo escape($lang['Actions'] ?? 'Actions'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach($backups as $backup): ?>
                                     <tr>
                                         <td>
-                                            <strong>📁 <?php echo escape($backup['filename']); ?></strong>
+                                            <strong><?php echo get_backup_type_icon($backup['type'] ?? 'sql'); ?> <?php echo escape($backup['filename']); ?></strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info"><?php echo escape(get_backup_type_label($backup['type'] ?? 'sql', $lang)); ?></span>
                                         </td>
                                         <td>
                                             <?php echo date('d.m.Y H:i:s', $backup['created']); ?>
@@ -215,21 +376,32 @@ function format_bytes($bytes) {
                                         <td>
                                             <div class="action-buttons">
                                                 <form method="POST" style="display: inline;">
+                                                    <input type="hidden" name="action" value="download">
+                                                    <input type="hidden" name="file" value="<?php echo escape($backup['filename']); ?>">
+                                                    <button type="submit" class="btn btn-sm btn-primary" 
+                                                            title="<?php echo escape($lang['Download'] ?? 'Download'); ?>">
+                                                        ⬇️
+                                                    </button>
+                                                </form>
+                                                
+                                                <?php if (($backup['type'] ?? 'sql') === 'sql'): ?>
+                                                <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="action" value="restore">
                                                     <input type="hidden" name="file" value="<?php echo escape($backup['filename']); ?>">
                                                     <button type="submit" class="btn btn-sm btn-secondary" 
-                                                            onclick="return confirm('<?php echo escape($lang['Restore backup confirmation']); ?>');"
-                                                            title="<?php echo escape($lang['Restore']); ?>">
+                                                            onclick="return confirm('<?php echo escape($lang['Restore backup confirmation'] ?? 'Really restore backup?'); ?>');"
+                                                            title="<?php echo escape($lang['Restore'] ?? 'Restore'); ?>">
                                                         🔄
                                                     </button>
                                                 </form>
+                                                <?php endif; ?>
                                                 
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="file" value="<?php echo escape($backup['filename']); ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger" 
-                                                            onclick="return confirm('<?php echo escape($lang['Delete backup confirmation']); ?>');"
-                                                            title="<?php echo escape($lang['Delete Permanently']); ?>">
+                                                            onclick="return confirm('<?php echo escape($lang['Delete backup confirmation'] ?? 'Really delete backup?'); ?>');"
+                                                            title="<?php echo escape($lang['Delete Permanently'] ?? 'Delete Permanently'); ?>">
                                                         🗑️
                                                     </button>
                                                 </form>
@@ -246,33 +418,33 @@ function format_bytes($bytes) {
             <!-- Quick Actions -->
             <div class="admin-panel">
                 <div class="panel-header">
-                    <h2><?php echo escape($lang['Quick Access']); ?></h2>
+                    <h2><?php echo escape($lang['Quick Access'] ?? 'Quick Access'); ?></h2>
                 </div>
                 <div class="panel-body">
                     <div class="quick-actions">
                         <a href="../#new-post" class="quick-action-card">
                             <div class="qa-icon">✏️</div>
-                            <div class="qa-label"><?php echo escape($lang['New Post']); ?></div>
+                            <div class="qa-label"><?php echo escape($lang['New Post'] ?? 'New Post'); ?></div>
                         </a>
                         <a href="backups.php" class="quick-action-card">
                             <div class="qa-icon">💾</div>
-                            <div class="qa-label"><?php echo escape($lang['Backups']); ?></div>
+                            <div class="qa-label"><?php echo escape($lang['Backups'] ?? 'Backups'); ?></div>
                         </a>
                         <a href="comments.php" class="quick-action-card">
                             <div class="qa-icon">💬</div>
-                            <div class="qa-label"><?php echo escape($lang['Comments']); ?></div>
+                            <div class="qa-label"><?php echo escape($lang['Comments'] ?? 'Comments'); ?></div>
                         </a>
                         <a href="posts.php" class="quick-action-card">
                             <div class="qa-icon">📝</div>
-                            <div class="qa-label"><?php echo escape($lang['Manage Posts']); ?></div>
+                            <div class="qa-label"><?php echo escape($lang['Manage Posts'] ?? 'Manage Posts'); ?></div>
                         </a>
                         <a href="media.php" class="quick-action-card">
                             <div class="qa-icon">📁</div>
-                            <div class="qa-label"><?php echo escape($lang['Files']); ?></div>
+                            <div class="qa-label"><?php echo escape($lang['Files'] ?? 'Files'); ?></div>
                         </a>
                         <a href="trash.php" class="quick-action-card">
                             <div class="qa-icon">🗑️</div>
-                            <div class="qa-label"><?php echo escape($lang['Trash']); ?></div>
+                            <div class="qa-label"><?php echo escape($lang['Trash'] ?? 'Trash'); ?></div>
                         </a>
                     </div>
                 </div>
