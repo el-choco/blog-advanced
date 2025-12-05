@@ -21,3 +21,4 @@ cache/
 .DS_Store
 Thumbs.db
 msmtprc
+*.bak

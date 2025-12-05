@@ -600,6 +600,29 @@ var posts = {
 
 				posts.loading = false;
 				posts.tryload();
+				posts.loading = false;
+				posts.tryload();
+
+				// Focus target post if hash contains id/post
+				try {
+				var m = (window.location.hash || '').match(/(?:^|#|&)(?:id|post)=(\d+)/);
+				if (m) {
+					var pid = parseInt(m[1], 10);
+					// ensure style exists once
+					if (!document.getElementById('focus-post-style')) {
+					var st = document.createElement('style');
+					st.id = 'focus-post-style';
+					st.textContent = '.focus-post{outline:2px solid #2563eb;outline-offset:2px;background:rgba(37,99,235,.06);transition:background .3s}';
+					document.head.appendChild(st);
+					}
+					var el = document.getElementById('post-' + pid) || document.querySelector('[data-post-id="' + pid + '"]');
+					if (el) {
+					el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					el.classList.add('focus-post');
+					setTimeout(function(){ el.classList.remove('focus-post'); }, 1500);
+					}
+				}
+				} catch(e){}
 			}
 		});
 	},
@@ -1027,8 +1050,8 @@ $.fn.error_msg = function(msg){
 
 	err_msg.active = true;
 	err_msg.obj = $("<div></div>");
-	err_msg.addClass("error");
-	err_msg.text(msg);
+	// Fix: auf das jQuery-Objekt zugreifen, nicht auf das JS-Objekt
+	err_msg.obj.addClass("error").text(msg);
 
 	var clear = $("<button></button>");
 	clear.addClass("clear");
@@ -1410,6 +1433,8 @@ $.fn.post_fill = function(data){
 	var post = $(this);
 
 	post.data("id", data.id);
+	post.attr('id', 'post-' + data.id);
+	post.attr('data-post-id', String(data.id));
 
 	if(parseInt(data.is_hidden)) {
 		post.addClass("is_hidden");

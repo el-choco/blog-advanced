@@ -816,7 +816,7 @@ class Post
 		return Image::upload();
 	}
 
-	public static function load($r){
+		public static function load($r){
 		$from = [];
 		if(preg_match("/^[0-9]{4}-[0-9]{2}$/", @$r["filter"]["from"])){
 			$from = $r["filter"]["from"]."-01 00:00";
@@ -872,17 +872,18 @@ class Post
 		$like_match = "LIKE ".DB::concat("'%'", "?", "'%'");
 
 		$visibility = (!User::is_logged_in()
-			? (User::is_visitor() ? "`privacy` IN ('public', 'friends') AND " : "`privacy` = 'public' AND ")
+			? (User::is_visitor() ? "`posts`.`privacy` IN ('public', 'friends') AND " : "`posts`.`privacy` = 'public' AND ")
 			: "");
 
+		// FIX: qualify ambiguous columns with `posts`.id and other `posts` columns
 		$where = $visibility.
 				($from ? "`posts`.`datetime` > ? AND " : "").
 				($to ? "`posts`.`datetime` < ? AND " : "").
-				($id ? "`id` = ? AND " : "").
-				($tag ? "`plain_text` $like_match AND " : "").
-				($loc ? "`location` $like_match AND " : "").
-				($person ? "`persons` $like_match AND " : "").
-				"`status` <> 5";
+				($id ? "`posts`.`id` = ? AND " : "").   // <= fixed here
+				($tag ? "`posts`.`plain_text` $like_match AND " : "").
+				($loc ? "`posts`.`location` $like_match AND " : "").
+				($person ? "`posts`.`persons` $like_match AND " : "").
+				"`posts`.`status` <> 5";
 
 		$join = " LEFT JOIN `categories` c ON c.`id` = `posts`.`category_id` ";
 		$catWhere = "";

@@ -40,7 +40,6 @@ if(file_exists($header_path)){
 }
 
 // Translate styles into html
-// Translate styles into html
 $styles = Config::get_safe("styles", []);
 $styles_html = '';
 if(!empty($styles) && is_array($styles)){
@@ -95,7 +94,7 @@ if (Config::get_safe("version", false)) {
 	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
 
-	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css">
+	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css" />
 	<style>
 	#emojiPicker {
 		display: flex;
@@ -127,98 +126,68 @@ if (Config::get_safe("version", false)) {
 		height: 300px !important;
 		max-height: 300px !important;
 		overflow-y: auto !important;
-		resize: none !important; /* No resize, use scrolling instead */
+		resize: none !important;
 	}
-	/* small file preview styling (matching image preview look) */
 	.file-preview-container { display:none; margin-top:8px; }
 	.file-preview-item { display:inline-block; margin-right:8px; padding:6px 8px; border:1px solid #e6e6e6; border-radius:6px; background:#fafafa; }
 	.file-preview-item .file-name { display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
 	.file-preview-item .remove-file-btn { margin-left:6px; border:0; background:transparent; color:#888; cursor:pointer; font-size:14px; }
-	/* Visible card: only outside */
-	div.comments-wrapper {
-	box-sizing: border-box !important;
-	padding: 16px !important;
-	background: #fff !important;                 /* directly white, like on the right */
-	border: 1px solid #e5e7eb !important;
-	border-radius: 12px !important;
-	box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12) !important;
-	}
 
-	/* Inner Box: transparent, no border/shadow */
-	div.comment-form-wrapper {
-	box-sizing: border-box !important;
-	padding: 0 !important;                        /* no additional inner padding needed */
-	background: transparent !important;
-	border: none !important;
-	border-radius: 0 !important;
-	box-shadow: none !important;
-	margin-bottom: 0 !important;
+	/* Kommentare-Box */
+	.comments-by-category-card {
+	  margin-top: 30px;
+	  border-radius: 8px;
+	  background: #fff;
+	  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+	  border: 1px solid #e5e7eb;
+	  overflow: hidden;
+	  width: 100%;
 	}
-
-	/* Spacing between fields */
-	div.form-group { margin-bottom: 12px !important; }
-
-	/* Fields */
-	div.comment-form-wrapper input[type="text"],
-	div.comment-form-wrapper textarea {
-	box-sizing: border-box !important;
-	width: 100% !important;
-	display: block !important;
-	padding: 12px !important;
-	background: #f8fafc !important;
-	border: 1px solid #d0d7de !important;
-	border-radius: 8px !important;
-	outline: none !important;
+	.comments-by-category-card .sidebar-card-header {
+	  background: #1877f2;
+	  color: #fff;
+	  padding: 10px 12px;
+	  font-weight: 600;
+	  display: flex;
+	  align-items: center;
+	  gap: 8px;
+	  border-bottom: 1px solid rgba(0,0,0,.06);
 	}
-
-	div.comment-form-wrapper textarea {
-	min-height: 100px !important;
-	resize: vertical !important;
+	/* Doppeltes Icon vermeiden */
+	.comments-by-category-card .sidebar-card-header span::before {
+	  content: none !important;
+	  margin: 0 !important;
 	}
+	.comments-by-category-card .sidebar-card-body { padding: 10px 12px; background: #fff; }
 
-	/* Button */
-	div.comment-form-wrapper button[type="submit"],
-	button.button.blue[type="submit"] {
-	box-sizing: border-box !important;
-	display: inline-block !important;
-	padding: 10px 14px !important;
-	border-radius: 8px !important;
-	background: linear-gradient(180deg,#3b82f6,#1e67d6) !important;
-	color: #fff !important;
-	border: none !important;
-	box-shadow: 0 4px 12px rgba(30,103,214,0.25) !important;
-	cursor: pointer !important;
-	}
+	/* Basis-Inhalt */
+	.cbc-category { font-weight: 600; margin: 10px 0 6px; }
+	.cbc-list { list-style: none; margin: 0; padding: 0; }
+	.cbc-item { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }
+	.cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
+	.cbc-text { margin: 4px 0; color: #111827; font-size: 14px; }
+	.cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
+	.cbc-post a:hover { text-decoration: underline; }
 
-	/* Hide Honeypot */
-	div.comment-form-wrapper input[name="website_check"] {
-	display: none !important;
-	position: absolute !important;
-	left: -9999px !important;
-	top: -9999px !important;
-	width: 1px !important;
-	height: 1px !important;
-	opacity: 0 !important;
-	pointer-events: none !important;
+	/* Kosmetik: Kategoriezeile wie in Kategorienliste */
+	.comments-by-category-card .cbc-category {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 600;
+		margin: 0;
+		padding: 10px 12px;
+		background: #f7fafc;
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
 	}
-
-	/* Visible Fields */
-	div.comment-form-wrapper input[type="text"]:not([name="website_check"]),
-	div.comment-form-wrapper textarea {
-	box-sizing: border-box !important;
-	width: 100% !important;
-	display: block !important;
-	padding: 12px !important;
-	background: #f8fafc !important;
-	border: 1px solid #d0d7de !important;
-	border-radius: 8px !important;
-	outline: none !important;
-	}
-
-	div.comment-form-wrapper textarea {
-	min-height: 100px !important;
-	resize: vertical !important;
-	}
+	.comments-by-category-card .cbc-list { list-style: none; margin: 8px 0 0; padding: 0; }
+	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed #e5e7eb; }
+	.comments-by-category-card .cbc-item:last-child { border-bottom: none; }
+	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
+	.comments-by-category-card .cbc-text { margin: 4px 0; color: #111827; font-size: 14px; white-space: normal; }
+	.comments-by-category-card .cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
+	.comments-by-category-card .cbc-post a:hover { text-decoration: underline; }
 	</style>
 	<?php echo $styles_html; ?>
 </head>
@@ -409,7 +378,6 @@ if (Config::get_safe("version", false)) {
 						</div>
 						<!-- Emoji Picker with 44 modern emojis -->
 						<div id="emojiPicker" style="display:flex; flex-wrap:wrap; justify-content: space-around; gap:4px; padding:6px; border-radius:8px; background:#fff; border:1px solid #ddd; font-size:22px;">
-							<!-- Faces & Emotions -->
 							<span class="emoji" data-emoji="😀">😀</span>
 							<span class="emoji" data-emoji="😃">😃</span>
 							<span class="emoji" data-emoji="😄">😄</span>
@@ -618,6 +586,13 @@ if (Config::get_safe("version", false)) {
 		</div>
 	</div>
 
+	<!-- Trash/Recycle Bin Toggle (only visible when logged in) -->
+	<script>
+	var trashEnabled = <?php echo User::is_logged_in() ? 'true' : 'false'; ?>;
+	var softDeleteEnabled = <?php echo Config::get_safe('SOFT_DELETE', true) ? 'true' : 'false'; ?>;
+	var hardDeleteFilesEnabled = <?php echo Config::get_safe('HARD_DELETE_FILES', true) ? 'true' : 'false'; ?>;
+	</script>
+
     <?php if(User::is_logged_in()): ?>
 		<?php endif; ?>
 			<div id="b_feed">
@@ -627,7 +602,6 @@ if (Config::get_safe("version", false)) {
 				<div id="posts"></div>
 			</div>
 
-	<!-- Trash View (only visible when logged in) -->
 	<?php if(User::is_logged_in()): ?>
 	<div id="b_trash" style="display: none; max-width: 1000px; margin: 0 auto;">
 		<div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
@@ -644,6 +618,8 @@ if (Config::get_safe("version", false)) {
 	</div>
 	<?php endif; ?>
 
+	<!-- WICHTIG: Kein statischer Platzhalter mehr für Kommentare-Box im Content! -->
+
 	<div id="eof_feed">
 		<img src="static/images/zpEYXu5Wdu6.png">
 		<p><?php echo escape(Config::get("version")); ?> &copy; 2016-2025<br>
@@ -652,29 +628,6 @@ if (Config::get_safe("version", false)) {
 	</div>
 	<script src="static/scripts/jquery.min.js"></script>
 	<script>$["\x61\x6A\x61\x78\x53\x65\x74\x75\x70"]({"\x68\x65\x61\x64\x65\x72\x73":{"\x43\x73\x72\x66-\x54\x6F\x6B\x65\x6E":"<?php echo $_SESSION['token'];?>"}});</script>
-	
-	<script>
-	var trashEnabled = <?php echo User::is_logged_in() ?  'true' : 'false'; ?>;
-	var softDeleteEnabled = <?php echo Config::get_safe('SOFT_DELETE', true) ? 'true' : 'false'; ?>;
-	var hardDeleteFilesEnabled = <?php echo Config::get_safe('HARD_DELETE_FILES', true) ? 'true' : 'false'; ?>;
-
-	// Translation strings for JavaScript
-	var LANG = {
-		comments: 'Kommentare',
-		leaveComment: 'Kommentar hinterlassen',
-		yourName: 'Dein Name',
-		yourComment: 'Dein Kommentar',
-		postComment: 'Kommentar posten',
-		noComments: 'Noch keine Kommentare.  Sei der Erste!',
-		waitingApproval: 'Wartet auf Freigabe',
-		secondsAgo: 'vor {0} Sekunden',
-		minutesAgo: 'vor {0} Minuten',
-		hoursAgo: 'vor {0} Stunden',
-		errorPosting: 'Fehler beim Posten',
-		commentSuccess: 'Kommentar gepostet! ',
-		commentFailed: 'Fehler beim Posten. Bitte nochmal versuchen.'
-	};
-	</script>
 
 	<script src="static/scripts/lightbox.js"></script>
 	<script src="static/scripts/datepick.js<?php echo $versionSuffix?>"></script>
@@ -687,12 +640,10 @@ if (Config::get_safe("version", false)) {
 <script>
 // ============================================
 // Markdown & Emoji Editor Functionality
-// (unchanged - same as before; the file-upload integration happens in static/scripts/app.js)
 // ============================================
 (function(){
 	'use strict';
 
-	// Helper: Find textarea in current context
 	function findTextarea(element) {
 		let scope = element.closest('.modal') || element.closest('.edit_form') || element.closest('.b_post') || document;
 		return scope.querySelector('textarea#postText') 
@@ -701,7 +652,6 @@ if (Config::get_safe("version", false)) {
 			|| document.querySelector('textarea#postText');
 	}
 
-	// Insert text at cursor position
 	function insertAtCursor(textarea, textBefore, textAfter) {
 		if (!textarea) return;
 		
@@ -713,280 +663,294 @@ if (Config::get_safe("version", false)) {
 		const newText = text.substring(0, start) + textBefore + selectedText + textAfter + text.substring(end);
 		textarea.value = newText;
 		
-		// Set cursor position
 		const newPos = start + textBefore.length + selectedText.length;
 		textarea.selectionStart = textarea.selectionEnd = newPos;
 		textarea.focus();
 		
-		// Trigger events for other scripts
 		textarea.dispatchEvent(new Event('input', { bubbles: true }));
 		textarea.dispatchEvent(new Event('change', { bubbles: true }));
 	}
 
-	// Emoji mapping: Emoji → Text code (44 emojis)
 	const emojiToCode = {
-		'😀': ':grinning:',
-		'😃': ':smiley:',
-		'😄': ':smile:',
-		'😁': ':grin:',
-		'😆': ':laughing:',
-		'😂': ':joy:',
-		'🤣': ':rofl:',
-		'😊': ':blush:',
-		'😇': ':innocent:',
-		'😍': ':heart_eyes:',
-		'🥰': ':smiling_face_with_hearts:',
-		'😘': ':kissing_heart:',
-		'😗': ':kissing:',
-		'😎': ':sunglasses:',
-		'🤩': ':star_struck:',
-		'🤗': ':hugging:',
-		'🤔': ':thinking:',
-		'😐': ':neutral_face:',
-		'😑': ':expressionless:',
-		'😶': ':no_mouth:',
-		'🙄': ':eye_roll:',
-		'😏': ':smirk:',
-		'😣': ':persevere:',
-		'😥': ':disappointed_relieved:',
-		'😮': ':open_mouth:',
-		'🤐': ':zipper_mouth:',
-		'😯': ':hushed:',
-		'😪': ':sleepy:',
-		'😫': ':tired_face:',
-		'🥱': ':yawning:',
-		'😴': ':sleeping:',
-		'😌': ':relieved:',
-		'😛': ':stuck_out_tongue:',
-		'😜': ':stuck_out_tongue_winking_eye:',
-		'😝': ':stuck_out_tongue_closed_eyes:',
-		'🤤': ':drooling:',
-		'😒': ':unamused:',
-		'😓': ':sweat:',
-		'😔': ':pensive:',
-		'😕': ':confused:',
-		'🙃': ':upside_down:',
-		'🫠': ':melting:',
-		'🤑': ':money_mouth:',
-		'😲': ':astonished:'
+		'😀': ':grinning:','😃': ':smiley:','😄': ':smile:','😁': ':grin:','😆': ':laughing:','😂': ':joy:','🤣': ':rofl:','😊': ':blush:',
+		'😇': ':innocent:','😍': ':heart_eyes:','🥰': ':smiling_face_with_hearts:','😘': ':kissing_heart:','😗': ':kissing:','😎': ':sunglasses:','🤩': ':star_struck:',
+		'🤗': ':hugging:','🤔': ':thinking:','😐': ':neutral_face:','😑': ':expressionless:','😶': ':no_mouth:','🙄': ':eye_roll:','😏': ':smirk:',
+		'😣': ':persevere:','😥': ':disappointed_relieved:','😮': ':open_mouth:','🤐': ':zipper_mouth:','😯': ':hushed:','😪': ':sleepy:',
+		'😫': ':tired_face:','🥱': ':yawning:','😴': ':sleeping:','😌': ':relieved:','😛': ':stuck_out_tongue:','😜': ':stuck_out_tongue_winking_eye:',
+		'😝': ':stuck_out_tongue_closed_eyes:','🤤': ':drooling:','😒': ':unamused:','😓': ':sweat:','😔': ':pensive:','😕': ':confused:',
+		'🙃': ':upside_down:','🫠': ':melting:','🤑': ':money_mouth:','😲': ':astonished:'
 	};
 
-	// Emoji click handler
 	document.addEventListener('click', function(e) {
 		const emojiEl = e.target.closest('.emoji');
 		if (!emojiEl) return;
-		
 		e.preventDefault();
 		const emojiChar = emojiEl.getAttribute('data-emoji') || emojiEl.textContent;
 		const textarea = findTextarea(emojiEl);
 		if (!textarea) return;
-
-		// Insert emoji code
 		const emojiCode = emojiToCode[emojiChar] || emojiChar;
 		insertAtCursor(textarea, emojiCode, '');
 	});
 
-	// Prevent double clicks
 	document.addEventListener('dblclick', function(e) {
 		if (e.target.closest('.emoji') || e.target.closest('.markdown-btn') || e.target.closest('.html-btn')) {
 			e.preventDefault();
 		}
 	});
 
-	// Markdown button handler
 	document.addEventListener('click', function(e) {
-                console.log('🎯 Markdown click event listener fired');
 		const btn = e.target.closest('.markdown-btn');
-                console.log('🔍 btn =', btn);
-		console.log('✅ Button found!', btn);
-                if (!btn) return;
-		
+		if (!btn) return;
 		e.preventDefault();
 		const mdType = btn.getAttribute('data-md');
 		const textarea = findTextarea(btn);
 		if (!textarea) return;
-		
 		const start = textarea.selectionStart;
 		const end = textarea.selectionEnd;
 		const selectedText = textarea.value.substring(start, end);
-		
 		let before = '', after = '';
-		
 		switch(mdType) {
-			case 'bold':
-				before = '**';
-				after = '**';
-				break;
-			case 'italic':
-				before = '*';
-				after = '*';
-				break;
-			case 'strike':
-				before = '~~';
-				after = '~~';
-				break;
-			case 'h1':
-				before = '# ';
-				after = '';
-				break;
-			case 'h2':
-				before = '## ';
-				after = '';
-				break;
-			case 'h3':
-				before = '### ';
-				after = '';
-				break;
+			case 'bold': before = '**'; after = '**'; break;
+			case 'italic': before = '*'; after = '*'; break;
+			case 'strike': before = '~~'; after = '~~'; break;
+			case 'h1': before = '# '; break;
+			case 'h2': before = '## '; break;
+			case 'h3': before = '### '; break;
 			case 'link':
 				const url = prompt('Enter URL:', 'https://');
-				if (url) {
-					if (selectedText) {
-						before = '[';
-						after = '](' + url + ')';
-					} else {
-						before = '[Link Text](' + url + ')';
-						after = '';
-					}
-				}
+				if (url) { if (selectedText) { before = '['; after = '](' + url + ')'; } else { before = '[Link Text](' + url + ')'; } }
 				break;
 			case 'image':
 				const imgUrl = prompt('Enter Image URL:', 'https://');
-				if (imgUrl) {
-					const alt = prompt('Alt text, optional:', 'Image');
-					before = '![' + (alt || 'Image') + '](' + imgUrl + ')';
-					after = '';
-				}
+				if (imgUrl) { const alt = prompt('Alt text, optional:', 'Image'); before = '![' + (alt || 'Image') + '](' + imgUrl + ')'; }
 				break;
-			case 'code':
-                        console.log('✅ CODE case reached');
-				before = '`';
-				after = '`';
-				break;
+			case 'code': before = '`'; after = '`'; break;
 			case 'codeblock':
-                        console.log('✅ CODEBLOCK case reached');
 				const lang = prompt('Language, optional, e.g. javascript:', '');
-				before = '\n```' + (lang || '') + '\n';
-				after = '\n```\n';
-				break;
-			case 'ul':
-				before = '\n- ';
-				after = '\n- Item 2\n- Item 3\n';
-				break;
-			case 'ol':
-				before = '\n1. ';
-				after = '\n2. Item 2\n3. Item 3\n';
-				break;
-			case 'quote':
-                        console.log('✅ QUOTE case reached');
-				before = '\n> ';
-				after = '\n';
-				break;
-			case 'hr':
-				before = '\n---\n';
-				after = '';
-				break;
-			case 'table':
-				before = '\n| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |\n';
-				after = '';
-				break;
+				before = '\n```' + (lang || '') + '\n'; after = '\n```\n'; break;
+			case 'ul': before = '\n- '; after = '\n- Item 2\n- Item 3\n'; break;
+			case 'ol': before = '\n1. '; after = '\n2. Item 2\n3. Item 3\n'; break;
+			case 'quote': before = '\n> '; after = '\n'; break;
+			case 'hr': before = '\n---\n'; break;
+			case 'table': before = '\n| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |\n'; break;
 		}
-		
 		if (before !== '' || after !== '') {
 			const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
 			textarea.value = newText;
-			
 			const newPos = start + before.length + selectedText.length;
 			textarea.selectionStart = textarea.selectionEnd = newPos;
 			textarea.focus();
-			
 			textarea.dispatchEvent(new Event('input', { bubbles: true }));
 			textarea.dispatchEvent(new Event('change', { bubbles: true }));
 		}
 	});
 
-	// HTML button handler
 	document.addEventListener('click', function(e) {
 		const btn = e.target.closest('.html-btn');
-		console.log('✅ Button found!', btn);
-                if (!btn) return;
-		
+		if (!btn) return;
 		e.preventDefault();
 		const htmlType = btn.getAttribute('data-html');
 		const textarea = findTextarea(btn);
 		if (!textarea) return;
-		
 		const start = textarea.selectionStart;
 		const end = textarea.selectionEnd;
 		const selectedText = textarea.value.substring(start, end);
-		
 		let before = '', after = '';
-		
 		switch(htmlType) {
-			case 'center':
-				before = '<center>';
-				after = '</center>';
-				break;
-			case 'right':
-				before = '<div align="right">';
-				after = '</div>';
-				break;
-			case 'left':
-				before = '<div align="left">';
-				after = '</div>';
-				break;
+			case 'center': before = '<center>'; after = '</center>'; break;
+			case 'right': before = '<div align="right">'; after = '</div>'; break;
+			case 'left': before = '<div align="left">'; after = '</div>'; break;
 			case 'color':
 				const color = prompt('Enter color, e.g. red or #ff0000:', 'red');
-				if (color) {
-					before = '<span style="color:' + color + '">';
-					after = '</span>';
-				}
+				if (color) { before = '<span style="color:' + color + '">'; after = '</span>'; }
 				break;
-			case 'mark':
-				before = '<mark>';
-				after = '</mark>';
-				break;
-			case 'small':
-				before = '<small>';
-				after = '</small>';
-				break;
-			case 'big':
-				before = '<big>';
-				after = '</big>';
-				break;
-			case 'underline':
-				before = '<u>';
-				after = '</u>';
-				break;
-			case 'sup':
-				before = '<sup>';
-				after = '</sup>';
-				break;
-			case 'sub':
-				before = '<sub>';
-				after = '</sub>';
-				break;
+			case 'mark': before = '<mark>'; after = '</mark>'; break;
+			case 'small': before = '<small>'; after = '</small>'; break;
+			case 'big': before = '<big>'; after = '</big>'; break;
+			case 'underline': before = '<u>'; after = '</u>'; break;
+			case 'sup': before = '<sup>'; after = '</sup>'; break;
+			case 'sub': before = '<sub>'; after = '</sub>'; break;
 			case 'spoiler':
 				const title = prompt('Spoiler title:', 'Click to show');
-				if (title !== null) {
-					before = '<details><summary>' + (title || 'Click to show') + '</summary>\n';
-					after = '\n</details>';
-				}
+				if (title !== null) { before = '<details><summary>' + (title || 'Click to show') + '</summary>\n'; after = '\n</details>'; }
 				break;
 		}
-		
 		if (before !== '' || after !== '') {
 			const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
 			textarea.value = newText;
-			
 			const newPos = start + before.length + selectedText.length;
 			textarea.selectionStart = textarea.selectionEnd = newPos;
 			textarea.focus();
-			
 			textarea.dispatchEvent(new Event('input', { bubbles: true }));
 			textarea.dispatchEvent(new Event('change', { bubbles: true }));
 		}
 	});
 	console.log("✅ Markdown, HTML & Emoji Editor initialized");
+})();
+</script>
+
+<script>
+/* Comments by Category – safe mount + single load
+   - Wait until #right_sidebar exists (theme inserts it asynchronously)
+   - Mount the card once
+   - Load comments once and render
+   - No heavy loops, no MutationObserver
+*/
+(function(){
+  'use strict';
+
+  var sidebarSelector = '#right_sidebar';
+  var categoriesListSelector = sidebarSelector + ' .cat-box-list';
+
+  function createCard() {
+    var card = document.createElement('div');
+    card.className = 'sidebar-card comments-by-category-card';
+    card.innerHTML =
+      '<div class="sidebar-card-header"><span>Kommentare nach Kategorie</span></div>' +
+      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">Lade Kommentare…</div></div>';
+    card.style.width = '100%';
+    return card;
+  }
+
+  function mountCard() {
+    var sidebar = document.querySelector(sidebarSelector);
+    if (!sidebar) { console.warn('[CBC] sidebar not found at mount'); return false; }
+
+    var categoriesList = document.querySelector(categoriesListSelector);
+    // Ensure only one card in the sidebar
+    var existingInSidebar = sidebar.querySelector('.comments-by-category-card');
+    if (existingInSidebar) return true;
+
+    var card = createCard();
+    if (categoriesList && categoriesList.parentNode) {
+      categoriesList.parentNode.insertBefore(card, categoriesList.nextSibling);
+    } else {
+      sidebar.appendChild(card);
+    }
+    return true;
+  }
+
+  // Lightweight helpers
+  function esc(s){ var d=document.createElement('div'); d.textContent = s==null?'':String(s); return d.innerHTML; }
+  function fmtDate(s){
+    var d=new Date(s || new Date().toISOString());
+    try { return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+    catch(e){ return s || ''; }
+  }
+
+  function renderGroups(groups) {
+    var root = document.getElementById('comments-by-category');
+    if (!root) { console.warn('[CBC] root not found at render'); return; }
+
+    root.innerHTML = '';
+
+    if (!Array.isArray(groups) || groups.length === 0) {
+      root.innerHTML = '<div class="empty">Keine Kommentare vorhanden.</div>';
+      return;
+    }
+
+    groups.forEach(function(g){
+      var title = document.createElement('div');
+      title.className = 'cbc-category';
+      title.textContent = (g && (g.category_name || g.category || 'Ohne Kategorie'));
+      root.appendChild(title);
+
+      var list = document.createElement('ul');
+      list.className = 'cbc-list';
+
+      var comments = Array.isArray(g.comments) ? g.comments : [];
+      comments.forEach(function(c){
+        var li = document.createElement('li');
+        li.className = 'cbc-item';
+
+        var author = esc(c.author_name || c.name || '');
+        var when = fmtDate(c.created_at || c.date || '');
+
+        // Server already returns plain text
+        var textPlain = (c.content || c.text || '').slice(0,160);
+        var linkTitlePlain = (c.post_title || ('Post #' + (c.post_id || ''))).slice(0,80);
+
+        var line = document.createElement('div');
+        line.className = 'cbc-line';
+        line.innerHTML = '<span class="cbc-author">👤 ' + author + '</span><span class="cbc-date">' + when + '</span>';
+        li.appendChild(line);
+
+        var textEl = document.createElement('div');
+        textEl.className = 'cbc-text';
+        textEl.textContent = '“' + textPlain + '”';
+        li.appendChild(textEl);
+
+        var linkEl = document.createElement('div');
+        linkEl.className = 'cbc-post';
+        linkEl.innerHTML = '<a href="#id=' + esc(c.post_id || '') + '" class="cbc-link">↪ ' + esc(linkTitlePlain) + '</a>';
+        li.appendChild(linkEl);
+
+        list.appendChild(li);
+      });
+
+      root.appendChild(list);
+    });
+  }
+
+  function loadOnce() {
+    var root = document.getElementById('comments-by-category');
+    if (!root) { console.warn('[CBC] root not found at load'); return; }
+    root.innerHTML = '<div class="loading">Lade Kommentare…</div>';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'ajax.php?action=comments_by_category&limit=5', true);
+
+    xhr.onload = function(){
+      var raw = xhr.responseText || '';
+      if (xhr.status >= 400) {
+        root.innerHTML = '<div class="error">Serverfehler (' + xhr.status + ')</div>';
+        return;
+      }
+      var data = null;
+      try { data = JSON.parse(raw); }
+      catch(e) {
+        console.error('[CBC] JSON parse error:', e);
+        try { data = JSON.parse(raw.replace(/<[^>]*>/g,'')); } catch(e2){}
+      }
+      if (!data || data.error) {
+        root.innerHTML = '<div class="error">Fehler beim Laden.</div>';
+        return;
+      }
+      var groups = Array.isArray(data) ? data : (data.groups || []);
+      renderGroups(groups);
+    };
+
+    xhr.onerror = function(){
+      root.innerHTML = '<div class="error">Netzwerkfehler beim Laden.</div>';
+    };
+
+    xhr.send();
+  }
+
+  // Start only after the whole page and theme scripts have finished building the sidebar
+  function startWhenReady() {
+    var attempts = 0;
+    var maxAttempts = 30; // ~3s total
+    function tick() {
+      attempts++;
+      var sidebarExists = !!document.querySelector(sidebarSelector);
+      if (sidebarExists) {
+        if (mountCard()) loadOnce();
+        else console.warn('[CBC] failed to mount card');
+        return;
+      }
+      if (attempts < maxAttempts) {
+        setTimeout(tick, 100);
+      } else {
+        console.warn('[CBC] sidebar not found after waiting');
+      }
+    }
+    // Defer slightly to let async theme scripts (e.g., categoriesBox.init) run
+    setTimeout(tick, 100);
+  }
+
+  // Use window load (not DOMContentLoaded) to ensure late DOM insertions are done
+  window.addEventListener('load', startWhenReady);
 })();
 </script>
 </body>
