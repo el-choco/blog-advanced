@@ -18,7 +18,7 @@ A powerful, self-hosted blogging platform with advanced features including, comm
 - ✅ **Multi-Language** (10 languages: DE, EN, ES, FR, NL, SK, ZH, BS, CZ, RU)
 - ✅ **Responsive Design** (mobile-friendly)
 - ✅ **Comment System** (nested comments with moderation)
-- ✅ **Inline Editor** (edit posts with live preview)
+- ✅ **Inline Admin Editor** (edit posts with live preview)
 - ✅ **Notifications** (email alerts, in-app notifications)
 
 ### Upcoming Features (v2.0 - In Development) (maybe)
@@ -109,7 +109,7 @@ volumes:
   db_data:
 ```
 
-4) make folders writeable:
+4) make folders writeable **(Very Important befor Step 5 !!!!!)**
 - chmod -R  777 path_to_your_folder/blog-advanced/data 
 - chmod -R  777 path_to_your_folder/blog-advanced/uploads 
 
