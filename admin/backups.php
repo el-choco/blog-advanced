@@ -8,6 +8,48 @@ $success = null;
 // Load Backup class
 require_once PROJECT_PATH . 'app/backup.class.php';
 
+// Handle GET download action (secure download through controller)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'download') {
+    $filename = $_GET['file'] ?? '';
+    
+    if (!empty($filename)) {
+        try {
+            // Validate filename is in the backup list
+            $backups = Backup::get_list();
+            $validFile = false;
+            
+            foreach ($backups as $backup) {
+                if ($backup['filename'] === $filename) {
+                    $validFile = true;
+                    $filepath = $backup['filepath'];
+                    break;
+                }
+            }
+            
+            if ($validFile && file_exists($filepath)) {
+                // Determine content type
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                $contentTypes = [
+                    'sql' => 'application/sql',
+                    'json' => 'application/json',
+                    'zip' => 'application/zip'
+                ];
+                $contentType = $contentTypes[$ext] ?? 'application/octet-stream';
+                
+                header('Content-Type: ' . $contentType);
+                header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
+                header('Content-Length: ' . filesize($filepath));
+                readfile($filepath);
+                exit;
+            } else {
+                $error = $lang['File not found or not allowed'] ?? 'File not found or not allowed';
+            }
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+    }
+}
+
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -289,9 +331,8 @@ function format_bytes($bytes) {
                                                 </form>
                                                 <?php endif; ?>
                                                 
-                                                <a href="../data/backups/<?php echo escape($backup['filename']); ?>" 
+                                                <a href="backups.php?action=download&amp;file=<?php echo urlencode($backup['filename']); ?>" 
                                                    class="btn btn-sm btn-secondary" 
-                                                   download
                                                    title="<?php echo escape($lang['Download'] ?? 'Download'); ?>">
                                                     ⬇️
                                                 </a>

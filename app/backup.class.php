@@ -5,8 +5,14 @@ class Backup
 {
     private static $backup_dir = null;
     
-    // Tables to include in backup
+    // Tables to include in backup (whitelist for security)
     private static $tables = ['posts', 'comments', 'categories', 'images', 'users'];
+    
+    // Valid column names pattern (alphanumeric and underscore only)
+    private static $valid_identifier_pattern = '/^[a-zA-Z_][a-zA-Z0-9_]*$/';
+    
+    // Maximum file size for ZIP inclusion (100MB)
+    private const MAX_FILE_SIZE = 104857600; // 100 * 1024 * 1024
     
     // Media directories to include in full backup ZIP
     private static $media_dirs = ['static/images/', 'data/', 'uploads/files/'];
@@ -23,6 +29,20 @@ class Backup
     }
     
     /**
+     * Validate that a table name is in the allowed whitelist
+     */
+    private static function isValidTable($table) {
+        return in_array($table, self::$tables, true);
+    }
+    
+    /**
+     * Validate that a column name is safe (alphanumeric and underscore only)
+     */
+    private static function isValidColumnName($column) {
+        return preg_match(self::$valid_identifier_pattern, $column) === 1;
+    }
+    
+    /**
      * Get all table data from database
      * @return array Associative array with table names as keys
      */
@@ -31,6 +51,7 @@ class Backup
         $data = [];
         
         foreach (self::$tables as $table) {
+            // Table name is from our whitelist, so it's safe
             try {
                 $rows = $db->query("SELECT * FROM `$table`")->all();
                 $data[$table] = $rows;
@@ -246,12 +267,12 @@ class Backup
             if ($file->isDir()) {
                 $zip->addEmptyDir($zipPath . $relativePath);
             } else {
-                // Skip .gitkeep files and very large files (>100MB)
+                // Skip .gitkeep files and very large files
                 if (basename($filePath) === '.gitkeep') {
                     continue;
                 }
-                if (filesize($filePath) > 100 * 1024 * 1024) {
-                    continue; // Skip files larger than 100MB
+                if (filesize($filePath) > self::MAX_FILE_SIZE) {
+                    continue; // Skip files larger than MAX_FILE_SIZE
                 }
                 $zip->addFile($filePath, $zipPath . $relativePath);
             }
@@ -279,7 +300,8 @@ class Backup
             $imported = [];
             
             foreach ($import['tables'] as $table => $rows) {
-                if (!in_array($table, self::$tables)) {
+                // Validate table name against whitelist
+                if (!self::isValidTable($table)) {
                     continue; // Skip unknown tables
                 }
                 
@@ -289,10 +311,25 @@ class Backup
                 }
                 
                 $count = 0;
+                $errors = 0;
                 foreach ($rows as $row) {
                     try {
-                        // Use INSERT OR REPLACE for SQLite, INSERT ... ON DUPLICATE KEY UPDATE for MySQL
                         $columns = array_keys($row);
+                        
+                        // Validate all column names for safety
+                        $validColumns = true;
+                        foreach ($columns as $col) {
+                            if (!self::isValidColumnName($col)) {
+                                $validColumns = false;
+                                break;
+                            }
+                        }
+                        
+                        if (!$validColumns) {
+                            $errors++;
+                            continue; // Skip rows with invalid column names
+                        }
+                        
                         $placeholders = array_fill(0, count($columns), '?');
                         $values = array_values($row);
                         
@@ -300,9 +337,14 @@ class Backup
                         if ($connection === 'sqlite') {
                             $sql = "INSERT OR REPLACE INTO `$table` (`" . implode('`, `', $columns) . "`) VALUES (" . implode(', ', $placeholders) . ")";
                         } elseif ($connection === 'postgres') {
-                            // PostgreSQL uses ON CONFLICT
-                            $sql = "INSERT INTO \"$table\" (\"" . implode('", "', $columns) . "\") VALUES (" . implode(', ', $placeholders) . ") ON CONFLICT (id) DO UPDATE SET " . 
-                                   implode(', ', array_map(function($col) { return "\"$col\" = EXCLUDED.\"$col\""; }, $columns));
+                            // PostgreSQL uses ON CONFLICT - check if table has 'id' column
+                            if (in_array('id', $columns)) {
+                                $sql = "INSERT INTO \"$table\" (\"" . implode('", "', $columns) . "\") VALUES (" . implode(', ', $placeholders) . ") ON CONFLICT (id) DO UPDATE SET " . 
+                                       implode(', ', array_map(function($col) { return "\"$col\" = EXCLUDED.\"$col\""; }, $columns));
+                            } else {
+                                // No id column, just insert
+                                $sql = "INSERT INTO \"$table\" (\"" . implode('", "', $columns) . "\") VALUES (" . implode(', ', $placeholders) . ")";
+                            }
                         } else {
                             // MySQL
                             $updateParts = array_map(function($col) { return "`$col` = VALUES(`$col`)"; }, $columns);
@@ -312,8 +354,9 @@ class Backup
                         $db->query($sql, ...$values);
                         $count++;
                     } catch (Exception $e) {
-                        // Log error but continue with other rows
-                        error_log("Import error for table $table: " . $e->getMessage());
+                        // Log error without sensitive data
+                        error_log("Import error for table $table: database operation failed");
+                        $errors++;
                     }
                 }
                 $imported[$table] = $count;

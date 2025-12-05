@@ -415,6 +415,7 @@ try {
 		
 		case 'export_csv':
 		{
+			$tempFile = null;
 			try {
 				// Check if user is logged in
 				if (!User::is_logged_in()) {
@@ -424,6 +425,7 @@ try {
 				
 				require_once PROJECT_PATH . 'app/backup.class.php';
 				$result = Backup::exportToCsv();
+				$tempFile = $result['filepath'];
 				
 				// Send ZIP file as download
 				header('Content-Type: application/zip');
@@ -432,9 +434,15 @@ try {
 				readfile($result['filepath']);
 				
 				// Clean up the temporary file
-				unlink($result['filepath']);
+				if ($tempFile && file_exists($tempFile)) {
+					unlink($tempFile);
+				}
 				exit;
 			} catch (Exception $e) {
+				// Clean up on error
+				if ($tempFile && file_exists($tempFile)) {
+					@unlink($tempFile);
+				}
 				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
 			}
 			break;
