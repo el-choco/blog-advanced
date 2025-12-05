@@ -227,7 +227,7 @@ FLUSH PRIVILEGES;
 
 - Import the schema for your database type:
   - **MySQL/MariaDB**: `mysql -u bloguser -p blog < app/db/mysql/01_schema.sql`
-  - **PostgreSQL**: `psql -U bloguser -d blog -f app/db/postgres/01_schema.sql`
+  - **PostgreSQL**: `psql -U bloguser -W -d blog -f app/db/postgres/01_schema.sql`
   - **SQLite**: Schema is automatically loaded on first run
 
 The schema files include all required tables: `posts`, `categories`, `comments`, `images`, and `users`.
