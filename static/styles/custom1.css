@@ -864,7 +864,7 @@ hr {
 #right_sidebar.right-sidebar-fixed {
     position: fixed;
     right: 30px;
-    top: 100px;
+    top: 45px;
     width: 385px;
     z-index: 100;
 }

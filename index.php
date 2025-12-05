@@ -133,7 +133,7 @@ if (Config::get_safe("version", false)) {
 	.file-preview-item .file-name { display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
 	.file-preview-item .remove-file-btn { margin-left:6px; border:0; background:transparent; color:#888; cursor:pointer; font-size:14px; }
 
-	/* Kommentare-Box */
+	/* Comments-by-category card */
 	.comments-by-category-card {
 	  margin-top: 30px;
 	  border-radius: 8px;
@@ -153,14 +153,14 @@ if (Config::get_safe("version", false)) {
 	  gap: 8px;
 	  border-bottom: 1px solid rgba(0,0,0,.06);
 	}
-	/* Doppeltes Icon vermeiden */
+	/* avoid duplicate icon */
 	.comments-by-category-card .sidebar-card-header span::before {
 	  content: none !important;
 	  margin: 0 !important;
 	}
 	.comments-by-category-card .sidebar-card-body { padding: 10px 12px; background: #fff; }
 
-	/* Basis-Inhalt */
+	/* Base content */
 	.cbc-category { font-weight: 600; margin: 10px 0 6px; }
 	.cbc-list { list-style: none; margin: 0; padding: 0; }
 	.cbc-item { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }
@@ -169,7 +169,7 @@ if (Config::get_safe("version", false)) {
 	.cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
 	.cbc-post a:hover { text-decoration: underline; }
 
-	/* Kosmetik: Kategoriezeile wie in Kategorienliste */
+	/* Cosmetics: category row similar to categories list */
 	.comments-by-category-card .cbc-category {
 		display: flex;
 		align-items: center;
@@ -194,12 +194,12 @@ if (Config::get_safe("version", false)) {
 <body>
 	<div id="dd_mask" class="mask"></div>
 	<div id="prepared" style="display:none;"
-	     data-show-less-text="<?php echo __("Weniger Anzeigen"); ?>"
-	     data-delete-permanent-title="<?php echo __("Endgültig Löschen"); ?>"
-	     data-delete-permanent-body="<?php echo __("Dieser Beitrag wird endgültig gelöscht und kann nicht wiederhergestellt werden. Zugehörige Bilder werden ebenfalls gelöscht."); ?>"
-	     data-delete-permanent-btn="<?php echo __("Endgültig Löschen"); ?>">
+	     data-show-less-text="<?php echo __("Show less"); ?>"
+	     data-delete-permanent-title="<?php echo __("Delete permanently"); ?>"
+	     data-delete-permanent-body="<?php echo __("This post will be permanently deleted and cannot be recovered. Associated images will also be deleted."); ?>"
+	     data-delete-permanent-btn="<?php echo __("Delete permanently"); ?>">
 		<!-- Show More Button -->
-		<a class="show_more"><?php echo __("Mehr Anzeigen"); ?></a>
+		<a class="show_more"><?php echo __("Show more"); ?></a>
 
 		<!-- Login Button -->
 		<button type="button" class="button blue login_btn"><?php echo __("Login"); ?></button>
@@ -342,7 +342,7 @@ if (Config::get_safe("version", false)) {
 							
 							<!-- Lists & Quotes -->
 							<button type="button" class="markdown-btn" data-md="ul" title="<?php echo __("List"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">• <?php echo __("List"); ?></button>
-							<button type="button" class="markdown-btn" data-md="ol" title="<?php echo __("Numbered List"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">1. List</button>
+							<button type="button" class="markdown-btn" data-md="ol" title="<?php echo __("Numbered List"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">1. <?php echo __("List"); ?></button>
 							<button type="button" class="markdown-btn" data-md="quote" title="<?php echo __("Quote"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">💬</button>
 							<button type="button" class="markdown-btn" data-md="hr" title="<?php echo __("Horizontal Line"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">---</button>
 							<button type="button" class="markdown-btn" data-md="table" title="<?php echo __("Table"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px;">📊</button>
@@ -360,13 +360,13 @@ if (Config::get_safe("version", false)) {
 							
 							<!-- Color & Highlighting -->
 							<button type="button" class="html-btn" data-html="color" title="<?php echo __("Color"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">🎨 <?php echo __("Color"); ?></button>
-							<button type="button" class="html-btn" data-html="mark" title="<?php echo __("Highlight"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">✨ Mark</button>
+							<button type="button" class="html-btn" data-html="mark" title="<?php echo __("Highlight"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">✨ <?php echo __("Highlight"); ?></button>
 							
 							<span style="border-right: 1px solid #28a745; margin: 0 4px;"></span>
 							
 							<!-- Text Size -->
 							<button type="button" class="html-btn" data-html="small" title="<?php echo __("Small"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; font-size:9px;">Small</button>
-							<button type="button" class="html-btn" data-html="big" title="<?php echo __("Large"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; font-size:14px;">Big</button>
+							<button type="button" class="html-btn" data-html="big" title="<?php echo __("Large"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; font-size:14px;">Large</button>
 							
 							<span style="border-right: 1px solid #28a745; margin: 0 4px;"></span>
 							
@@ -374,7 +374,7 @@ if (Config::get_safe("version", false)) {
 							<button type="button" class="html-btn" data-html="underline" title="<?php echo __("Underline"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; text-decoration:underline; font-size:11px;">U</button>
 							<button type="button" class="html-btn" data-html="sup" title="<?php echo __("Superscript"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">x<sup>2</sup></button>
 							<button type="button" class="html-btn" data-html="sub" title="<?php echo __("Subscript"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">H<sub>2</sub>O</button>
-							<button type="button" class="html-btn" data-html="spoiler" title="<?php echo __("Spoiler"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">👁️ Spoiler</button>
+							<button type="button" class="html-btn" data-html="spoiler" title="<?php echo __("Spoiler"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">👁️ <?php echo __("Spoiler"); ?></button>
 						</div>
 						<!-- Emoji Picker with 44 modern emojis -->
 						<div id="emojiPicker" style="display:flex; flex-wrap:wrap; justify-content: space-around; gap:4px; padding:6px; border-radius:8px; background:#fff; border:1px solid #ddd; font-size:22px;">
@@ -618,8 +618,7 @@ if (Config::get_safe("version", false)) {
 	</div>
 	<?php endif; ?>
 
-	<!-- WICHTIG: Kein statischer Platzhalter mehr für Kommentare-Box im Content! -->
-
+	<!-- End of feed -->
 	<div id="eof_feed">
 		<img src="static/images/zpEYXu5Wdu6.png">
 		<p><?php echo escape(Config::get("version")); ?> &copy; 2016-2025<br>
@@ -790,12 +789,7 @@ if (Config::get_safe("version", false)) {
 </script>
 
 <script>
-/* Comments by Category – safe mount + single load
-   - Wait until #right_sidebar exists (theme inserts it asynchronously)
-   - Mount the card once
-   - Load comments once and render
-   - No heavy loops, no MutationObserver
-*/
+/* Comments by Category – safe mount + single load */
 (function(){
   'use strict';
 
@@ -806,8 +800,8 @@ if (Config::get_safe("version", false)) {
     var card = document.createElement('div');
     card.className = 'sidebar-card comments-by-category-card';
     card.innerHTML =
-      '<div class="sidebar-card-header"><span>Kommentare nach Kategorie</span></div>' +
-      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">Lade Kommentare…</div></div>';
+      '<div class="sidebar-card-header"><span>🏷️ Comments by category</span></div>' +
+      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">Loading comments…</div></div>';
     card.style.width = '100%';
     return card;
   }
@@ -817,7 +811,6 @@ if (Config::get_safe("version", false)) {
     if (!sidebar) { console.warn('[CBC] sidebar not found at mount'); return false; }
 
     var categoriesList = document.querySelector(categoriesListSelector);
-    // Ensure only one card in the sidebar
     var existingInSidebar = sidebar.querySelector('.comments-by-category-card');
     if (existingInSidebar) return true;
 
@@ -830,11 +823,10 @@ if (Config::get_safe("version", false)) {
     return true;
   }
 
-  // Lightweight helpers
   function esc(s){ var d=document.createElement('div'); d.textContent = s==null?'':String(s); return d.innerHTML; }
   function fmtDate(s){
     var d=new Date(s || new Date().toISOString());
-    try { return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+    try { return d.toLocaleDateString('en-US',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
     catch(e){ return s || ''; }
   }
 
@@ -845,14 +837,14 @@ if (Config::get_safe("version", false)) {
     root.innerHTML = '';
 
     if (!Array.isArray(groups) || groups.length === 0) {
-      root.innerHTML = '<div class="empty">Keine Kommentare vorhanden.</div>';
+      root.innerHTML = '<div class="empty">No comments available.</div>';
       return;
     }
 
     groups.forEach(function(g){
       var title = document.createElement('div');
       title.className = 'cbc-category';
-      title.textContent = (g && (g.category_name || g.category || 'Ohne Kategorie'));
+      title.textContent = (g && (g.category_name || g.category || 'No category'));
       root.appendChild(title);
 
       var list = document.createElement('ul');
@@ -866,7 +858,6 @@ if (Config::get_safe("version", false)) {
         var author = esc(c.author_name || c.name || '');
         var when = fmtDate(c.created_at || c.date || '');
 
-        // Server already returns plain text
         var textPlain = (c.content || c.text || '').slice(0,160);
         var linkTitlePlain = (c.post_title || ('Post #' + (c.post_id || ''))).slice(0,80);
 
@@ -895,7 +886,7 @@ if (Config::get_safe("version", false)) {
   function loadOnce() {
     var root = document.getElementById('comments-by-category');
     if (!root) { console.warn('[CBC] root not found at load'); return; }
-    root.innerHTML = '<div class="loading">Lade Kommentare…</div>';
+    root.innerHTML = '<div class="loading">Loading comments…</div>';
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'ajax.php?action=comments_by_category&limit=5', true);
@@ -903,7 +894,7 @@ if (Config::get_safe("version", false)) {
     xhr.onload = function(){
       var raw = xhr.responseText || '';
       if (xhr.status >= 400) {
-        root.innerHTML = '<div class="error">Serverfehler (' + xhr.status + ')</div>';
+        root.innerHTML = '<div class="error">Server error (' + xhr.status + ')</div>';
         return;
       }
       var data = null;
@@ -913,7 +904,7 @@ if (Config::get_safe("version", false)) {
         try { data = JSON.parse(raw.replace(/<[^>]*>/g,'')); } catch(e2){}
       }
       if (!data || data.error) {
-        root.innerHTML = '<div class="error">Fehler beim Laden.</div>';
+        root.innerHTML = '<div class="error">Error loading.</div>';
         return;
       }
       var groups = Array.isArray(data) ? data : (data.groups || []);
@@ -921,13 +912,12 @@ if (Config::get_safe("version", false)) {
     };
 
     xhr.onerror = function(){
-      root.innerHTML = '<div class="error">Netzwerkfehler beim Laden.</div>';
+      root.innerHTML = '<div class="error">Network error while loading.</div>';
     };
 
     xhr.send();
   }
 
-  // Start only after the whole page and theme scripts have finished building the sidebar
   function startWhenReady() {
     var attempts = 0;
     var maxAttempts = 30; // ~3s total
@@ -945,12 +935,33 @@ if (Config::get_safe("version", false)) {
         console.warn('[CBC] sidebar not found after waiting');
       }
     }
-    // Defer slightly to let async theme scripts (e.g., categoriesBox.init) run
     setTimeout(tick, 100);
   }
 
-  // Use window load (not DOMContentLoaded) to ensure late DOM insertions are done
   window.addEventListener('load', startWhenReady);
+})();
+</script>
+
+<!-- Back-to-top arrow: blue circle + white arrow (English) -->
+<a id="back_to_top"
+   href="#"
+   aria-label="Back to top"
+   title="Back to top"
+   style="position:fixed; right:20px; bottom:20px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:#1877f2; color:#ffffff; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,.2); z-index:99999;">
+  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block;">
+    <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z" fill="currentColor"/>
+  </svg>
+</a>
+<script>
+// Always visible; smooth scroll on click
+(function(){
+  var btn = document.getElementById('back_to_top');
+  if (!btn) return;
+  btn.style.display = 'flex';
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 })();
 </script>
 </body>

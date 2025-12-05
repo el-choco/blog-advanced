@@ -124,6 +124,7 @@ max-width: 100%;
   right: 0;
   top: 0;
   pointer-events: none;
+  border-radius: 18px !important;
 }
 
 .cover .profile {
@@ -754,13 +755,18 @@ max-width: 100%;
   text-shadow: none;
   vertical-align: middle;
   cursor: pointer;
-  color: #000;
+  color: #fff;
   border: 1px solid var(--primary-border);
   text-decoration: none;
   transition-property: background-color;
   transition-duration: 100ms;
   transition-timing-function: cubic-bezier(0, 0, 1, 1);
 }
+
+.more_posts > a:nth-child(1) {
+   color: #000;
+}
+
 .button:focus,
 .button:active {
   transform: scale(.98);
@@ -1409,5 +1415,22 @@ select {
   font-size: 13px;
   color: #6b7280;
   padding: 6px 0;
+}
+#back_to_top { 
+  position: fixed; 
+  right: 20px; 
+  bottom: 20px; 
+  width: 44px; 
+  height: 44px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  border-radius: 999px; 
+  background: #1877f2; 
+  color: #fff; 
+  text-decoration: none; 
+  font-size: 20px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,.2); 
+  z-index: 9999; 
 }
 }
