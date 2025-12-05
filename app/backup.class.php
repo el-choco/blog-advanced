@@ -17,8 +17,10 @@ class Backup
             // Check config for custom backup_dir
             $configured_dir = Config::get_safe('backup_dir', '');
             if (!empty($configured_dir)) {
-                // If relative path, prepend PROJECT_PATH
-                if (strpos($configured_dir, '/') !== 0) {
+                // Check if absolute path (Unix: starts with /, Windows: starts with drive letter)
+                $isAbsolute = (strpos($configured_dir, '/') === 0) || 
+                              (preg_match('/^[A-Za-z]:[\\\\\\/]/', $configured_dir));
+                if (!$isAbsolute) {
                     self::$backup_dir = PROJECT_PATH . $configured_dir;
                 } else {
                     self::$backup_dir = $configured_dir;

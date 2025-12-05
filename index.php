@@ -796,15 +796,15 @@ if (Config::get_safe("version", false)) {
   var sidebarSelector = '#right_sidebar';
   var categoriesListSelector = sidebarSelector + ' .cat-box-list';
   
-  // Localized strings from PHP
+  // Localized strings from PHP (using json_encode for safer JS embedding)
   var i18n = {
-    commentsCategory: '<?php echo addslashes(__("Comments by category")); ?>',
-    loadingComments: '<?php echo addslashes(__("Loading comments…")); ?>',
-    noCommentsAvailable: '<?php echo addslashes(__("No comments available.")); ?>',
-    noCategory: '<?php echo addslashes(__("No category")); ?>',
-    serverError: '<?php echo addslashes(__("Server error")); ?>',
-    errorLoading: '<?php echo addslashes(__("Error loading.")); ?>',
-    networkError: '<?php echo addslashes(__("Network error while loading.")); ?>'
+    commentsCategory: <?php echo json_encode(__("Comments by category")); ?>,
+    loadingComments: <?php echo json_encode(__("Loading comments…")); ?>,
+    noCommentsAvailable: <?php echo json_encode(__("No comments available.")); ?>,
+    noCategory: <?php echo json_encode(__("No category")); ?>,
+    serverError: <?php echo json_encode(__("Server error")); ?>,
+    errorLoading: <?php echo json_encode(__("Error loading.")); ?>,
+    networkError: <?php echo json_encode(__("Network error while loading.")); ?>
   };
 
   function createCard() {
