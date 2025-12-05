@@ -197,7 +197,14 @@ if (Config::get_safe("version", false)) {
 	     data-show-less-text="<?php echo __("Show less"); ?>"
 	     data-delete-permanent-title="<?php echo __("Delete permanently"); ?>"
 	     data-delete-permanent-body="<?php echo __("This post will be permanently deleted and cannot be recovered. Associated images will also be deleted."); ?>"
-	     data-delete-permanent-btn="<?php echo __("Delete permanently"); ?>">
+	     data-delete-permanent-btn="<?php echo __("Delete permanently"); ?>"
+	     data-comments-by-category="<?php echo escape(__("Comments by category")); ?>"
+	     data-loading-comments="<?php echo escape(__("Loading comments…")); ?>"
+	     data-no-comments="<?php echo escape(__("No comments available.")); ?>"
+	     data-server-error="<?php echo escape(__("Server error")); ?>"
+	     data-error-loading="<?php echo escape(__("Error loading.")); ?>"
+	     data-network-error="<?php echo escape(__("Network error while loading.")); ?>"
+	     data-back-to-top="<?php echo escape(__("Back to top")); ?>">
 		<!-- Show More Button -->
 		<a class="show_more"><?php echo __("Show more"); ?></a>
 
@@ -796,12 +803,23 @@ if (Config::get_safe("version", false)) {
   var sidebarSelector = '#right_sidebar';
   var categoriesListSelector = sidebarSelector + ' .cat-box-list';
 
+  // Get i18n strings from data attributes
+  var preparedEl = document.getElementById('prepared');
+  var i18n = {
+    commentsByCategory: preparedEl ? preparedEl.getAttribute('data-comments-by-category') : 'Comments by category',
+    loadingComments: preparedEl ? preparedEl.getAttribute('data-loading-comments') : 'Loading comments…',
+    noComments: preparedEl ? preparedEl.getAttribute('data-no-comments') : 'No comments available.',
+    serverError: preparedEl ? preparedEl.getAttribute('data-server-error') : 'Server error',
+    errorLoading: preparedEl ? preparedEl.getAttribute('data-error-loading') : 'Error loading.',
+    networkError: preparedEl ? preparedEl.getAttribute('data-network-error') : 'Network error while loading.'
+  };
+
   function createCard() {
     var card = document.createElement('div');
     card.className = 'sidebar-card comments-by-category-card';
     card.innerHTML =
-      '<div class="sidebar-card-header"><span>🏷️ Comments by category</span></div>' +
-      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">Loading comments…</div></div>';
+      '<div class="sidebar-card-header"><span>🏷️ ' + i18n.commentsByCategory + '</span></div>' +
+      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">' + i18n.loadingComments + '</div></div>';
     card.style.width = '100%';
     return card;
   }
@@ -837,7 +855,7 @@ if (Config::get_safe("version", false)) {
     root.innerHTML = '';
 
     if (!Array.isArray(groups) || groups.length === 0) {
-      root.innerHTML = '<div class="empty">No comments available.</div>';
+      root.innerHTML = '<div class="empty">' + i18n.noComments + '</div>';
       return;
     }
 
@@ -886,7 +904,7 @@ if (Config::get_safe("version", false)) {
   function loadOnce() {
     var root = document.getElementById('comments-by-category');
     if (!root) { console.warn('[CBC] root not found at load'); return; }
-    root.innerHTML = '<div class="loading">Loading comments…</div>';
+    root.innerHTML = '<div class="loading">' + i18n.loadingComments + '</div>';
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'ajax.php?action=comments_by_category&limit=5', true);
@@ -894,7 +912,7 @@ if (Config::get_safe("version", false)) {
     xhr.onload = function(){
       var raw = xhr.responseText || '';
       if (xhr.status >= 400) {
-        root.innerHTML = '<div class="error">Server error (' + xhr.status + ')</div>';
+        root.innerHTML = '<div class="error">' + i18n.serverError + ' (' + xhr.status + ')</div>';
         return;
       }
       var data = null;
@@ -904,7 +922,7 @@ if (Config::get_safe("version", false)) {
         try { data = JSON.parse(raw.replace(/<[^>]*>/g,'')); } catch(e2){}
       }
       if (!data || data.error) {
-        root.innerHTML = '<div class="error">Error loading.</div>';
+        root.innerHTML = '<div class="error">' + i18n.errorLoading + '</div>';
         return;
       }
       var groups = Array.isArray(data) ? data : (data.groups || []);
@@ -912,7 +930,7 @@ if (Config::get_safe("version", false)) {
     };
 
     xhr.onerror = function(){
-      root.innerHTML = '<div class="error">Network error while loading.</div>';
+      root.innerHTML = '<div class="error">' + i18n.networkError + '</div>';
     };
 
     xhr.send();
@@ -942,11 +960,11 @@ if (Config::get_safe("version", false)) {
 })();
 </script>
 
-<!-- Back-to-top arrow: blue circle + white arrow (English) -->
+<!-- Back-to-top arrow: blue circle + white arrow -->
 <a id="back_to_top"
    href="#"
-   aria-label="Back to top"
-   title="Back to top"
+   aria-label="<?php echo escape(__("Back to top")); ?>"
+   title="<?php echo escape(__("Back to top")); ?>"
    style="position:fixed; right:20px; bottom:20px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:#1877f2; color:#ffffff; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,.2); z-index:99999;">
   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block;">
     <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z" fill="currentColor"/>
