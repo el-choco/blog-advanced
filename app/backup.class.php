@@ -6,7 +6,11 @@ class Backup
     private static $backup_dir = null;
     
     /**
-     * Get backup directory path, creating it if needed
+     * Get backup directory path, creating it if needed.
+     * This method is public to allow external code to determine
+     * the backup directory location.
+     * 
+     * @return string The backup directory path
      */
     public static function get_backup_dir() {
         if (self::$backup_dir === null) {
@@ -31,6 +35,30 @@ class Backup
             }
         }
         return self::$backup_dir;
+    }
+    
+    /**
+     * Disable foreign key checks for MySQL databases
+     */
+    private static function disableForeignKeyChecks() {
+        if (DB::connection() === 'mysql') {
+            $db = DB::get_instance();
+            $db->exec('SET FOREIGN_KEY_CHECKS = 0');
+        }
+    }
+    
+    /**
+     * Enable foreign key checks for MySQL databases
+     */
+    private static function enableForeignKeyChecks() {
+        if (DB::connection() === 'mysql') {
+            try {
+                $db = DB::get_instance();
+                $db->exec('SET FOREIGN_KEY_CHECKS = 1');
+            } catch (Exception $e) {
+                // Silent failure
+            }
+        }
     }
     
     /**
@@ -552,6 +580,10 @@ class Backup
     /**
      * Import data array into database (Replace mode)
      * Order: categories → posts → posts_categories → comments
+     * 
+     * Note: This method performs destructive operations (TRUNCATE/DELETE)
+     * which permanently remove existing data. UI confirmation should be
+     * required before calling this method.
      */
     private static function importData($data) {
         $db = DB::get_instance();
@@ -559,9 +591,7 @@ class Backup
         
         try {
             // Disable foreign key checks for MySQL
-            if (DB::connection() === 'mysql') {
-                $db->exec('SET FOREIGN_KEY_CHECKS = 0');
-            }
+            self::disableForeignKeyChecks();
             
             // 1. Import categories (truncate first)
             if (!empty($data['categories'])) {
@@ -640,17 +670,11 @@ class Backup
             }
             
             // Re-enable foreign key checks for MySQL
-            if (DB::connection() === 'mysql') {
-                $db->exec('SET FOREIGN_KEY_CHECKS = 1');
-            }
+            self::enableForeignKeyChecks();
             
         } catch (Exception $e) {
             // Re-enable foreign key checks on error
-            if (DB::connection() === 'mysql') {
-                try {
-                    $db->exec('SET FOREIGN_KEY_CHECKS = 1');
-                } catch (Exception $e2) {}
-            }
+            self::enableForeignKeyChecks();
             throw $e;
         }
         
