@@ -359,6 +359,75 @@ Security: Never commit credentials. Rotate app passwords if exposed.
 
 ---
 
+## 📦 Backup, Export & Import
+
+The blog supports full backup/restore and export/import functionality for migrating data between installations or creating complete backups.
+
+### Supported Databases
+- **MySQL/MariaDB** - Full support
+- **PostgreSQL** - Full support
+- **SQLite** - Full support
+
+### Export Options
+
+Access via **Admin → Backups**:
+
+| Export Type | Description | Includes |
+|-------------|-------------|----------|
+| **Export ZIP** | Full backup archive | Database (JSON + CSV) + Media files |
+| **Export JSON** | Structured data export | All tables as JSON |
+| **Export CSV** | Spreadsheet-friendly | CSV per table in ZIP |
+
+### Media Directories Included in Full Backup
+- `static/images/` - Profile images, theme assets
+- `data/` - Application data, logs
+- `uploads/files/` - User uploaded files
+
+### Import Options
+
+| Import Type | Description |
+|-------------|-------------|
+| **Import ZIP** | Full restore from backup ZIP (DB + media) |
+| **Import JSON** | Import database data from JSON file |
+
+### Quick Backup/Restore Steps
+
+**Creating a Full Backup:**
+1. Go to **Admin → Backups**
+2. Click **Export ZIP** button
+3. Save the downloaded `full_backup_YYYY-MM-DD_HH-ii-ss.zip`
+
+**Restoring from Backup:**
+1. Go to **Admin → Backups**
+2. Select your `.zip` or `.json` file
+3. Click **Import** button
+4. Wait for confirmation message
+
+### API Endpoints
+
+For programmatic access (requires authentication):
+
+```
+GET  /ajax.php?action=export_json  - Download JSON export
+GET  /ajax.php?action=export_csv   - Download CSV export (ZIP)
+GET  /ajax.php?action=export_zip   - Download full backup ZIP
+POST /ajax.php?action=import_json  - Upload and import JSON
+POST /ajax.php?action=import_zip   - Upload and restore from ZIP
+```
+
+### Notes on Large Files
+
+- Files larger than 100MB are skipped during ZIP export
+- PHP `upload_max_filesize` and `post_max_size` limits apply to imports
+- For large imports, consider increasing PHP limits:
+  ```ini
+  upload_max_filesize = 256M
+  post_max_size = 256M
+  max_execution_time = 300
+  ```
+
+---
+
 ## **Quick Guide: Updating Your Installation**
 
 **Standard Update: (Bind mount or code in the image doesn't matter):**

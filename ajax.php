@@ -388,6 +388,151 @@ try {
 			break;
 		}
 
+		/* ===== Export/Import Backup Endpoints ===== */
+		case 'export_json':
+		{
+			try {
+				// Check if user is logged in
+				if (!User::is_logged_in()) {
+					echo json_encode(['error' => true, 'msg' => 'Authentication required']);
+					break;
+				}
+				
+				require_once PROJECT_PATH . 'app/backup.class.php';
+				$result = Backup::exportToJson();
+				
+				// Send JSON file as download
+				header('Content-Type: application/json; charset=utf-8');
+				header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+				header('Content-Length: ' . $result['size']);
+				echo $result['data'];
+				exit;
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+		
+		case 'export_csv':
+		{
+			try {
+				// Check if user is logged in
+				if (!User::is_logged_in()) {
+					echo json_encode(['error' => true, 'msg' => 'Authentication required']);
+					break;
+				}
+				
+				require_once PROJECT_PATH . 'app/backup.class.php';
+				$result = Backup::exportToCsv();
+				
+				// Send ZIP file as download
+				header('Content-Type: application/zip');
+				header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+				header('Content-Length: ' . $result['size']);
+				readfile($result['filepath']);
+				
+				// Clean up the temporary file
+				unlink($result['filepath']);
+				exit;
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+		
+		case 'export_zip':
+		{
+			try {
+				// Check if user is logged in
+				if (!User::is_logged_in()) {
+					echo json_encode(['error' => true, 'msg' => 'Authentication required']);
+					break;
+				}
+				
+				require_once PROJECT_PATH . 'app/backup.class.php';
+				$includeMedia = isset($_GET['include_media']) ? (bool)$_GET['include_media'] : true;
+				$result = Backup::exportToZip($includeMedia);
+				
+				// Send ZIP file as download
+				header('Content-Type: application/zip');
+				header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+				header('Content-Length: ' . $result['size']);
+				readfile($result['filepath']);
+				exit;
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+		
+		case 'import_json':
+		{
+			try {
+				// Check if user is logged in
+				if (!User::is_logged_in()) {
+					echo json_encode(['error' => true, 'msg' => 'Authentication required']);
+					break;
+				}
+				
+				if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+					echo json_encode(['error' => true, 'msg' => 'No file uploaded or upload error']);
+					break;
+				}
+				
+				$uploadedFile = $_FILES['file'];
+				
+				// Validate file type
+				$ext = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
+				if ($ext !== 'json') {
+					echo json_encode(['error' => true, 'msg' => 'Invalid file type. Only JSON files are allowed.']);
+					break;
+				}
+				
+				$jsonData = file_get_contents($uploadedFile['tmp_name']);
+				
+				require_once PROJECT_PATH . 'app/backup.class.php';
+				$result = Backup::importFromJson($jsonData);
+				
+				echo json_encode(['error' => false, 'msg' => 'Import successful', 'result' => $result]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+		
+		case 'import_zip':
+		{
+			try {
+				// Check if user is logged in
+				if (!User::is_logged_in()) {
+					echo json_encode(['error' => true, 'msg' => 'Authentication required']);
+					break;
+				}
+				
+				if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+					echo json_encode(['error' => true, 'msg' => 'No file uploaded or upload error']);
+					break;
+				}
+				
+				$uploadedFile = $_FILES['file'];
+				
+				// Validate file type
+				$ext = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
+				if ($ext !== 'zip') {
+					echo json_encode(['error' => true, 'msg' => 'Invalid file type. Only ZIP files are allowed.']);
+					break;
+				}
+				
+				require_once PROJECT_PATH . 'app/backup.class.php';
+				$result = Backup::importFromZip($uploadedFile['tmp_name']);
+				
+				echo json_encode(['error' => false, 'msg' => 'Full backup restored successfully', 'result' => $result]);
+			} catch (Exception $e) {
+				echo json_encode(['error' => true, 'msg' => $e->getMessage()]);
+			}
+			break;
+		}
+
 		default:
 			echo json_encode(['error' => true, 'msg' => 'Unknown action']);
 	}

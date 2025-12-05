@@ -160,6 +160,60 @@ function format_bytes($bytes) {
                 </div>
             </div>
 
+            <!-- Export/Import Section -->
+            <div class="admin-panel">
+                <div class="panel-header">
+                    <h2>📦 <?php echo escape($lang['Export Import'] ?? 'Export / Import'); ?></h2>
+                </div>
+                <div class="panel-body">
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                        <!-- Export Section -->
+                        <div style="flex: 1; min-width: 280px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <h3 style="margin: 0 0 15px 0; font-size: 16px;">📤 <?php echo escape($lang['Export'] ?? 'Export'); ?></h3>
+                            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                                <?php echo escape($lang['Export description'] ?? 'Create a full backup ZIP including database and media files.'); ?>
+                            </p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                <a href="../ajax.php?action=export_zip" class="btn btn-primary" id="export-zip-btn">
+                                    📦 <?php echo escape($lang['Export ZIP'] ?? 'Export ZIP'); ?>
+                                </a>
+                                <a href="../ajax.php?action=export_json" class="btn btn-secondary">
+                                    📄 <?php echo escape($lang['Export JSON'] ?? 'Export JSON'); ?>
+                                </a>
+                                <a href="../ajax.php?action=export_csv" class="btn btn-secondary">
+                                    📊 <?php echo escape($lang['Export CSV'] ?? 'Export CSV'); ?>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Import Section -->
+                        <div style="flex: 1; min-width: 280px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <h3 style="margin: 0 0 15px 0; font-size: 16px;">📥 <?php echo escape($lang['Import'] ?? 'Import'); ?></h3>
+                            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                                <?php echo escape($lang['Import description'] ?? 'Restore from a backup ZIP or import data from JSON.'); ?>
+                            </p>
+                            
+                            <form id="import-form" enctype="multipart/form-data" style="margin-bottom: 10px;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                    <input type="file" name="file" id="import-file" accept=".zip,.json" 
+                                           style="flex: 1; min-width: 150px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <button type="submit" class="btn btn-warning" id="import-btn">
+                                        📥 <?php echo escape($lang['Import'] ?? 'Import'); ?>
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div id="import-status" style="margin-top: 10px; display: none;">
+                                <div class="progress-bar" style="height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden;">
+                                    <div id="import-progress" style="height: 100%; width: 0%; background: #4CAF50; transition: width 0.3s;"></div>
+                                </div>
+                                <p id="import-message" style="margin-top: 8px; font-size: 13px; color: #666;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Create Backup -->
             <div class="admin-panel">
                 <div class="panel-header">
@@ -195,6 +249,7 @@ function format_bytes($bytes) {
                             <thead>
                                 <tr>
                                     <th><?php echo escape($lang['Filename']); ?></th>
+                                    <th><?php echo escape($lang['Type'] ?? 'Type'); ?></th>
                                     <th><?php echo escape($lang['Created']); ?></th>
                                     <th><?php echo escape($lang['Size']); ?></th>
                                     <th><?php echo escape($lang['Actions']); ?></th>
@@ -207,6 +262,14 @@ function format_bytes($bytes) {
                                             <strong>📁 <?php echo escape($backup['filename']); ?></strong>
                                         </td>
                                         <td>
+                                            <?php 
+                                            $type = $backup['type'] ?? pathinfo($backup['filename'], PATHINFO_EXTENSION);
+                                            $typeLabel = strtoupper($type);
+                                            $typeIcon = $type === 'zip' ? '📦' : ($type === 'json' ? '📄' : '💾');
+                                            echo $typeIcon . ' ' . escape($typeLabel);
+                                            ?>
+                                        </td>
+                                        <td>
                                             <?php echo date('d.m.Y H:i:s', $backup['created']); ?>
                                         </td>
                                         <td>
@@ -214,6 +277,7 @@ function format_bytes($bytes) {
                                         </td>
                                         <td>
                                             <div class="action-buttons">
+                                                <?php if($type === 'sql'): ?>
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="action" value="restore">
                                                     <input type="hidden" name="file" value="<?php echo escape($backup['filename']); ?>">
@@ -223,6 +287,14 @@ function format_bytes($bytes) {
                                                         🔄
                                                     </button>
                                                 </form>
+                                                <?php endif; ?>
+                                                
+                                                <a href="../data/backups/<?php echo escape($backup['filename']); ?>" 
+                                                   class="btn btn-sm btn-secondary" 
+                                                   download
+                                                   title="<?php echo escape($lang['Download'] ?? 'Download'); ?>">
+                                                    ⬇️
+                                                </a>
                                                 
                                                 <form method="POST" style="display: inline;">
                                                     <input type="hidden" name="action" value="delete">
@@ -281,6 +353,82 @@ function format_bytes($bytes) {
         </main>
 
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const importForm = document.getElementById('import-form');
+        const importFile = document.getElementById('import-file');
+        const importBtn = document.getElementById('import-btn');
+        const importStatus = document.getElementById('import-status');
+        const importProgress = document.getElementById('import-progress');
+        const importMessage = document.getElementById('import-message');
+        
+        importForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const file = importFile.files[0];
+            if (!file) {
+                alert('<?php echo escape($lang['Please select a file'] ?? 'Please select a file'); ?>');
+                return;
+            }
+            
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext !== 'zip' && ext !== 'json') {
+                alert('<?php echo escape($lang['Invalid file type'] ?? 'Invalid file type. Only ZIP or JSON files are allowed.'); ?>');
+                return;
+            }
+            
+            const action = ext === 'zip' ? 'import_zip' : 'import_json';
+            
+            if (!confirm('<?php echo escape($lang['Import confirmation'] ?? 'This will import data and may overwrite existing data. Continue?'); ?>')) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('action', action);
+            
+            importBtn.disabled = true;
+            importStatus.style.display = 'block';
+            importProgress.style.width = '10%';
+            importMessage.textContent = '<?php echo escape($lang['Uploading'] ?? 'Uploading...'); ?>';
+            importMessage.style.color = '#666';
+            
+            fetch('../ajax.php?action=' + action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                importProgress.style.width = '100%';
+                
+                if (data.error) {
+                    importMessage.textContent = '❌ ' + data.msg;
+                    importMessage.style.color = '#dc3545';
+                    importProgress.style.background = '#dc3545';
+                } else {
+                    importMessage.textContent = '✅ ' + (data.msg || '<?php echo escape($lang['Import successful'] ?? 'Import successful!'); ?>');
+                    importMessage.style.color = '#28a745';
+                    importProgress.style.background = '#28a745';
+                    
+                    // Reload page after successful import
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                importProgress.style.width = '100%';
+                importProgress.style.background = '#dc3545';
+                importMessage.textContent = '❌ <?php echo escape($lang['Error'] ?? 'Error'); ?>: ' + error.message;
+                importMessage.style.color = '#dc3545';
+            })
+            .finally(function() {
+                importBtn.disabled = false;
+            });
+        });
+    });
+    </script>
 
 </body>
 </html>
