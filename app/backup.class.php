@@ -338,17 +338,25 @@ class Backup
                             $sql = "INSERT OR REPLACE INTO `$table` (`" . implode('`, `', $columns) . "`) VALUES (" . implode(', ', $placeholders) . ")";
                         } elseif ($connection === 'postgres') {
                             // PostgreSQL uses ON CONFLICT - check if table has 'id' column
+                            $columnList = '"' . implode('", "', $columns) . '"';
+                            $valueList = implode(', ', $placeholders);
                             if (in_array('id', $columns)) {
-                                $sql = "INSERT INTO \"$table\" (\"" . implode('", "', $columns) . "\") VALUES (" . implode(', ', $placeholders) . ") ON CONFLICT (id) DO UPDATE SET " . 
-                                       implode(', ', array_map(function($col) { return "\"$col\" = EXCLUDED.\"$col\""; }, $columns));
+                                $updateList = implode(', ', array_map(function($col) { 
+                                    return '"' . $col . '" = EXCLUDED."' . $col . '"'; 
+                                }, $columns));
+                                $sql = "INSERT INTO \"$table\" ($columnList) VALUES ($valueList) ON CONFLICT (id) DO UPDATE SET $updateList";
                             } else {
                                 // No id column, just insert
-                                $sql = "INSERT INTO \"$table\" (\"" . implode('", "', $columns) . "\") VALUES (" . implode(', ', $placeholders) . ")";
+                                $sql = "INSERT INTO \"$table\" ($columnList) VALUES ($valueList)";
                             }
                         } else {
-                            // MySQL
-                            $updateParts = array_map(function($col) { return "`$col` = VALUES(`$col`)"; }, $columns);
-                            $sql = "INSERT INTO `$table` (`" . implode('`, `', $columns) . "`) VALUES (" . implode(', ', $placeholders) . ") ON DUPLICATE KEY UPDATE " . implode(', ', $updateParts);
+                            // MySQL - use alias syntax for compatibility with newer versions
+                            $columnList = '`' . implode('`, `', $columns) . '`';
+                            $valueList = implode(', ', $placeholders);
+                            $updateList = implode(', ', array_map(function($col) { 
+                                return "`$col` = VALUES(`$col`)"; 
+                            }, $columns));
+                            $sql = "INSERT INTO `$table` ($columnList) VALUES ($valueList) ON DUPLICATE KEY UPDATE $updateList";
                         }
                         
                         $db->query($sql, ...$values);

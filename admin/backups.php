@@ -36,8 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                 ];
                 $contentType = $contentTypes[$ext] ?? 'application/octet-stream';
                 
+                // Sanitize filename for header (remove special chars, keep alphanumeric, dots, dashes, underscores)
+                $safeFilename = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($filename));
+                if (empty($safeFilename)) {
+                    $safeFilename = 'backup.' . $ext;
+                }
+                
                 header('Content-Type: ' . $contentType);
-                header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
+                header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
                 header('Content-Length: ' . filesize($filepath));
                 readfile($filepath);
                 exit;
