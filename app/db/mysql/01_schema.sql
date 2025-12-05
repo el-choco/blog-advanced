@@ -7,6 +7,19 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 -- ============================================
+-- Table: categories
+-- ============================================
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `slug` varchar(100) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_slug` (`slug`),
+  KEY `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- Table: posts
 -- ============================================
 CREATE TABLE IF NOT EXISTS `posts` (
@@ -22,10 +35,13 @@ CREATE TABLE IF NOT EXISTS `posts` (
   `status` int(11) NOT NULL DEFAULT 1,
   `is_sticky` tinyint(1) NOT NULL DEFAULT 0,
   `datetime` datetime NOT NULL,
+  `category_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_sticky_datetime` (`is_sticky`, `datetime`),
   KEY `idx_status` (`status`),
-  KEY `idx_sticky` (`is_sticky`)
+  KEY `idx_sticky` (`is_sticky`),
+  KEY `idx_category` (`category_id`),
+  CONSTRAINT `posts_category_fk` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
