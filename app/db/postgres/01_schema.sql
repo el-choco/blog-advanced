@@ -16,6 +16,18 @@ CREATE TYPE user_role_t AS ENUM('super_admin','admin','editor','viewer');
 CREATE TYPE user_status_t AS ENUM('active','inactive','locked');
 
 -- ============================================
+-- Table: categories
+-- ============================================
+CREATE TABLE IF NOT EXISTS categories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(100) NOT NULL UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
+
+-- ============================================
 -- Table: posts
 -- ============================================
 CREATE TABLE IF NOT EXISTS posts (
@@ -30,12 +42,14 @@ CREATE TABLE IF NOT EXISTS posts (
   privacy VARCHAR(20) NOT NULL DEFAULT 'public',
   status INTEGER NOT NULL DEFAULT 1,
   is_sticky BOOLEAN NOT NULL DEFAULT FALSE,
-  datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  category_id INTEGER DEFAULT NULL REFERENCES categories(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_sticky_datetime ON posts(is_sticky, datetime);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_sticky ON posts(is_sticky);
+CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category_id);
 
 -- ============================================
 -- Table: images

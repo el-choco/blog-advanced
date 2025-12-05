@@ -4,6 +4,18 @@
 -- ============================================
 
 -- ============================================
+-- Table: categories
+-- ============================================
+CREATE TABLE IF NOT EXISTS categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
+
+-- ============================================
 -- Table: posts
 -- ============================================
 CREATE TABLE IF NOT EXISTS posts (
@@ -18,12 +30,14 @@ CREATE TABLE IF NOT EXISTS posts (
   privacy TEXT NOT NULL DEFAULT 'public',
   status INTEGER NOT NULL DEFAULT 1,
   is_sticky INTEGER NOT NULL DEFAULT 0,
-  datetime INTEGER NOT NULL
+  datetime INTEGER NOT NULL,
+  category_id INTEGER DEFAULT NULL REFERENCES categories(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_sticky_datetime ON posts(is_sticky, datetime);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_sticky ON posts(is_sticky);
+CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category_id);
 
 -- ============================================
 -- Table: images

@@ -161,16 +161,21 @@ try {
 
 		/* ===== Categories for sidebar ===== */
 		case 'categories':
-			$cats = Categories::withCounts();
-			$data = array_map(function($c) {
-				return [
-					'id' => (int)$c['id'],
-					'name' => (string)$c['name'],
-					'slug' => (string)$c['slug'],
-					'post_count' => (int)$c['post_count']
-				];
-			}, $cats ?: []);
-			echo json_encode($data);
+			try {
+				$cats = Categories::withCounts();
+				$data = array_map(function($c) {
+					return [
+						'id' => (int)$c['id'],
+						'name' => (string)$c['name'],
+						'slug' => (string)$c['slug'],
+						'post_count' => (int)$c['post_count']
+					];
+				}, $cats ?: []);
+				echo json_encode($data);
+			} catch (Throwable $e) {
+				// Return empty array on error (e.g., missing tables) for graceful degradation
+				echo json_encode([]);
+			}
 			break;
 
 		/* ===== Comments endpoints (DB-backed via Comment class) ===== */
@@ -377,7 +382,8 @@ try {
 
 				echo json_encode(['error' => false, 'groups' => $groups], JSON_UNESCAPED_UNICODE);
 			} catch (Throwable $e) {
-				echo json_encode(['error' => true, 'msg' => 'comments_by_category failed: '.$e->getMessage()]);
+				// Return empty groups array on error (e.g., missing tables) for graceful degradation
+				echo json_encode(['error' => false, 'groups' => []], JSON_UNESCAPED_UNICODE);
 			}
 			break;
 		}
