@@ -40,6 +40,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  /* System dark mode preference - automatically applies when OS is set to dark mode */
   :root {
     --primary-text: #e4e6eb;
     --secondary-text: #b0b3b8;
@@ -83,6 +84,7 @@
 }
 
 /* Dark theme via data attribute (for explicit dark mode toggle) */
+/* Note: Variables are duplicated from media query to support both system preference and manual toggle */
 [data-theme="dark"] {
   --primary-text: #e4e6eb;
   --secondary-text: #b0b3b8;

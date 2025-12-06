@@ -8,7 +8,7 @@
 	position: relative;
 	border: 2px solid #ff0000 !important;
 	/* background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent 20%) !important;*/
-	background: #fff;
+	background: var(--surface);
 }
 
 /* Sticky pin icon top right */
