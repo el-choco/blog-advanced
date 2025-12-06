@@ -72,11 +72,11 @@ fi
 echo -e "${GREEN}🔐 Setting permissions...${NC}"
 chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data${NC}"
 chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
-chmod -R 775 logs/ 2>/dev/null || true
-chmod -R 775 sessions/ 2>/dev/null || true
+chmod -R 0775 logs/ 2>/dev/null || true
+chmod -R 0775 sessions/ 2>/dev/null || true
 
 if [ -f "data/config.ini" ]; then
-    chmod 666 data/config.ini 2>/dev/null || true
+    chmod 0666 data/config.ini 2>/dev/null || true
 fi
 
 # Check for PHP

@@ -44,10 +44,7 @@ fi
 echo ""
 echo -e "${GREEN}👤 Setting ownership for Docker...${NC}"
 if command -v chown &> /dev/null; then
-    # Ensure directories exist
-    mkdir -p data data/backups uploads 2>/dev/null || true
-    
-    # Set ownership
+    # Set ownership (directories should already exist from install.sh)
     chown -R www-data:www-data data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership for data (may need root/sudo)${NC}"
     chown -R www-data:www-data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership for uploads (may need root/sudo)${NC}"
 else
