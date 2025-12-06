@@ -70,7 +70,7 @@ if id "www-data" &>/dev/null; then
     
     # Set permissions to 0775 (group-writable)
     echo -e "${GREEN}📝 Setting permissions to 0775...${NC}"
-    chmod -R 0775 data uploads data/backups
+    chmod -R 0775 data uploads
     chmod -R 0775 logs/
     chmod -R 0775 sessions/
 else
@@ -135,7 +135,7 @@ echo "  6. ⚠️  CHANGE THE DEFAULT PASSWORD IMMEDIATELY!"
 echo ""
 echo "🐳 Docker Installation:"
 echo "  1. Run: ./scripts/install_docker.sh"
-echo "  2. Visit: http://localhost:8080/admin/"
+echo "  2. Visit: http://localhost:3333/admin/"
 echo ""
 echo "📖 Documentation: https://github.com/el-choco/blog-advanced"
 echo ""

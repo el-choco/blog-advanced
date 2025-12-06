@@ -69,7 +69,7 @@ if id "www-data" &>/dev/null; then
     
     # Set permissions to 0775 (group-writable)
     echo -e "${GREEN}📝 Setting permissions to 0775...${NC}"
-    chmod -R 0775 data uploads data/backups
+    chmod -R 0775 data uploads
     chmod -R 0775 logs/
     chmod -R 0775 sessions/
 else
