@@ -131,7 +131,7 @@
 
 /* Panels */
 .admin-panel {
-    background: white;
+    background: var(--surface);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 20px;
@@ -139,7 +139,7 @@
 
 .panel-header {
     padding: 20px;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -149,6 +149,7 @@
     margin: 0;
     font-size: 18px;
     font-weight: 600;
+    color: var(--primary-text);
 }
 
 .panel-body {
@@ -314,12 +315,12 @@
    ============================================ */
 
 .inline-editor-row {
-    background: #f8f9fa ! important;
+    background: var(--surface-2) ! important;
 }
 
 .inline-editor-container {
     padding: 20px;
-    background: white;
+    background: var(--surface);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
@@ -330,13 +331,13 @@
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #e5e5e5;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .inline-editor-header h3 {
     margin: 0;
     font-size: 18px;
-    color: #333;
+    color: var(--primary-text);
 }
 
 .inline-editor-body {
@@ -355,7 +356,7 @@
 .preview-column h4 {
     margin: 0 0 10px 0;
     font-size: 14px;
-    color: #666;
+    color: var(--secondary-text);
     text-transform: uppercase;
 }
 
@@ -364,18 +365,20 @@
     box-sizing: border-box;
     min-height: 300px;
     padding: 15px;
-    border: 2px solid #e5e5e5;
+    border: 2px solid var(--border-color);
     border-radius: 6px;
     font-family: 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.6;
     resize: vertical;
     transition: border-color 0.3s;
+    background: var(--input-bg);
+    color: var(--input-text);
 }
 
 .inline-editor-textarea:focus {
     outline: none;
-    border-color: #1877f2;
+    border-color: var(--blue-link);
 }
 
 .editor-toolbar {
@@ -383,24 +386,26 @@
     gap: 5px;
     margin-top: 10px;
     padding: 10px;
-    background: #f8f9fa;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
 }
 
 .toolbar-btn {
     padding: 8px 12px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     cursor: pointer;
     font-size: 13px;
     transition: all 0.2s;
+    color: var(--primary-text);
 }
 
 .toolbar-btn:hover {
-    background: #e7f3ff;
-    border-color: #1877f2;
-    color: #1877f2;
+    background: var(--surface-2);
+    border-color: var(--blue-link);
+    color: var(--blue-link);
 }
 
 .inline-editor-preview {
@@ -408,11 +413,12 @@
     box-sizing: border-box;
     min-height: 300px;
     padding: 15px;
-    background: #fff;
-    border: 2px solid #e5e5e5;
+    background: var(--surface);
+    border: 2px solid var(--border-color);
     border-radius: 6px;
     overflow-y: auto;
     max-height: 500px;
+    color: var(--primary-text);
 }
 
 .inline-editor-preview h1 {
@@ -527,8 +533,8 @@
 .admin-content .panel,
 .admin-content .card {
   box-sizing: border-box !important;
-  background: #fff !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 12px !important;
   box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12) !important;
   padding: 16px !important;
@@ -554,7 +560,7 @@
 .admin-content label {
   display: block !important;
   font-weight: 600 !important;
-  color: #374151 !important;
+  color: var(--primary-text) !important;
   margin-bottom: 6px !important;
 }
 
@@ -581,12 +587,12 @@
   width: 100% !important;
   display: block !important;
   padding: 10px 12px !important;
-  border: 1px solid #d0d7de !important;
+  border: 1px solid var(--input-border) !important;
   border-radius: 8px !important;
-  background: #f8fafc !important;
+  background: var(--input-bg) !important;
   outline: none !important;
   font-size: 14px !important;
-  color: #111827 !important;
+  color: var(--input-text) !important;
 }
 
 /* Textareas: comfortable default height, vertical resize only */
@@ -664,9 +670,9 @@
 .admin-panel input:focus,
 .admin-panel textarea:focus,
 .admin-panel select:focus {
-  border-color: #3b82f6 !important;
+  border-color: var(--blue-link) !important;
   box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
-  background: #fff !important;
+  background: var(--surface) !important;
 }
 
 /* Distance above Panel */

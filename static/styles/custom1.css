@@ -71,7 +71,7 @@
 	gap: 10px;
 	margin: 15px 0;
 	padding: 15px;
-	background: #f8f9fa;
+	background: var(--surface-2);
 	border-radius: 12px;
 	max-height: 400px;
 	overflow-y: auto;
@@ -558,7 +558,7 @@
 	display: none;
 	margin-top: 8px;
 	padding: 10px;
-	background: #f8f9fa;
+	background: var(--surface-2);
 	border-radius: 8px;
 }
 
@@ -567,11 +567,11 @@
 	margin-right: 8px;
 	margin-bottom: 8px;
 	padding: 6px 10px;
-	border: 1px solid #ddd;
+	border: 1px solid var(--border-color);
 	border-radius: 6px;
-	background: #fff;
+	background: var(--surface);
 	font-size: 13px;
-	color: #333;
+	color: var(--primary-text);
 	vertical-align: middle;
 }
 
@@ -675,8 +675,8 @@
 	display: block;
 	width: 40px;
 	height: 40px;
-	background-color: #fff;
-	border-right: 1px solid #e5e5e5;
+	background-color: var(--surface);
+	border-right: 1px solid var(--border-color);
 	position: relative;
 	margin: 0;
 	padding: 0;
@@ -685,7 +685,7 @@
 }
 
 .file-attach-label:hover {
-	background-color: #f8f9fa;
+	background-color: var(--surface-2);
 }
 
 .file-icon {
@@ -723,19 +723,19 @@
 .attachment-list li {
 	padding: 8px 12px;
 	margin: 5px 0;
-	background: #f8f9fa;
+	background: var(--surface-2);
 	border-radius: 6px;
-	border-left: 3px solid #667eea;
+	border-left: 3px solid var(--blue-link);
 	transition: all 0.2s;
 }
 
 .attachment-list li:hover {
-	background: #e9ecef;
+	background: var(--secondary-background);
 	transform: translateX(5px);
 }
 
 .attachment-list li a {
-	color: #667eea;
+	color: var(--blue-link);
 	text-decoration: none;
 	font-weight: 500;
 	display: inline-block;
@@ -744,7 +744,7 @@
 
 .attachment-list li a:hover {
 	text-decoration: underline;
-	color: #764ba2;
+	color: var(--blue-link);
 }
 
 .attachment-list li a::before {
@@ -785,8 +785,8 @@ textarea#postText {
 	gap: 4px;
 	padding: 6px;
 	border-radius: 8px;
-	background: #f8f8f8;
-	border: 1px solid #ddd;
+	background: var(--surface);
+	border: 1px solid var(--border-color);
 	font-size: 22px;
 	margin-top: 8px;
 }
@@ -801,7 +801,7 @@ textarea#postText {
 
 #emojiPicker .emoji:hover {
 	transform: scale(1.3);
-	background: #e8e8e8;
+	background: var(--surface-2);
 }
 
 #emojiPicker .emoji:active {
@@ -870,8 +870,8 @@ hr {
 }
 
 .cat-box {
-    background: #fff;
-    border: 1px solid #d8dee4;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,.06);
     overflow: hidden;
@@ -880,9 +880,9 @@ hr {
 .cat-box-title {
     padding: 10px 12px;
     font-weight: 700;
-    background: #1877f2;
+    background: var(--button-primary-background);
     color: #fff;
-    border-bottom: 1px solid #d8dee4;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .cat-box-list {
@@ -897,25 +897,25 @@ hr {
     justify-content: space-between;
     align-items: baseline;
     text-decoration: none;
-    background: #f8fafc;
-    border: 1px solid #e5eaf0;
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 6px 8px;
-    color: #0f2a4f;
+    color: var(--primary-text);
     transition: background .15s, border-color .15s;
     font-size: 14px;
 }
 
 .cat-item:hover {
-    background: #e7f3ff;
-    border-color: #b6d4fe;
+    background: var(--secondary-background);
+    border-color: var(--blue-link);
 }
 
-.cat-name { font-weight: 600; }
-.cat-count { color: #3d5a80; font-size: 12px; }
+.cat-name { font-weight: 600; color: var(--primary-text); }
+.cat-count { color: var(--secondary-text); font-size: 12px; }
 
 .cat-empty {
-    color: #888;
+    color: var(--secondary-text);
     font-style: italic;
     padding: 12px 8px;
 }
