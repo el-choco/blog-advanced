@@ -3,6 +3,56 @@ html {
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%; }
 
+/* CSS Variables for Theme Support */
+:root {
+  --color-background: #ffffff;
+  --color-text: #111827;
+  --color-primary: #1877f2;
+  --color-secondary: #6b7280;
+  --color-accent: #3b82f6;
+  --color-border: #e5e7eb;
+  --color-hover: #f3f4f6;
+  --radius: 8px;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+  --color-background: #1a1a1a;
+  --color-text: #e5e7eb;
+  --color-primary: #2563eb;
+  --color-secondary: #9ca3af;
+  --color-accent: #60a5fa;
+  --color-border: #374151;
+  --color-hover: #262626;
+}
+
+/* Apply theme variables to common elements */
+html, body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: var(--color-primary);
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+button {
+  border-radius: var(--radius);
+}
+
+input, textarea, select {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+
 body {
   margin: 0; }
 

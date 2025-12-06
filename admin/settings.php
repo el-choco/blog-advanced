@@ -96,6 +96,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
+    /* THEME MODE (Dark/Light) */
+    if ($action === 'update_theme_mode') {
+        if (!isset($config['theme'])) $config['theme'] = [];
+        
+        // Validate and set theme_mode
+        $theme_mode = isset($_POST['theme_mode']) && in_array($_POST['theme_mode'], ['light', 'dark']) 
+            ? $_POST['theme_mode'] 
+            : 'light';
+        $config['theme']['theme_mode'] = $theme_mode;
+        $config['theme_mode'] = $theme_mode;
+        
+        // Set theme_mode_override
+        $theme_mode_override = isset($_POST['theme_mode_override']) ? '1' : '0';
+        $config['theme']['theme_mode_override'] = $theme_mode_override;
+        $config['theme_mode_override'] = $theme_mode_override;
+        
+        if (writeConfig($config_file, $config)) {
+            $message = $lang['General settings saved'];
+            $message_type = 'success';
+        } else {
+            $message = $lang['Error saving'];
+            $message_type = 'error';
+        }
+    }
+
+
     /* COMPONENTS */
     if ($action === 'update_components') {
         if (!isset($config['components'])) $config['components'] = [];
@@ -575,6 +601,29 @@ $timezones = [
                         </div>
                         <br>
                         <button type="submit" class="btn-save">💾 <?php echo escape($lang['Save theme']); ?></button>
+                    </form>
+                </div>
+                <div class="settings-section">
+                    <h2 class="section-title">🌓 Dark/Light Mode</h2>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update_theme_mode">
+                        <div>
+                            <label class="form-label">Default Theme Mode</label>
+                            <select name="theme_mode" class="form-select">
+                                <?php $current_theme_mode = getConfig($config,'theme','theme_mode','light'); ?>
+                                <option value="light" <?php echo $current_theme_mode === 'light' ? 'selected':''; ?>>☀️ Light Mode</option>
+                                <option value="dark" <?php echo $current_theme_mode === 'dark' ? 'selected':''; ?>>🌙 Dark Mode</option>
+                            </select>
+                            <div class="form-help">Select the default theme mode for visitors</div>
+                        </div>
+                        <br>
+                        <div class="form-checkbox">
+                            <input type="checkbox" name="theme_mode_override" id="theme_mode_override" <?php echo getConfig($config,'theme','theme_mode_override')==='1'?'checked':''; ?>>
+                            <label for="theme_mode_override">🔒 Lock theme mode (disable user toggle)</label>
+                        </div>
+                        <div class="form-help">When enabled, users cannot change the theme - only the admin setting applies</div>
+                        <br>
+                        <button type="submit" class="btn-save">💾 Save Theme Mode</button>
                     </form>
                 </div>
                 <div class="settings-section">

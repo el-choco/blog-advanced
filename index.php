@@ -191,7 +191,7 @@ if (Config::get_safe("version", false)) {
 	</style>
 	<?php echo $styles_html; ?>
 </head>
-<body>
+<body data-theme="<?php echo escape(Config::get_safe('theme_mode', 'light')); ?>" data-theme-override="<?php echo escape(Config::get_safe('theme_mode_override', '0')); ?>" data-theme-default="<?php echo escape(Config::get_safe('theme_mode', 'light')); ?>">
 	<div id="dd_mask" class="mask"></div>
 	<div id="prepared" style="display:none;"
 	     data-show-less-text="<?php echo __("Show less"); ?>"
@@ -564,6 +564,7 @@ if (Config::get_safe("version", false)) {
 
 	<div class="bluebar">
 		<h1><?php echo escape(Config::get("title")); ?></h1>
+		<button id="themeToggle" aria-label="Toggle theme" aria-pressed="false" style="position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 16px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; font-size: 20px; transition: all 0.3s ease;">🌙</button>
 	</div>
 
 	<div class="headbar">
@@ -625,6 +626,7 @@ if (Config::get_safe("version", false)) {
 		<?php echo Config::get_safe("footer", false) ? escape(Config::get_safe("footer")) : '<a href="https://github.com/m1k1o/blog" class="link" title="m1k1o/blog github repository" target="_blank">m1k1o/blog</a>'; ?>
 		</p>
 	</div>
+	<script src="static/js/theme-toggle.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/jquery.min.js"></script>
 	<script>$["\x61\x6A\x61\x78\x53\x65\x74\x75\x70"]({"\x68\x65\x61\x64\x65\x72\x73":{"\x43\x73\x72\x66-\x54\x6F\x6B\x65\x6E":"<?php echo $_SESSION['token'];?>"}});</script>
 
