@@ -40,6 +40,21 @@ else
     echo -e "${YELLOW}⚠️  install.sh not found, skipping...${NC}"
 fi
 
+# Set ownership and permissions for Docker
+echo ""
+echo -e "${GREEN}👤 Setting ownership for Docker...${NC}"
+if command -v chown &> /dev/null; then
+    # Set ownership (directories should already exist from install.sh)
+    chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+else
+    echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
+fi
+
+echo -e "${GREEN}🔐 Setting permissions for Docker...${NC}"
+# Set permissions
+chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data${NC}"
+chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
+
 # Create .env file if it doesn't exist
 if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then

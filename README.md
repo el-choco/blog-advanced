@@ -66,6 +66,41 @@ Optional for email:
 
 This is the fastest way to get the blog running.
 
+### Automated Installation (Recommended)
+
+1) Clone the repository
+```bash
+git clone https://github.com/el-choco/blog-advanced.git
+cd blog-advanced
+```
+
+2) Run the Docker installation script
+```bash
+./docker-install.sh
+```
+
+The script will:
+- Create necessary directories (data/, uploads/, data/backups/)
+- Set proper ownership (www-data:www-data)
+- Set proper permissions (0775)
+- Create .env file from .env.example
+- Start Docker containers
+- Import database schema
+
+3) Access your blog
+- Frontend: http://localhost:3333
+- Admin Panel: http://localhost:3333/admin/
+- phpMyAdmin: http://localhost:3334
+
+Default credentials:
+- Username: admin
+- Password: admin123
+- ⚠️ **IMPORTANT: Change the default password immediately!**
+
+### Manual Docker Installation
+
+If you prefer to set up manually or customize the installation:
+
 1) Clone the repository
 ```bash
 git clone https://github.com/el-choco/blog-advanced.git
@@ -79,7 +114,24 @@ cp .env.example .env 2>/dev/null || true
 # Edit .env with your DB credentials and app settings
 ```
 
-3) Create a `docker-compose.yml` (choose MySQL, Postgres or SQLite)
+3) Create necessary directories and set permissions
+```bash
+# Run the install script to create directories
+./install.sh
+
+# Or manually create and set permissions
+mkdir -p data data/backups uploads
+chown -R www-data:www-data data uploads
+chmod -R 0775 data uploads
+```
+
+4) Use existing docker-compose.yml or customize
+The repository includes pre-configured docker-compose files:
+- `docker-compose.yml` - Default MySQL setup
+- `docker-compose.sqlite.yml` - SQLite setup
+- `docker-compose.postgres.yml` - PostgreSQL setup
+
+Or create a custom `docker-compose.yml` (choose MySQL, Postgres or SQLite):
 ```yaml
 version: "3.9"
 services:
@@ -109,11 +161,7 @@ volumes:
   db_data:
 ```
 
-4) make folders writeable **(Very Important befor Step 5 !!!!!)**
-- chmod -R  777 path_to_your_folder/blog-advanced/data 
-- chmod -R  777 path_to_your_folder/blog-advanced/uploads 
-
- 5) Start containers
+5) Start containers
 ```bash
 docker compose up -d
 ```
@@ -126,8 +174,8 @@ docker exec -it blog-advanced-web bash -lc "apt-get update && apt-get install -y
 Note: official image ships with many basics. Adjust steps as needed.
 
 7) Access the app
-- Open http://your_IP:3333
-- Go to http://your_IP:3333/admin to configure settings, language, timezone, and theme.
+- Open http://localhost:3333
+- Go to http://localhost:3333/admin to configure settings, language, timezone, and theme.
 
 8) Database configuration
 - Edit `config.ini` (see “Configuration” section) with the DB host `db` and your credentials from docker-compose:
@@ -137,7 +185,17 @@ Note: official image ships with many basics. Adjust steps as needed.
   - mysql_pass = changeme
   - db_name    = blog
 
-9) Logs and backups
+9) Import database schema (if not using automated script)
+```bash
+# Wait for database to be ready
+sleep 30
+
+# Import schema
+docker exec -i blog-advanced-db mysql -u bloguser -pblogpass123 blog < app/db/mysql/01_schema.sql
+```
+
+
+10) Logs and backups
 - Use the admin “Backups” page to create backups.
 - Configure file paths in `config.ini` as needed.
 
@@ -149,10 +207,30 @@ Note: official image ships with many basics. Adjust steps as needed.
 ```bash
 cd /var/www
 git clone https://github.com/el-choco/blog-advanced.git
-chown -R www-data:www-data blog-advanced
+cd blog-advanced
 ```
 
-2) Configure your web server
+2) Run the installation script
+```bash
+# Run as root or with sudo to set proper ownership
+sudo ./install.sh
+```
+
+The script will:
+- Create necessary directories (data/, uploads/, data/backups/, logs/, sessions/)
+- Set ownership to www-data:www-data
+- Set permissions to 0775
+- Create .gitkeep files
+- Check for PHP and required extensions
+
+Or manually create directories and set permissions:
+```bash
+mkdir -p data/{posts,images,files,users,backups,cache} uploads/{images,files} logs sessions
+chown -R www-data:www-data data uploads
+chmod -R 0775 data uploads data/backups
+```
+
+3) Configure your web server
 
 - Apache (VirtualHost example):
 ```
@@ -205,7 +283,7 @@ Reload:
 nginx -t && systemctl reload nginx
 ```
 
-3) PHP extensions
+4) PHP extensions
 - Ensure required extensions are enabled:
 ```bash
 php -m | grep -E 'pdo_mysql|mbstring|intl|zip|gd|curl|openssl|json'
@@ -216,7 +294,7 @@ apt-get install -y php8.2-{mysql,mbstring,intl,zip,gd,curl}
 systemctl reload php8.2-fpm || systemctl restart apache2
 ```
 
-4) Database
+5) Database
 - Create a database and user:
 ```sql
 CREATE DATABASE blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -232,7 +310,7 @@ FLUSH PRIVILEGES;
 
 The schema files include all required tables: `posts`, `categories`, `comments`, `images`, and `users`.
 
-5) Configuration
+6) Configuration
 - Create or edit `config.ini` in the project root:
 - chose DB Type by removing the Semikolon ( ; ).
 ```
@@ -322,15 +400,20 @@ theme = "theme02"
 ```
 Note: Do not commit secrets to the repo. Add sensitive files to `.gitignore` (see below).
 
-6) Permissions
-- Ensure the web server user can write to data/logs/ and any upload directories:
+7) Permissions
+- If you skipped running `./install.sh` earlier, ensure proper permissions:
 ```bash
+# Create additional directories if needed
 mkdir -p data/i data/t data/logs static/images
-chown -R www-data:www-data data static/images
-chmod -R 750 data static/images
+
+# Set ownership and permissions
+chown -R www-data:www-data data uploads
+chmod -R 0775 data uploads data/backups
 ```
 
-7) Access
+Note: The `install.sh` script already handles most permissions. This step is only needed if you're setting up manually.
+
+8) Access
 - Open http://blog.local (adjust hosts/DNS) and http://blog.local/admin
 
 ---
