@@ -122,7 +122,7 @@ cp .env.example .env 2>/dev/null || true
 # Or manually create and set permissions
 mkdir -p data data/backups uploads
 chown -R www-data:www-data data uploads
-chmod -R 0775 data uploads data/backups
+chmod -R 0775 data uploads
 ```
 
 4) Use existing docker-compose.yml or customize

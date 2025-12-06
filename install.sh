@@ -62,8 +62,7 @@ fi
 # Set ownership
 echo -e "${GREEN}👤 Setting ownership...${NC}"
 if command -v chown &> /dev/null; then
-    chown -R www-data:www-data data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
-    chown -R www-data:www-data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+    chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
 else
     echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
 fi
