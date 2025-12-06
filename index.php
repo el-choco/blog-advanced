@@ -795,13 +795,24 @@ if (Config::get_safe("version", false)) {
 
   var sidebarSelector = '#right_sidebar';
   var categoriesListSelector = sidebarSelector + ' .cat-box-list';
+  
+  // Localized strings from PHP (using json_encode for safer JS embedding)
+  var i18n = {
+    commentsCategory: <?php echo json_encode(__("Comments by category")); ?>,
+    loadingComments: <?php echo json_encode(__("Loading comments…")); ?>,
+    noCommentsAvailable: <?php echo json_encode(__("No comments available.")); ?>,
+    noCategory: <?php echo json_encode(__("No category")); ?>,
+    serverError: <?php echo json_encode(__("Server error")); ?>,
+    errorLoading: <?php echo json_encode(__("Error loading.")); ?>,
+    networkError: <?php echo json_encode(__("Network error while loading.")); ?>
+  };
 
   function createCard() {
     var card = document.createElement('div');
     card.className = 'sidebar-card comments-by-category-card';
     card.innerHTML =
-      '<div class="sidebar-card-header"><span>🏷️ Comments by category</span></div>' +
-      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">Loading comments…</div></div>';
+      '<div class="sidebar-card-header"><span>🏷️ ' + i18n.commentsCategory + '</span></div>' +
+      '<div id="comments-by-category" class="sidebar-card-body"><div class="loading">' + i18n.loadingComments + '</div></div>';
     card.style.width = '100%';
     return card;
   }
@@ -837,14 +848,14 @@ if (Config::get_safe("version", false)) {
     root.innerHTML = '';
 
     if (!Array.isArray(groups) || groups.length === 0) {
-      root.innerHTML = '<div class="empty">No comments available.</div>';
+      root.innerHTML = '<div class="empty">' + i18n.noCommentsAvailable + '</div>';
       return;
     }
 
     groups.forEach(function(g){
       var title = document.createElement('div');
       title.className = 'cbc-category';
-      title.textContent = (g && (g.category_name || g.category || 'No category'));
+      title.textContent = (g && (g.category_name || g.category || i18n.noCategory));
       root.appendChild(title);
 
       var list = document.createElement('ul');
@@ -886,7 +897,7 @@ if (Config::get_safe("version", false)) {
   function loadOnce() {
     var root = document.getElementById('comments-by-category');
     if (!root) { console.warn('[CBC] root not found at load'); return; }
-    root.innerHTML = '<div class="loading">Loading comments…</div>';
+    root.innerHTML = '<div class="loading">' + i18n.loadingComments + '</div>';
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'ajax.php?action=comments_by_category&limit=5', true);
@@ -894,7 +905,7 @@ if (Config::get_safe("version", false)) {
     xhr.onload = function(){
       var raw = xhr.responseText || '';
       if (xhr.status >= 400) {
-        root.innerHTML = '<div class="error">Server error (' + xhr.status + ')</div>';
+        root.innerHTML = '<div class="error">' + i18n.serverError + ' (' + xhr.status + ')</div>';
         return;
       }
       var data = null;
@@ -904,7 +915,7 @@ if (Config::get_safe("version", false)) {
         try { data = JSON.parse(raw.replace(/<[^>]*>/g,'')); } catch(e2){}
       }
       if (!data || data.error) {
-        root.innerHTML = '<div class="error">Error loading.</div>';
+        root.innerHTML = '<div class="error">' + i18n.errorLoading + '</div>';
         return;
       }
       var groups = Array.isArray(data) ? data : (data.groups || []);
@@ -912,7 +923,7 @@ if (Config::get_safe("version", false)) {
     };
 
     xhr.onerror = function(){
-      root.innerHTML = '<div class="error">Network error while loading.</div>';
+      root.innerHTML = '<div class="error">' + i18n.networkError + '</div>';
     };
 
     xhr.send();
@@ -942,11 +953,11 @@ if (Config::get_safe("version", false)) {
 })();
 </script>
 
-<!-- Back-to-top arrow: blue circle + white arrow (English) -->
+<!-- Back-to-top arrow: blue circle + white arrow -->
 <a id="back_to_top"
    href="#"
-   aria-label="Back to top"
-   title="Back to top"
+   aria-label="<?php echo __('Back to top'); ?>"
+   title="<?php echo __('Back to top'); ?>"
    style="position:fixed; right:20px; bottom:20px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:#1877f2; color:#ffffff; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,.2); z-index:99999;">
   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block;">
     <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z" fill="currentColor"/>

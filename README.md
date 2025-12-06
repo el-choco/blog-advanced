@@ -284,6 +284,7 @@ pass = "admin"
 images_path = "data/i/"
 thumbnails_path = "data/t/"
 logs_path = "data/logs/"
+backup_dir = "data/backups/"
 
 [proxy]
 
@@ -356,6 +357,33 @@ Security: Never commit credentials. Rotate app passwords if exposed.
 - Theme: Switch under Admin → Appearance. Theme setting is sanitized to prevent invalid names.
 - Trash: Admin → Trash for restore/permanent delete.
 - Comments: Admin → Comments for moderation (email notifications optional).
+
+### Export / Import
+
+The backup system supports multiple export formats:
+
+1. **SQL Backup** - Traditional mysqldump backup (database only)
+2. **JSON Export** - Structured export of posts, categories, and comments
+3. **CSV Export** - Spreadsheet-compatible export as ZIP archive
+4. **Full Backup** - Complete backup including database and media files
+
+**Backup Directory:**
+- Default location: `data/backups/`
+- Configurable via `config.ini` under `[directories]` section: `backup_dir = "data/backups/"`
+
+**Import (Replace Mode):**
+- Importing a backup will replace existing data (truncate tables first)
+- Import order: categories → posts → posts_categories → comments
+- For MySQL: Foreign key checks are temporarily disabled during import
+- Supported formats: `.json` (JSON export) and `.zip` (Full backup)
+
+**MySQL Foreign Key Handling:**
+When restoring data on MySQL, the import process:
+1. Executes `SET FOREIGN_KEY_CHECKS = 0` before import
+2. Truncates tables and inserts data
+3. Executes `SET FOREIGN_KEY_CHECKS = 1` after import
+
+This ensures proper restoration even with complex table relationships.
 
 ---
 
