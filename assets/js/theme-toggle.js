@@ -110,37 +110,8 @@
         
         toggleBtn.addEventListener('click', toggleTheme);
         
-        // Add to page (you can customize the position)
+        // Add to page - styles are defined in main.css
         document.body.appendChild(toggleBtn);
-        
-        // Basic styling if not in CSS
-        if (!document.querySelector('style[data-theme-toggle]')) {
-            const style = document.createElement('style');
-            style.setAttribute('data-theme-toggle', 'true');
-            style.textContent = `
-                .theme-toggle-button {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 50%;
-                    border: 2px solid var(--primary-border, #ccc);
-                    background: var(--primary-background, #fff);
-                    color: var(--primary-text, #000);
-                    font-size: 20px;
-                    cursor: pointer;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                    z-index: 9998;
-                    transition: all 0.2s ease;
-                }
-                .theme-toggle-button:hover {
-                    transform: scale(1.1);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                }
-            `;
-            document.head.appendChild(style);
-        }
     }
 
     // Initialize when DOM is ready
