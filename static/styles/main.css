@@ -1,10 +1,28 @@
+/* Base CSS Variables for Light Theme */
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+}
+
+/* Dark Theme Override */
+[data-theme="dark"] {
+  --background-color: #1a1a1a;
+  --text-color: #e4e6eb;
+}
+
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%; }
+  -webkit-text-size-adjust: 100%;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
 
 body {
-  margin: 0; }
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
 
 article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary {
   display: block; }

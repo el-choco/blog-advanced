@@ -70,8 +70,12 @@ if (Config::get_safe("version", false)) {
 	$versionSuffix = '?v='.rawurlencode(Config::get("version"));
 }
 
+// Get theme mode settings
+$theme_mode = Config::get_safe("theme_mode", "light");
+$theme_mode_override = Config::get_safe("theme_mode_override", "0");
+
 ?><!DOCTYPE html>
-<html>
+<html data-theme="<?php echo htmlspecialchars($theme_mode, ENT_QUOTES, 'UTF-8'); ?>" data-theme-override="<?php echo htmlspecialchars($theme_mode_override, ENT_QUOTES, 'UTF-8'); ?>">
 <head>
 	<meta charset="utf-8">
 	<title><?php echo escape(Config::get("title")); ?></title>
@@ -634,6 +638,7 @@ if (Config::get_safe("version", false)) {
 	<script src="static/scripts/app.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/comments-init.js<?php echo $versionSuffix?>"></script>
+	<script src="assets/js/theme-toggle.js<?php echo $versionSuffix?>"></script>
 	<?php echo $scripts_html; ?>
 
 <script>
