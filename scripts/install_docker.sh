@@ -70,15 +70,30 @@ echo -e "${GREEN}🔐 Setting secure permissions...${NC}"
 if [ "$EUID" -eq 0 ] || [ "$(id -u)" = "0" ]; then
     # Running as root - can set ownership
     echo -e "${GREEN}Setting ownership to UID=${TARGET_UID}, GID=${TARGET_GID}...${NC}"
-    chown -R "${TARGET_UID}:${TARGET_GID}" uploads/ data/ logs/ sessions/ 2>/dev/null || {
-        echo -e "${YELLOW}⚠️  chown failed, trying alternative approach...${NC}"
-    }
-    
-    # Set secure permissions (0755)
-    echo -e "${GREEN}Setting permissions to 0755...${NC}"
-    chmod -R 0755 uploads/ data/ logs/ sessions/
-    
-    echo -e "${GREEN}✅ Ownership and permissions set successfully${NC}"
+    if chown -R "${TARGET_UID}:${TARGET_GID}" uploads/ data/ logs/ sessions/ 2>/dev/null; then
+        # Set secure permissions (0755)
+        echo -e "${GREEN}Setting permissions to 0755...${NC}"
+        chmod -R 0755 uploads/ data/ logs/ sessions/
+        echo -e "${GREEN}✅ Ownership and permissions set successfully${NC}"
+    else
+        echo -e "${YELLOW}⚠️  chown failed, trying ACL fallback...${NC}"
+        if command -v setfacl &>/dev/null; then
+            setfacl -R -m u:${TARGET_UID}:rwx uploads/ data/ logs/ sessions/ 2>/dev/null && \
+            setfacl -R -d -m u:${TARGET_UID}:rwx uploads/ data/ logs/ sessions/ 2>/dev/null
+            if [ $? -eq 0 ]; then
+                chmod -R 0755 uploads/ data/ logs/ sessions/
+                echo -e "${GREEN}✅ ACL set for UID ${TARGET_UID} with 0755 permissions${NC}"
+            else
+                echo -e "${RED}⚠️  WARNING: ACL failed, using 0777 permissions${NC}"
+                echo -e "${RED}⚠️  SECURITY RISK: Please manually set proper ownership${NC}"
+                chmod -R 0777 uploads/ data/ logs/ sessions/
+            fi
+        else
+            echo -e "${RED}⚠️  WARNING: ACL not available, using 0777 permissions${NC}"
+            echo -e "${RED}⚠️  SECURITY RISK: Please manually set proper ownership${NC}"
+            chmod -R 0777 uploads/ data/ logs/ sessions/
+        fi
+    fi
     
 else
     # Not running as root - try permissions only

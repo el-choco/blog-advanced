@@ -98,18 +98,25 @@ else
     echo -e "${BLUE}Setting permissions for current user...${NC}"
     
     # Set permissions for current user
-    chmod -R 0755 uploads/ data/ logs/ sessions/ 2>/dev/null || {
+    if chmod -R 0755 uploads/ data/ logs/ sessions/ 2>/dev/null; then
+        echo -e "${GREEN}✅ Permissions set to 0755${NC}"
+    else
         echo -e "${YELLOW}⚠️  Cannot set 0755, trying ACL...${NC}"
         
         if command -v setfacl &>/dev/null; then
-            setfacl -R -m u:$(whoami):rwx uploads/ data/ logs/ sessions/ 2>/dev/null || true
-            setfacl -R -d -m u:$(whoami):rwx uploads/ data/ logs/ sessions/ 2>/dev/null || true
-            echo -e "${GREEN}✅ ACL set for current user${NC}"
+            setfacl -R -m u:$(whoami):rwx uploads/ data/ logs/ sessions/ 2>/dev/null && \
+            setfacl -R -d -m u:$(whoami):rwx uploads/ data/ logs/ sessions/ 2>/dev/null
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}✅ ACL set for current user${NC}"
+            else
+                echo -e "${RED}⚠️  WARNING: ACL failed, unable to set permissions${NC}"
+                echo -e "${RED}⚠️  Please run with sudo or set permissions manually${NC}"
+            fi
         else
-            echo -e "${RED}⚠️  WARNING: Unable to set permissions${NC}"
+            echo -e "${RED}⚠️  WARNING: Unable to set permissions (no sudo, no ACL)${NC}"
             echo -e "${RED}⚠️  Please run with sudo or set permissions manually${NC}"
         fi
-    }
+    fi
 fi
 
 # Summary
