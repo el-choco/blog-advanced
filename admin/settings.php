@@ -88,16 +88,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $config['theme'] = $t;
         }
         // Handle theme mode (dark/light)
+        // Note: Stored in both [custom] section and root level to match existing
+        // pattern used by other theme settings (like 'theme' above)
         if (isset($_POST['theme_mode'])) {
             $mode = $_POST['theme_mode'] === 'dark' ? 'dark' : 'light';
             $config['custom']['theme_mode'] = $mode;
-            // Also store at root level for direct Config::get() access
             $config['theme_mode'] = $mode;
         }
         // Handle theme mode override
         $override = isset($_POST['theme_mode_override']) ? '1' : '0';
         $config['custom']['theme_mode_override'] = $override;
-        // Also store at root level for direct Config::get() access
         $config['theme_mode_override'] = $override;
         
         if (writeConfig($config_file, $config)) {

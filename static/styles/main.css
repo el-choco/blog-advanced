@@ -165,14 +165,18 @@ td, th {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2px solid var(--primary-border, #ccc);
-  background: var(--primary-background, #fff);
-  color: var(--primary-text, #000);
+  border: 2px solid #ccc;
+  background: var(--background-color, #fff);
+  color: var(--text-color, #000);
   font-size: 20px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   z-index: 9998;
   transition: all 0.2s ease;
+}
+
+html[data-theme="dark"] .theme-toggle-button {
+  border-color: #555;
 }
 
 .theme-toggle-button:hover {

@@ -37,7 +37,6 @@
         
         // If admin has enabled override, don't allow client toggle
         if (adminOverride) {
-            console.log('Theme toggle disabled by admin override');
             return;
         }
 
