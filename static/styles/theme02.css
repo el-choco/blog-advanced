@@ -31,7 +31,7 @@
   --overlay-fallback-background: #ccc;
 }
 
-[data-theme="dark"] {
+html[data-theme="dark"] {
   --primary-text: #e4e6eb;
   --secondary-text: #b0b3b8;
 

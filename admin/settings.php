@@ -91,11 +91,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (isset($_POST['theme_mode'])) {
             $mode = $_POST['theme_mode'] === 'dark' ? 'dark' : 'light';
             $config['custom']['theme_mode'] = $mode;
+            // Store at root level too for backward compatibility with Config::get_safe()
             $config['theme_mode'] = $mode;
         }
         // Handle theme mode override
         $override = isset($_POST['theme_mode_override']) ? '1' : '0';
         $config['custom']['theme_mode_override'] = $override;
+        // Store at root level too for backward compatibility with Config::get_safe()
         $config['theme_mode_override'] = $override;
         
         if (writeConfig($config_file, $config)) {
