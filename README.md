@@ -36,6 +36,124 @@ A powerful, self-hosted blogging platform with advanced features including, comm
 
 ---
 
+## 📁 Directory Structure and Permissions
+
+This application requires the following directories to be writable by the web server or container user:
+
+### Required Directories
+- **`uploads/`** - User-uploaded content (images, files)
+- **`data/`** - Application data including posts, configuration
+- **`data/backups/`** - Database and full backup files
+- **`logs/`** - Application logs (optional but recommended)
+- **`sessions/`** - PHP session data (optional but recommended)
+
+### Permissions Strategy
+
+The repository includes automated installation scripts that set up directories with secure permissions:
+
+#### For Bare Metal Installations
+Use the dedicated bare-metal script:
+```bash
+./scripts/install_baremetal.sh
+```
+
+**Security approach:**
+1. **Auto-detects** web server user (`www-data`, `apache`, `nginx`)
+2. **Preferred method:** Sets ownership to web user + `chmod 0755` (secure)
+3. **Fallback 1:** Uses ACL (Access Control Lists) if available
+4. **Fallback 2:** Uses `chmod 0777` only as last resort (with warning)
+
+**Running as root** (recommended for production):
+```bash
+sudo ./scripts/install_baremetal.sh
+```
+This ensures proper ownership is set to the web server user.
+
+**Running as regular user:**
+```bash
+./scripts/install_baremetal.sh
+```
+May require manual permission adjustments afterward.
+
+#### For Docker Installations
+Use the dedicated Docker script:
+```bash
+./scripts/install_docker.sh
+```
+
+**Environment variables for user mapping:**
+- **`PUID`** - User ID to own the files (default: auto-detect)
+- **`PGID`** - Group ID to own the files (default: auto-detect)
+
+Example in `docker-compose.yml`:
+```yaml
+services:
+  web:
+    environment:
+      - PUID=1000
+      - PGID=1000
+```
+
+**Security approach:**
+1. **Respects** `PUID`/`PGID` environment variables if set
+2. **Auto-detects** container user (`www-data`, `apache`, `nginx`)
+3. **Applies** ownership via `chown` and secure `0755` permissions
+4. **Fallback 1:** Uses ACL if `chown` fails
+5. **Fallback 2:** Uses `chmod 0777` only as last resort (with warning)
+
+### Security Notes
+
+✅ **Recommended:** Always use `0755` permissions with proper ownership  
+⚠️ **Avoid:** Using `0777` permissions in production  
+🔐 **Best Practice:** Run installation scripts with appropriate privileges
+
+After installation, verify directory permissions:
+```bash
+ls -la uploads/ data/
+```
+
+Expected output (bare metal with www-data):
+```
+drwxr-xr-x  www-data www-data  uploads/
+drwxr-xr-x  www-data www-data  data/
+```
+
+Expected output (Docker with PUID=1000):
+```
+drwxr-xr-x  1000 1000  uploads/
+drwxr-xr-x  1000 1000  data/
+```
+
+### Manual Permission Setup
+
+If you cannot use the installation scripts, manually set permissions:
+
+**Bare Metal:**
+```bash
+# Create directories
+mkdir -p uploads data data/backups logs sessions
+
+# Set ownership (replace www-data with your web server user)
+sudo chown -R www-data:www-data uploads/ data/ logs/ sessions/
+
+# Set secure permissions
+sudo chmod -R 0755 uploads/ data/ logs/ sessions/
+```
+
+**Docker:**
+```bash
+# Create directories
+mkdir -p uploads data data/backups logs sessions
+
+# Set ownership to match container user (e.g., UID 1000)
+sudo chown -R 1000:1000 uploads/ data/ logs/ sessions/
+
+# Set secure permissions
+sudo chmod -R 0755 uploads/ data/ logs/ sessions/
+```
+
+---
+
 ### Requirements
 - PHP 8.1+ with extensions:
   - pdo_mysql, mbstring, json, curl, intl, gd (optional for image ops), openssl, zip
@@ -72,14 +190,25 @@ git clone https://github.com/el-choco/blog-advanced.git
 cd blog-advanced
 ```
 
-2) Prepare environment files
-- Copy example env files (if present) or create your own `.env`:
+2) Run the Docker installation script
+```bash
+./scripts/install_docker.sh
+```
+
+This will:
+- Create required directories (`uploads/`, `data/`, `data/backups/`, `logs/`, `sessions/`)
+- Set secure permissions with proper ownership
+- Respect `PUID`/`PGID` environment variables if set
+
+Alternatively, prepare environment files manually:
 ```bash
 cp .env.example .env 2>/dev/null || true
 # Edit .env with your DB credentials and app settings
 ```
 
 3) Create a `docker-compose.yml` (choose MySQL, Postgres or SQLite)
+
+**Optional:** Add PUID/PGID for custom user mapping:
 ```yaml
 version: "3.9"
 services:
@@ -92,6 +221,8 @@ services:
       - "8080:80"
     environment:
       - PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+      - PUID=1000  # Optional: your user ID
+      - PGID=1000  # Optional: your group ID
     depends_on:
       - db
   db:
@@ -109,11 +240,7 @@ volumes:
   db_data:
 ```
 
-4) make folders writeable **(Very Important befor Step 5 !!!!!)**
-- chmod -R  777 path_to_your_folder/blog-advanced/data 
-- chmod -R  777 path_to_your_folder/blog-advanced/uploads 
-
- 5) Start containers
+4) Start containers
 ```bash
 docker compose up -d
 ```
@@ -149,10 +276,23 @@ Note: official image ships with many basics. Adjust steps as needed.
 ```bash
 cd /var/www
 git clone https://github.com/el-choco/blog-advanced.git
-chown -R www-data:www-data blog-advanced
+cd blog-advanced
 ```
 
-2) Configure your web server
+2) Run the bare-metal installation script
+```bash
+sudo ./scripts/install_baremetal.sh
+```
+
+This will:
+- Create required directories (`uploads/`, `data/`, `data/backups/`, `logs/`, `sessions/`)
+- Auto-detect web server user (`www-data`, `apache`, `nginx`)
+- Set ownership and secure permissions (0755)
+- Provide fallback options (ACL or 0777 with warnings)
+
+Alternatively, set up directories manually (see "Manual Permission Setup" section above).
+
+3) Configure your web server
 
 - Apache (VirtualHost example):
 ```
@@ -205,7 +345,7 @@ Reload:
 nginx -t && systemctl reload nginx
 ```
 
-3) PHP extensions
+4) PHP extensions
 - Ensure required extensions are enabled:
 ```bash
 php -m | grep -E 'pdo_mysql|mbstring|intl|zip|gd|curl|openssl|json'
@@ -216,7 +356,7 @@ apt-get install -y php8.2-{mysql,mbstring,intl,zip,gd,curl}
 systemctl reload php8.2-fpm || systemctl restart apache2
 ```
 
-4) Database
+5) Database
 - Create a database and user:
 ```sql
 CREATE DATABASE blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -232,7 +372,7 @@ FLUSH PRIVILEGES;
 
 The schema files include all required tables: `posts`, `categories`, `comments`, `images`, and `users`.
 
-5) Configuration
+6) Configuration
 - Create or edit `config.ini` in the project root:
 - chose DB Type by removing the Semikolon ( ; ).
 ```
@@ -321,14 +461,6 @@ theme = "theme02"
 
 ```
 Note: Do not commit secrets to the repo. Add sensitive files to `.gitignore` (see below).
-
-6) Permissions
-- Ensure the web server user can write to data/logs/ and any upload directories:
-```bash
-mkdir -p data/i data/t data/logs static/images
-chown -R www-data:www-data data static/images
-chmod -R 750 data static/images
-```
 
 7) Access
 - Open http://blog.local (adjust hosts/DNS) and http://blog.local/admin
