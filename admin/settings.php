@@ -90,10 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         // Handle theme mode (dark/light)
         if (isset($_POST['theme_mode'])) {
             $mode = $_POST['theme_mode'] === 'dark' ? 'dark' : 'light';
+            $config['custom']['theme_mode'] = $mode;
             $config['theme_mode'] = $mode;
         }
         // Handle theme mode override
-        $config['theme_mode_override'] = isset($_POST['theme_mode_override']) ? '1' : '0';
+        $override = isset($_POST['theme_mode_override']) ? '1' : '0';
+        $config['custom']['theme_mode_override'] = $override;
+        $config['theme_mode_override'] = $override;
         
         if (writeConfig($config_file, $config)) {
             $message = $lang['General settings saved'];
@@ -588,14 +591,14 @@ $timezones = [
                                 <div>
                                     <label class="form-label">Theme Mode</label>
                                     <select name="theme_mode" class="form-select">
-                                        <?php $current_mode = getConfig($config, '', 'theme_mode', 'light'); ?>
+                                        <?php $current_mode = getConfig($config, 'custom', 'theme_mode', 'light'); ?>
                                         <option value="light" <?php echo $current_mode === 'light' ? 'selected' : ''; ?>>☀️ Light Mode</option>
                                         <option value="dark" <?php echo $current_mode === 'dark' ? 'selected' : ''; ?>>🌙 Dark Mode</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="form-checkbox" style="margin-top: 12px;">
-                                <input type="checkbox" name="theme_mode_override" id="theme_mode_override" <?php echo getConfig($config, '', 'theme_mode_override', '0') === '1' ? 'checked' : ''; ?>>
+                                <input type="checkbox" name="theme_mode_override" id="theme_mode_override" <?php echo getConfig($config, 'custom', 'theme_mode_override', '0') === '1' ? 'checked' : ''; ?>>
                                 <label for="theme_mode_override">Force theme mode (disable client-side toggle)</label>
                             </div>
                             <div class="form-help" style="color: #666; font-size: 13px; margin-top: 8px;">
