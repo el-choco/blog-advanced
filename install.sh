@@ -59,15 +59,23 @@ else
     echo -e "${YELLOW}ℹ️  config.ini already exists, skipping...${NC}"
 fi
 
+# Set ownership
+echo -e "${GREEN}👤 Setting ownership...${NC}"
+if command -v chown &> /dev/null; then
+    chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+else
+    echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
+fi
+
 # Set permissions
 echo -e "${GREEN}🔐 Setting permissions...${NC}"
-chmod -R 775 data/
-chmod -R 775 uploads/
-chmod -R 775 logs/
-chmod -R 775 sessions/
+chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data${NC}"
+chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
+chmod -R 0775 logs/ 2>/dev/null || true
+chmod -R 0775 sessions/ 2>/dev/null || true
 
 if [ -f "data/config.ini" ]; then
-    chmod 666 data/config.ini
+    chmod 0666 data/config.ini 2>/dev/null || true
 fi
 
 # Check for PHP
