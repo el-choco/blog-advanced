@@ -56,7 +56,7 @@ fi
 
 echo -e "${GREEN}🔐 Setting permissions for Docker...${NC}"
 # Set permissions
-chmod -R 0775 data uploads data/backups 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions${NC}"
+chmod -R 0775 data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions${NC}"
 
 # Create .env file if it doesn't exist
 if [ ! -f ".env" ]; then

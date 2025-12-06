@@ -30,8 +30,6 @@ mkdir -p data/backups
 mkdir -p data/cache
 mkdir -p uploads/images
 mkdir -p uploads/files
-mkdir -p uploads
-mkdir -p data
 mkdir -p logs
 mkdir -p sessions
 
@@ -74,7 +72,6 @@ fi
 echo -e "${GREEN}🔐 Setting permissions...${NC}"
 chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data${NC}"
 chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
-chmod -R 0775 data/backups 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data/backups${NC}"
 chmod -R 775 logs/ 2>/dev/null || true
 chmod -R 775 sessions/ 2>/dev/null || true
 
