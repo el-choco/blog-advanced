@@ -109,9 +109,24 @@ volumes:
   db_data:
 ```
 
-4) make folders writeable **(Very Important befor Step 5 !!!!!)**
-- chmod -R  777 path_to_your_folder/blog-advanced/data 
-- chmod -R  777 path_to_your_folder/blog-advanced/uploads 
+4) Set ownership and permissions for data directories **(Very Important before Step 5 !!!!!)**
+
+**Recommended (preferred method):**
+```bash
+# Set ownership to www-data user (web server user)
+chown -R www-data:www-data data uploads
+
+# Set group-writable permissions (0775)
+chmod -R 0775 data uploads
+```
+
+**Alternative (if www-data user doesn't exist on host):**
+```bash
+# Fallback to world-writable permissions (less secure)
+chmod -R 777 data uploads
+```
+
+**Note:** The preferred method uses `www-data` ownership and `0775` permissions, which is more secure than `0777`. The container's web server runs as `www-data`, so these permissions allow proper write access without exposing the directories to all users. 
 
  5) Start containers
 ```bash
