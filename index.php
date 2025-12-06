@@ -564,7 +564,7 @@ if (Config::get_safe("version", false)) {
 
 	<div class="bluebar">
 		<h1><?php echo escape(Config::get("title")); ?></h1>
-		<button id="themeToggle" aria-label="Toggle theme" aria-pressed="false" style="position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 16px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; font-size: 20px; transition: all 0.3s ease;">🌙</button>
+		<button id="themeToggle" aria-label="Toggle theme" aria-pressed="false" style="position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 16px; border: none; border-radius: 8px; background: var(--color-background, rgba(255, 255, 255, 0.9)); box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer; font-size: 20px; transition: all 0.3s ease; border: 1px solid var(--color-border, #e5e7eb);">🌙</button>
 	</div>
 
 	<div class="headbar">
