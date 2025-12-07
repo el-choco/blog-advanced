@@ -74,6 +74,16 @@ if (Config::get_safe("version", false)) {
 $theme_mode = Config::get_safe("theme_mode", "light");
 $theme_mode_override = Config::get_safe("theme_mode_override", "0");
 
+// Validate theme_mode
+if (!in_array($theme_mode, ['light', 'dark'], true)) {
+	$theme_mode = 'light';
+}
+
+// Validate theme_mode_override
+if (!in_array($theme_mode_override, ['0', '1'], true)) {
+	$theme_mode_override = '0';
+}
+
 ?><!DOCTYPE html>
 <html data-theme="<?php echo htmlspecialchars($theme_mode, ENT_QUOTES, 'UTF-8'); ?>" data-theme-override="<?php echo htmlspecialchars($theme_mode_override, ENT_QUOTES, 'UTF-8'); ?>">
 <head>
