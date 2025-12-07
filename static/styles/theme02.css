@@ -66,6 +66,40 @@
   }
 }
 
+/* Dark mode support using data-theme attribute */
+[data-theme="dark"] {
+  --primary-text: #e4e6eb;
+  --secondary-text: #b0b3b8;
+
+  --primary-background: #242526;
+  --secondary-background: #3a3b3c;
+  --secondary-background-hover: #4e4f50;
+
+  --primary-border: #393a3b;
+
+  --modal-background: rgba(11, 11, 11, 0.8);
+
+  --button-primary-color: var(--primary-text);
+  --button-primary-background: #2d88ff;
+  --button-primary-background-hover: #4294ff;
+  --button-primary-background-active: #77a7ff;
+
+  --web-wash: #18191a;
+  --blue-link: #4599ff;
+
+  --img-desc: #fff;
+  --thumb-background: #000;
+
+  --error-color: #fff;
+  --error-background: #a94442;
+  --datepicker-inactive-month: #57595d;
+
+  --filter: invert(0.62) sepia(0.98) saturate(0.12) hue-rotate(175deg) brightness(0.9) contrast(0.96);
+  --filter-hover: invert(1);
+  --overlay-background: rgba(255, 255, 255, .25);
+  --overlay-fallback-background: #555;
+}
+
 body {
   font-family: "Open Sans", Tahoma, sans-serif;
   color: var(--primary-text);
@@ -1347,7 +1381,7 @@ select {
   margin-bottom: 16px;
 }
 .sidebar-card-header {
-  background: var(--color-primary, #1877f2);
+  background: var(--button-primary-background, #1877f2);
   color: #fff;
   padding: 10px 12px;
   border-top-left-radius: 12px;

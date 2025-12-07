@@ -193,7 +193,7 @@ if (Config::get_safe("version", false)) {
 	  width: 100%;
 	}
 	.comments-by-category-card .sidebar-card-header {
-	  background: var(--color-primary, #1877f2);
+	  background: var(--button-primary-background, #1877f2);
 	  color: #fff;
 	  padding: 10px 12px;
 	  font-weight: 600;
