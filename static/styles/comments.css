@@ -2,7 +2,7 @@
 .comments-section {
     margin-top: 20px;
     padding: 20px;
-    background: #f8f9fa;
+    background: var(--surface-2, #f8f9fa);
     border-radius: 12px;
     font-size: 14px;
 }
@@ -11,7 +11,7 @@
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 20px;
-    color: #2c3e50;
+    color: var(--text-color, #2c3e50);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -28,7 +28,7 @@
 }
 
 .comment {
-    background: white;
+    background: var(--surface, white);
     padding: 15px;
     margin-bottom: 12px;
     border-left: 4px solid #3498db;
@@ -44,12 +44,12 @@
 
 .comment.pending {
     border-left-color: #f39c12;
-    background: #fffbf0;
+    background: var(--surface-2, #fffbf0);
 }
 
 .comment.spam {
     border-left-color: #e74c3c;
-    background: #fff5f5;
+    background: var(--surface-2, #fff5f5);
     opacity: 0.6;
 }
 
@@ -100,7 +100,7 @@
 
 /* Comment Form */
 .comment-form-wrapper {
-    background: white;
+    background: var(--surface, white);
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -108,7 +108,7 @@
 
 .comment-form-wrapper h4 {
     margin: 0 0 15px 0;
-    color: #2c3e50;
+    color: var(--text-color, #2c3e50);
     font-size: 16px;
     font-weight: 600;
 }

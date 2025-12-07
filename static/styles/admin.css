@@ -139,7 +139,7 @@
 
 .panel-header {
     padding: 20px;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--border-color, #e5e5e5);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -389,8 +389,8 @@
 
 .toolbar-btn {
     padding: 8px 12px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--surface, white);
+    border: 1px solid var(--border-color, #ddd);
     border-radius: 4px;
     cursor: pointer;
     font-size: 13px;
@@ -398,7 +398,7 @@
 }
 
 .toolbar-btn:hover {
-    background: #e7f3ff;
+    background: var(--surface-2, #e7f3ff);
     border-color: #1877f2;
     color: #1877f2;
 }
@@ -527,8 +527,8 @@
 .admin-content .panel,
 .admin-content .card {
   box-sizing: border-box !important;
-  background: #fff !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--surface, #fff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
   border-radius: 12px !important;
   box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12) !important;
   padding: 16px !important;

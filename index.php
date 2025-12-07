@@ -70,8 +70,12 @@ if (Config::get_safe("version", false)) {
 	$versionSuffix = '?v='.rawurlencode(Config::get("version"));
 }
 
+// Get theme mode settings
+$theme_mode = Config::get_safe("theme_mode", "light");
+$theme_mode_override = Config::get_safe("theme_mode_override", "0");
+
 ?><!DOCTYPE html>
-<html>
+<html data-theme="<?php echo htmlspecialchars($theme_mode, ENT_QUOTES, 'UTF-8'); ?>" data-theme-override="<?php echo htmlspecialchars($theme_mode_override, ENT_QUOTES, 'UTF-8'); ?>">
 <head>
 	<meta charset="utf-8">
 	<title><?php echo escape(Config::get("title")); ?></title>
@@ -103,8 +107,8 @@ if (Config::get_safe("version", false)) {
 		gap: 4px;
 		padding: 6px;
 		border-radius: 8px;
-		background: #f8f8f8;
-		border: 1px solid #ddd;
+		background: var(--surface, #f8f8f8);
+		border: 1px solid var(--border-color, #ddd);
 		font-size: 22px;
 		margin-top: 8px;
 	}
@@ -116,7 +120,7 @@ if (Config::get_safe("version", false)) {
 	}
 	#emojiPicker .emoji:hover {
 		transform: scale(1.3);
-		background: #e8e8e8;
+		background: var(--surface-2, #e8e8e8);
 		border-radius: 4px;
 	}
 	#emojiPicker .emoji:active {
@@ -129,7 +133,7 @@ if (Config::get_safe("version", false)) {
 		resize: none !important;
 	}
 	.file-preview-container { display:none; margin-top:8px; }
-	.file-preview-item { display:inline-block; margin-right:8px; padding:6px 8px; border:1px solid #e6e6e6; border-radius:6px; background:#fafafa; }
+	.file-preview-item { display:inline-block; margin-right:8px; padding:6px 8px; border:1px solid var(--border-color, #e6e6e6); border-radius:6px; background:var(--surface-2, #fafafa); }
 	.file-preview-item .file-name { display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
 	.file-preview-item .remove-file-btn { margin-left:6px; border:0; background:transparent; color:#888; cursor:pointer; font-size:14px; }
 
@@ -137,9 +141,9 @@ if (Config::get_safe("version", false)) {
 	.comments-by-category-card {
 	  margin-top: 30px;
 	  border-radius: 8px;
-	  background: #fff;
+	  background: var(--surface, #fff);
 	  box-shadow: 0 2px 6px rgba(0,0,0,.06);
-	  border: 1px solid #e5e7eb;
+	  border: 1px solid var(--border-color, #e5e7eb);
 	  overflow: hidden;
 	  width: 100%;
 	}
@@ -158,14 +162,14 @@ if (Config::get_safe("version", false)) {
 	  content: none !important;
 	  margin: 0 !important;
 	}
-	.comments-by-category-card .sidebar-card-body { padding: 10px 12px; background: #fff; }
+	.comments-by-category-card .sidebar-card-body { padding: 10px 12px; background: var(--surface, #fff); }
 
 	/* Base content */
 	.cbc-category { font-weight: 600; margin: 10px 0 6px; }
 	.cbc-list { list-style: none; margin: 0; padding: 0; }
-	.cbc-item { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }
+	.cbc-item { padding: 6px 0; border-bottom: 1px dashed var(--border-color, #e5e7eb); }
 	.cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
-	.cbc-text { margin: 4px 0; color: #111827; font-size: 14px; }
+	.cbc-text { margin: 4px 0; color: var(--text-color, #111827); font-size: 14px; }
 	.cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
 	.cbc-post a:hover { text-decoration: underline; }
 
@@ -177,17 +181,56 @@ if (Config::get_safe("version", false)) {
 		font-weight: 600;
 		margin: 0;
 		padding: 10px 12px;
-		background: #f7fafc;
-		border: 1px solid #e5e7eb;
+		background: var(--surface-2, #f7fafc);
+		border: 1px solid var(--border-color, #e5e7eb);
 		border-radius: 8px;
 	}
 	.comments-by-category-card .cbc-list { list-style: none; margin: 8px 0 0; padding: 0; }
-	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed #e5e7eb; }
+	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color, #e5e7eb); }
 	.comments-by-category-card .cbc-item:last-child { border-bottom: none; }
 	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
-	.comments-by-category-card .cbc-text { margin: 4px 0; color: #111827; font-size: 14px; white-space: normal; }
+	.comments-by-category-card .cbc-text { margin: 4px 0; color: var(--text-color, #111827); font-size: 14px; white-space: normal; }
 	.comments-by-category-card .cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
 	.comments-by-category-card .cbc-post a:hover { text-decoration: underline; }
+
+	/* Toolbar styles */
+	.toolbar {
+		display: flex;
+		justify-content: center;
+		gap: 6px;
+		padding: 8px 0;
+		flex-wrap: wrap;
+		border: 1px solid var(--border-color, #b8daed);
+		background: var(--surface, #fff);
+		margin-bottom: 8px;
+		border-radius: 15px;
+	}
+
+	.toolbar.markdown-toolbar {
+		border-color: var(--border-color, #b8daed);
+	}
+
+	.toolbar.html-toolbar {
+		border-color: var(--border-color, #d4edda);
+	}
+
+	.toolbar .separator {
+		border-right: 1px solid var(--border-color, #b8daed);
+		margin: 0 4px;
+	}
+
+	.markdown-btn, .html-btn {
+		padding: 6px 10px;
+		border: 1px solid var(--border-color, #b8daed);
+		background: var(--surface, #fff);
+		cursor: pointer;
+		border-radius: 10px;
+		font-size: 11px;
+	}
+
+	.html-btn {
+		border-color: var(--border-color, #28a745);
+	}
 	</style>
 	<?php echo $styles_html; ?>
 </head>
@@ -311,70 +354,70 @@ if (Config::get_safe("version", false)) {
 						</div>
 
 						<!-- Markdown Toolbar -->
-						<div style="display:flex; justify-content: center; gap:6px; padding:8px 0; flex-wrap:wrap; border: 1px solid #b8daed; background: #fff; margin-bottom: 8px; border-radius: 15px;">
+						<div class="toolbar markdown-toolbar">
 							<span style="font-size: 11px; font-weight: bold; color: #0066cc; align-self: center; margin-right: 8px;">MARKDOWN:</span>
 							
 							<!-- Text Formatting -->
-							<button type="button" class="markdown-btn" data-md="bold" title="<?php echo __("Bold"); ?>" style="font-weight:bold; padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">B</button>
-							<button type="button" class="markdown-btn" data-md="italic" title="<?php echo __("Italic"); ?>" style="font-style:italic; padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">I</button>
-							<button type="button" class="markdown-btn" data-md="strike" title="<?php echo __("Strikethrough"); ?>" style="text-decoration:line-through; padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">S</button>
+							<button type="button" class="markdown-btn" data-md="bold" title="<?php echo __("Bold"); ?>" style="font-weight:bold;">B</button>
+							<button type="button" class="markdown-btn" data-md="italic" title="<?php echo __("Italic"); ?>" style="font-style:italic;">I</button>
+							<button type="button" class="markdown-btn" data-md="strike" title="<?php echo __("Strikethrough"); ?>" style="text-decoration:line-through;">S</button>
 							
-							<span style="border-right: 1px solid #b8daed; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Headings -->
-							<button type="button" class="markdown-btn" data-md="h1" title="<?php echo __("Heading 1"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:13px; font-weight:bold;">H1</button>
-							<button type="button" class="markdown-btn" data-md="h2" title="<?php echo __("Heading 2"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:12px; font-weight:bold;">H2</button>
-							<button type="button" class="markdown-btn" data-md="h3" title="<?php echo __("Heading 3"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px; font-weight:bold;">H3</button>
+							<button type="button" class="markdown-btn" data-md="h1" title="<?php echo __("Heading 1"); ?>" style="font-size:13px; font-weight:bold;">H1</button>
+							<button type="button" class="markdown-btn" data-md="h2" title="<?php echo __("Heading 2"); ?>" style="font-size:12px; font-weight:bold;">H2</button>
+							<button type="button" class="markdown-btn" data-md="h3" title="<?php echo __("Heading 3"); ?>" style="font-weight:bold;">H3</button>
 							
-							<span style="border-right: 1px solid #b8daed; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Links & Images -->
-							<button type="button" class="markdown-btn" data-md="link" title="<?php echo __("Link"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px;">🔗</button>
-							<button type="button" class="markdown-btn" data-md="image" title="<?php echo __("Image"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px;">🖼️</button>
+							<button type="button" class="markdown-btn" data-md="link" title="<?php echo __("Link"); ?>">🔗</button>
+							<button type="button" class="markdown-btn" data-md="image" title="<?php echo __("Image"); ?>">🖼️</button>
 							
-							<span style="border-right: 1px solid #b8daed; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Code -->
-							<button type="button" class="markdown-btn" data-md="code" title="<?php echo __("Inline Code"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-family:monospace; font-size:11px;">`code`</button>
-							<button type="button" class="markdown-btn" data-md="codeblock" title="<?php echo __("Code Block"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-family:monospace; font-size:10px;">```</button>
+							<button type="button" class="markdown-btn" data-md="code" title="<?php echo __("Inline Code"); ?>" style="font-family:monospace;">`code`</button>
+							<button type="button" class="markdown-btn" data-md="codeblock" title="<?php echo __("Code Block"); ?>" style="font-family:monospace; font-size:10px;">```</button>
 							
-							<span style="border-right: 1px solid #b8daed; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Lists & Quotes -->
-							<button type="button" class="markdown-btn" data-md="ul" title="<?php echo __("List"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">• <?php echo __("List"); ?></button>
-							<button type="button" class="markdown-btn" data-md="ol" title="<?php echo __("Numbered List"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">1. <?php echo __("List"); ?></button>
-							<button type="button" class="markdown-btn" data-md="quote" title="<?php echo __("Quote"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">💬</button>
-							<button type="button" class="markdown-btn" data-md="hr" title="<?php echo __("Horizontal Line"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px; font-size:11px;">---</button>
-							<button type="button" class="markdown-btn" data-md="table" title="<?php echo __("Table"); ?>" style="padding:6px 10px; border:1px solid #b8daed; background:#fff; cursor:pointer; border-radius:10px;">📊</button>
+							<button type="button" class="markdown-btn" data-md="ul" title="<?php echo __("List"); ?>">• <?php echo __("List"); ?></button>
+							<button type="button" class="markdown-btn" data-md="ol" title="<?php echo __("Numbered List"); ?>">1. <?php echo __("List"); ?></button>
+							<button type="button" class="markdown-btn" data-md="quote" title="<?php echo __("Quote"); ?>">💬</button>
+							<button type="button" class="markdown-btn" data-md="hr" title="<?php echo __("Horizontal Line"); ?>">---</button>
+							<button type="button" class="markdown-btn" data-md="table" title="<?php echo __("Table"); ?>">📊</button>
 						</div>
 						<!-- HTML Toolbar -->
-						<div style="display:flex; justify-content: center; gap:6px; padding:8px 0; flex-wrap:wrap; border: 1px solid #d4edda; background: #fff; margin-bottom: 8px; border-radius: 15px;">
+						<div class="toolbar html-toolbar">
 							<span style="font-size: 11px; font-weight: bold; color: #28a745; align-self: center; margin-right: 8px;">HTML:</span>
 							
 							<!-- Alignment -->
-							<button type="button" class="html-btn" data-html="center" title="<?php echo __("Center"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">⬆️ Center</button>
-							<button type="button" class="html-btn" data-html="right" title="<?php echo __("Right Align"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">➡️ Right</button>
-							<button type="button" class="html-btn" data-html="left" title="<?php echo __("Left Align"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">⬅️ Left</button>
+							<button type="button" class="html-btn" data-html="center" title="<?php echo __("Center"); ?>">⬆️ Center</button>
+							<button type="button" class="html-btn" data-html="right" title="<?php echo __("Right Align"); ?>">➡️ Right</button>
+							<button type="button" class="html-btn" data-html="left" title="<?php echo __("Left Align"); ?>">⬅️ Left</button>
 							
-							<span style="border-right: 1px solid #28a745; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Color & Highlighting -->
-							<button type="button" class="html-btn" data-html="color" title="<?php echo __("Color"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">🎨 <?php echo __("Color"); ?></button>
-							<button type="button" class="html-btn" data-html="mark" title="<?php echo __("Highlight"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">✨ <?php echo __("Highlight"); ?></button>
+							<button type="button" class="html-btn" data-html="color" title="<?php echo __("Color"); ?>">🎨 <?php echo __("Color"); ?></button>
+							<button type="button" class="html-btn" data-html="mark" title="<?php echo __("Highlight"); ?>">✨ <?php echo __("Highlight"); ?></button>
 							
-							<span style="border-right: 1px solid #28a745; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Text Size -->
-							<button type="button" class="html-btn" data-html="small" title="<?php echo __("Small"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; font-size:9px;">Small</button>
-							<button type="button" class="html-btn" data-html="big" title="<?php echo __("Large"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; font-size:14px;">Large</button>
+							<button type="button" class="html-btn" data-html="small" title="<?php echo __("Small"); ?>" style="font-size:9px;">Small</button>
+							<button type="button" class="html-btn" data-html="big" title="<?php echo __("Large"); ?>" style="font-size:14px;">Large</button>
 							
-							<span style="border-right: 1px solid #28a745; margin: 0 4px;"></span>
+							<span class="separator"></span>
 							
 							<!-- Special -->
-							<button type="button" class="html-btn" data-html="underline" title="<?php echo __("Underline"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px; text-decoration:underline; font-size:11px;">U</button>
-							<button type="button" class="html-btn" data-html="sup" title="<?php echo __("Superscript"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">x<sup>2</sup></button>
-							<button type="button" class="html-btn" data-html="sub" title="<?php echo __("Subscript"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">H<sub>2</sub>O</button>
-							<button type="button" class="html-btn" data-html="spoiler" title="<?php echo __("Spoiler"); ?>" style="padding:6px 10px; border:1px solid #28a745; background:#fff; cursor:pointer; border-radius:10px;">👁️ <?php echo __("Spoiler"); ?></button>
+							<button type="button" class="html-btn" data-html="underline" title="<?php echo __("Underline"); ?>" style="text-decoration:underline;">U</button>
+							<button type="button" class="html-btn" data-html="sup" title="<?php echo __("Superscript"); ?>">x<sup>2</sup></button>
+							<button type="button" class="html-btn" data-html="sub" title="<?php echo __("Subscript"); ?>">H<sub>2</sub>O</button>
+							<button type="button" class="html-btn" data-html="spoiler" title="<?php echo __("Spoiler"); ?>">👁️ <?php echo __("Spoiler"); ?></button>
 						</div>
 						<!-- Emoji Picker with 44 modern emojis -->
 						<div id="emojiPicker" style="display:flex; flex-wrap:wrap; justify-content: space-around; gap:4px; padding:6px; border-radius:8px; background:#fff; border:1px solid #ddd; font-size:22px;">
@@ -634,6 +677,7 @@ if (Config::get_safe("version", false)) {
 	<script src="static/scripts/app.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/comments-init.js<?php echo $versionSuffix?>"></script>
+	<script src="assets/js/theme-toggle.js<?php echo $versionSuffix?>"></script>
 	<?php echo $scripts_html; ?>
 
 <script>

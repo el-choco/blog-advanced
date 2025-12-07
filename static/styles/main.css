@@ -1,10 +1,61 @@
+/* Base CSS Variables for Light Theme */
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --surface: #ffffff;
+  --surface-2: #f7f7f9;
+  --border-color: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-text: #222222;
+}
+
+/* Dark Theme Override */
+html[data-theme="dark"] {
+  --background-color: #1a1a1a;
+  --text-color: #e4e6eb;
+  --surface: #1b1b1f;
+  --surface-2: #232329;
+  --border-color: #2f3136;
+  --input-bg: #1b1b1f;
+  --input-text: #e0e0e0;
+}
+
+/* Apply CSS Variables to Common Elements */
+.card, .panel, .widget {
+  background: var(--surface);
+  border-color: var(--border-color);
+}
+
+.card .sub, .panel .sub, .widget .sub {
+  background: var(--surface-2);
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  background: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--border-color);
+}
+
+.toolbar, .emoji-panel {
+  background: var(--surface);
+  border-color: var(--border-color);
+}
+
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%; }
+  -webkit-text-size-adjust: 100%;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
 
 body {
-  margin: 0; }
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
 
 article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary {
   display: block; }
@@ -138,3 +189,30 @@ table {
 
 td, th {
   padding: 0; }
+
+/* Theme Toggle Button */
+.theme-toggle-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background: var(--background-color, #fff);
+  color: var(--text-color, #000);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 9998;
+  transition: all 0.2s ease;
+}
+
+html[data-theme="dark"] .theme-toggle-button {
+  border-color: #555;
+}
+
+.theme-toggle-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
