@@ -149,7 +149,7 @@ if (Config::get_safe("version", false)) {
 		padding: 6px 10px;
 		border: 1px solid var(--border-color);
 		background: var(--surface-2);
-		color: var(--color-text, var(--primary-text));
+		color: var(--primary-text);
 		cursor: pointer;
 		border-radius: 10px;
 		font-size: 11px;
@@ -171,7 +171,7 @@ if (Config::get_safe("version", false)) {
 		justify-content: center;
 		border-radius: 999px;
 		background: var(--surface);
-		color: var(--color-text, var(--primary-text));
+		color: var(--primary-text);
 		border: 2px solid var(--border-color);
 		cursor: pointer;
 		box-shadow: 0 4px 10px rgba(0,0,0,.2);
@@ -218,7 +218,7 @@ if (Config::get_safe("version", false)) {
 	.cbc-list { list-style: none; margin: 0; padding: 0; }
 	.cbc-item { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
 	.cbc-line { display: flex; justify-content: space-between; color: var(--muted-text); font-size: 12px; }
-	.cbc-text { margin: 4px 0; color: var(--color-text, var(--primary-text)); font-size: 14px; }
+	.cbc-text { margin: 4px 0; color: var(--primary-text); font-size: 14px; }
 	.cbc-post a { color: var(--blue-link, #2563eb); text-decoration: none; font-size: 13px; }
 	.cbc-post a:hover { text-decoration: underline; }
 
@@ -238,7 +238,7 @@ if (Config::get_safe("version", false)) {
 	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
 	.comments-by-category-card .cbc-item:last-child { border-bottom: none; }
 	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: var(--muted-text); font-size: 12px; }
-	.comments-by-category-card .cbc-text { margin: 4px 0; color: var(--color-text, var(--primary-text)); font-size: 14px; white-space: normal; }
+	.comments-by-category-card .cbc-text { margin: 4px 0; color: var(--primary-text); font-size: 14px; white-space: normal; }
 	.comments-by-category-card .cbc-post a { color: var(--blue-link, #2563eb); text-decoration: none; font-size: 13px; }
 	.comments-by-category-card .cbc-post a:hover { text-decoration: underline; }
 	</style>

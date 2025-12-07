@@ -1395,7 +1395,7 @@ select {
 .sidebar-card-body { 
   padding: 12px;
   background: var(--surface);
-  color: var(--color-text, var(--primary-text));
+  color: var(--primary-text);
 }
 
 /* Kategorien */
@@ -1403,7 +1403,7 @@ select {
 .cat-item { margin: 0; }
 .cat-link {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; color: var(--color-text, var(--primary-text)); text-decoration: none;
+  padding: 10px 12px; color: var(--primary-text); text-decoration: none;
   border-bottom: 1px solid var(--border-color);
 }
 .cat-link:hover { background: var(--surface-2); }
@@ -1414,7 +1414,7 @@ select {
 /* Comments by Category */
 .cbc-category {
   font-weight: 700;
-  color: var(--color-text, var(--primary-text));
+  color: var(--primary-text);
   margin: 8px 0 6px;
 }
 .cbc-list {
@@ -1441,7 +1441,7 @@ select {
 .cbc-date { opacity: 0.9; }
 .cbc-text {
   font-size: 13px;
-  color: var(--color-text, var(--primary-text));
+  color: var(--primary-text);
   margin-bottom: 4px;
 }
 .cbc-post .cbc-link {
