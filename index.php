@@ -159,6 +159,29 @@ if (Config::get_safe("version", false)) {
 		background: var(--surface);
 	}
 
+	/* Dark mode toggle button */
+	#theme-toggle {
+		position: fixed;
+		right: 20px;
+		bottom: 80px;
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		background: var(--surface);
+		color: var(--color-text, var(--primary-text));
+		border: 2px solid var(--border-color);
+		cursor: pointer;
+		box-shadow: 0 4px 10px rgba(0,0,0,.2);
+		z-index: 99999;
+		transition: all 0.3s;
+	}
+	#theme-toggle:hover {
+		transform: scale(1.05);
+	}
+
 	/* Comments-by-category card */
 	.comments-by-category-card {
 	  margin-top: 30px;
@@ -208,15 +231,15 @@ if (Config::get_safe("version", false)) {
 		margin: 0;
 		padding: 10px 12px;
 		background: var(--surface-2);
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border-color);
 		border-radius: 8px;
 	}
 	.comments-by-category-card .cbc-list { list-style: none; margin: 8px 0 0; padding: 0; }
-	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed #e5e7eb; }
+	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
 	.comments-by-category-card .cbc-item:last-child { border-bottom: none; }
-	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
-	.comments-by-category-card .cbc-text { margin: 4px 0; color: #111827; font-size: 14px; white-space: normal; }
-	.comments-by-category-card .cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
+	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: var(--muted-text); font-size: 12px; }
+	.comments-by-category-card .cbc-text { margin: 4px 0; color: var(--color-text, var(--primary-text)); font-size: 14px; white-space: normal; }
+	.comments-by-category-card .cbc-post a { color: var(--blue-link, #2563eb); text-decoration: none; font-size: 13px; }
 	.comments-by-category-card .cbc-post a:hover { text-decoration: underline; }
 	</style>
 	<?php echo $styles_html; ?>
@@ -1017,7 +1040,6 @@ if (Config::get_safe("version", false)) {
     const toggleBtn = document.createElement('button');
     toggleBtn.id = 'theme-toggle';
     toggleBtn.setAttribute('aria-label', 'Toggle dark mode');
-    toggleBtn.style.cssText = 'position:fixed; right:20px; bottom:80px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:var(--surface); color:var(--color-text, var(--primary-text)); border:2px solid var(--border-color); cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.2); z-index:99999; transition:all 0.3s;';
     
     const updateIcon = () => {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
