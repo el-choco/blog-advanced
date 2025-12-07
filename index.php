@@ -420,7 +420,7 @@ $theme_mode_override = Config::get_safe("theme_mode_override", "0");
 							<button type="button" class="html-btn" data-html="spoiler" title="<?php echo __("Spoiler"); ?>">👁️ <?php echo __("Spoiler"); ?></button>
 						</div>
 						<!-- Emoji Picker with 44 modern emojis -->
-						<div id="emojiPicker" style="display:flex; flex-wrap:wrap; justify-content: space-around; gap:4px; padding:6px; border-radius:8px; background:#fff; border:1px solid #ddd; font-size:22px;">
+						<div id="emojiPicker">
 							<span class="emoji" data-emoji="😀">😀</span>
 							<span class="emoji" data-emoji="😃">😃</span>
 							<span class="emoji" data-emoji="😄">😄</span>
