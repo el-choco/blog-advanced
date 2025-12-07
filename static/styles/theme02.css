@@ -1340,39 +1340,47 @@ select {
 
 /* Sidebar cards */
 .sidebar-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow-elev-1);
   margin-bottom: 16px;
 }
 .sidebar-card-header {
-  background: #1877f2;
+  background: var(--color-primary, #1877f2);
   color: #fff;
   padding: 10px 12px;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   font-weight: 600;
 }
-.sidebar-card-body { padding: 12px; }
+.sidebar-card-header .icon {
+  background: transparent;
+  box-shadow: none;
+}
+.sidebar-card-body { 
+  padding: 12px;
+  background: var(--surface);
+  color: var(--color-text, var(--primary-text));
+}
 
 /* Kategorien */
 .categories-list { list-style: none; margin: 0; padding: 0; }
 .cat-item { margin: 0; }
 .cat-link {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; color: #111827; text-decoration: none;
-  border-bottom: 1px solid #f0f2f5;
+  padding: 10px 12px; color: var(--color-text, var(--primary-text)); text-decoration: none;
+  border-bottom: 1px solid var(--border-color);
 }
-.cat-link:hover { background: #f8fafc; }
+.cat-link:hover { background: var(--surface-2); }
 .cat-item:last-child .cat-link { border-bottom: 0; }
 .cat-name { font-weight: 600; }
-.cat-count { color: #6b7280; }
+.cat-count { color: var(--muted-text); }
 
 /* Comments by Category */
 .cbc-category {
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text, var(--primary-text));
   margin: 8px 0 6px;
 }
 .cbc-list {
@@ -1383,28 +1391,28 @@ select {
 .cbc-item {
   margin: 0 0 10px 0;
   padding: 8px;
-  border: 1px solid #f0f2f5;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #fafafa;
+  background: var(--surface-2);
 }
 .cbc-line {
   display: flex;
   justify-content: space-between;
   gap: 8px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--muted-text);
   margin-bottom: 4px;
 }
 .cbc-author { font-weight: 600; }
 .cbc-date { opacity: 0.9; }
 .cbc-text {
   font-size: 13px;
-  color: #374151;
+  color: var(--color-text, var(--primary-text));
   margin-bottom: 4px;
 }
 .cbc-post .cbc-link {
   font-size: 12px;
-  color: #1877f2;
+  color: var(--blue-link, #1877f2);
   text-decoration: none;
 }
 .cbc-post .cbc-link:hover { text-decoration: underline; }
@@ -1413,7 +1421,7 @@ select {
 .sidebar-card-body .empty,
 .sidebar-card-body .error {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--muted-text);
   padding: 6px 0;
 }
 #back_to_top { 
