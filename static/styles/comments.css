@@ -146,7 +146,7 @@
 .comment-form input:focus,
 .comment-form textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--button-primary-background, #3498db) 40%, transparent);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
     border-color: var(--button-primary-background, #3498db);
 }
 

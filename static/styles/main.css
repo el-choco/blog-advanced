@@ -1,28 +1,56 @@
 /* CSS Variables for Dark Mode Support */
 :root {
+  /* Surface & Background Colors */
   --surface: #ffffff;
   --surface-2: #f7f7f9;
   --surface-3: #f0f1f4;
+  
+  /* Border & Outline Colors */
   --border-color: #e5e7eb;
+  
+  /* Input Colors */
   --input-bg: #ffffff;
   --input-text: #222222;
+  
+  /* Text Colors */
   --muted-text: #88909a;
+  
+  /* Shadow Effects */
   --shadow-elev-1: 0 1px 2px rgba(0,0,0,0.06);
+  
+  /* Chip & Badge Colors */
   --chip-bg: #eef2f7;
   --chip-border: #d7dbe2;
+  
+  /* Note: Additional theme colors like --color-text, --primary-text, 
+     --color-primary, and --blue-link are defined in theme02.css */
 }
 
 [data-theme="dark"] {
+  /* Surface & Background Colors */
   --surface: #1b1b1f;
   --surface-2: #232329;
   --surface-3: #25262c;
+  
+  /* Border & Outline Colors */
   --border-color: #2f3136;
+  
+  /* Input Colors */
   --input-bg: #1b1b1f;
   --input-text: #e0e0e0;
+  
+  /* Text Colors */
   --muted-text: #9aa0a6;
+  
+  /* Shadow Effects */
   --shadow-elev-1: 0 1px 2px rgba(0,0,0,0.55);
+  
+  /* Chip & Badge Colors */
   --chip-bg: #2a2c31;
   --chip-border: #3a3d43;
+  
+  /* Note: Additional theme colors are overridden in theme02.css 
+     via @media (prefers-color-scheme: dark) and [data-theme="dark"] */
 }
 
 html {
