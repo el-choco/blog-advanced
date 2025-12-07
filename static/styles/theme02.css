@@ -1328,19 +1328,19 @@ select {
 
 /* Profile card */
 .profile-card {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+  background: var(--surface, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 12px;
   box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12); overflow: hidden; margin-bottom: 16px;
 }
 .profile-cover img { width: 100%; display: block; }
 .profile-body { padding: 12px; display: flex; align-items: center; gap: 12px; }
-.avatar-wrap { width: 48px; height: 48px; border-radius: 50%; background: #e5e7eb; }
-.avatar { width: 100%; height: 100%; border-radius: 50%; background: #cbd5e1; }
+.avatar-wrap { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2, #e5e7eb); }
+.avatar { width: 100%; height: 100%; border-radius: 50%; background: var(--surface-2, #cbd5e1); }
 .profile-name { font-weight: 600; }
 
 /* Sidebar cards */
 .sidebar-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 12px;
   box-shadow: 0 6px 20px -6px rgba(0,0,0,0.12);
   margin-bottom: 16px;
@@ -1353,7 +1353,7 @@ select {
   border-top-right-radius: 12px;
   font-weight: 600;
 }
-.sidebar-card-body { padding: 12px; }
+.sidebar-card-body { padding: 12px; background: var(--surface, #fff); }
 
 /* Kategorien */
 .categories-list { list-style: none; margin: 0; padding: 0; }
