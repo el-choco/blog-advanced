@@ -20,7 +20,7 @@ html[data-theme="dark"] {
   --input-text: #e0e0e0;
 }
 
-/* Apply CSS Variables to Common Elements */
+/* Apply CSS variables to common elements */
 .card, .panel, .widget {
   background: var(--surface);
   border-color: var(--border-color);
@@ -191,10 +191,10 @@ td, th {
   padding: 0; }
 
 /* -------------------------------------------------------
-   Variablen-Erweiterung (oberste Sektion deiner main.css)
+   Variable extension (top section of main.css)
    ------------------------------------------------------- */
 :root {
-  /* vorhandene Variablen beibehalten/ergänzen */
+  /* Keep/extend existing variables */
   --color-background: #ffffff;
   --color-text: #222222;
   --color-primary: #1877f2;
@@ -202,7 +202,7 @@ td, th {
   --color-accent: #ff9800;
   --radius: 6px;
 
-  /* neue Oberflächen- und UI-Variablen */
+  /* New surface and UI variables */
   --surface: #ffffff;
   --surface-2: #f7f7f9;
   --surface-3: #f0f1f4;
@@ -216,11 +216,11 @@ td, th {
 }
 
 [data-theme="dark"] {
-  /* vorhandene Dark-Variablen beibehalten/ergänzen */
+  /* Keep/extend existing dark variables */
   --color-background: #121212;
   --color-text: #e0e0e0;
 
-  /* dunkle Oberflächen */
+  /* Dark surfaces */
   --surface: #1b1b1f;
   --surface-2: #232329;
   --surface-3: #25262c;
@@ -234,7 +234,7 @@ td, th {
 }
 
 /* -------------------------------------------------------
-   Global: Flächen & Text
+   Global: Surfaces & text
    ------------------------------------------------------- */
 html, body {
   background: var(--color-background);
@@ -242,9 +242,9 @@ html, body {
 }
 
 /* -------------------------------------------------------
-   Karten & Panels (u. a. Bereich direkt unter dem Cover)
+   Cards & panels (area directly under the cover)
    ------------------------------------------------------- */
-/* Ersetzt harte #fff/#f8f9fa durch Variablen */
+/* Replace hard-coded #fff/#f8f9fa with variables */
 .card, .panel, .intro-card, .author-panel, .post-header, .content-card {
   background: var(--surface);
   border: 1px solid var(--border-color);
@@ -254,16 +254,16 @@ html, body {
   background: var(--surface-2);
 }
 
-/* Falls es eine spezielle „Meta-/Action-Leiste“ unter dem Cover gibt: */
+/* If there is a dedicated meta/action bar under the cover */
 .post-actions, .post-meta, .post-toolbar {
   background: var(--surface-2);
   border-top: 1px solid var(--border-color);
 }
 
 /* -------------------------------------------------------
-   Sidebar Widgets (Kategorien, Kommentare nach Kategorie)
+   Sidebar widgets (categories, comments by category)
    ------------------------------------------------------- */
-/* Widget-Container, Body und Items */
+/* Widget container, body and items */
 .widget, .widget-body, .sidebar-widget, .widget-list, .widget-list .list-group, .list-group-item {
   background: var(--surface);
   color: var(--color-text);
@@ -273,14 +273,14 @@ html, body {
   background: var(--surface-2);
 }
 
-/* Header-Balken bleibt primär, aber ohne helle Artefakte */
+/* Header bar remains primary color without bright artifacts */
 .widget-header, .sidebar-widget .widget-header {
   background: var(--color-primary);
   color: #fff;
-  border: none; /* verhindert helle Rahmen */
+  border: none; /* prevents bright borders */
 }
 
-/* Icon-Hintergründe im Widget-Header transparent halten */
+/* Keep icon backgrounds transparent in the widget header */
 .widget-header .icon,
 .sidebar-widget .widget-header .icon,
 .widget .icon {
@@ -288,17 +288,17 @@ html, body {
   box-shadow: none !important;
 }
 
-/* Inline-SVG/IMG im Header: kein weißer Hintergrund, Farbe adaptiv */
+/* Inline SVG/IMG in header: no white background, color adapts */
 .widget-header .icon svg,
 .sidebar-widget .widget-header .icon svg {
-  fill: currentColor !important; /* übernimmt #fff im Header, var(--color-text) sonst */
+  fill: currentColor !important; 
 }
 .widget-header .icon img,
 .sidebar-widget .widget-header .icon img {
   background: transparent !important;
 }
 
-/* Manche Themes nutzen Pseudo-Elemente als Icon-Hintergrund */
+/* Some themes use pseudo-elements as icon backgrounds */
 .widget-header .icon::before,
 .sidebar-widget .widget-header .icon::before,
 .widget .icon::before {
@@ -306,7 +306,7 @@ html, body {
   box-shadow: none !important;
 }
 
-/* Widget-Items/Badges/Counter */
+/* Widget items / badges / counters */
 .widget .badge, .widget .chip, .counter-badge {
   background: var(--chip-bg);
   color: var(--color-text);
@@ -314,7 +314,7 @@ html, body {
 }
 
 /* -------------------------------------------------------
-   Editor: Toolbar, Emoji-Panels, Leisten
+   Editor: toolbar, emoji panels, etc.
    ------------------------------------------------------- */
 .editor-toolbar, .editor-toolbar-row, .emoji-panel, .composer-toolbar, .composer-toolbar-row {
   background: var(--surface-3);
@@ -329,23 +329,23 @@ html, body {
   background: var(--surface);
 }
 
-/* Emoji-Raster/Hintergründe */
+/* Emoji grid/backgrounds */
 .emoji-panel .emoji-grid, .emoji-panel .emoji-row {
   background: var(--surface-3);
 }
 .emoji-panel .emoji, .emoji-panel button.emoji {
-  background: transparent; /* Emojis selbst haben keine helle Fläche */
+  background: transparent; /* Emojis themselves have no bright background */
   border: none;
 }
 
-/* Untere Aktionsleiste (roter Pfeil in deinem Screenshot) */
+/* Lower action bar (red arrow in your screenshot) */
 .editor-footer, .composer-footer, .action-bar, .post-footer-tools {
   background: var(--surface);
   border-top: 1px solid var(--border-color);
 }
 
 /* -------------------------------------------------------
-   Formular-Inputs (Kommentarformular etc.)
+   Form inputs (comment form, etc.)
    ------------------------------------------------------- */
 input, textarea, select, .form-control {
   background: var(--input-bg);
@@ -361,7 +361,7 @@ input:focus, textarea:focus, select:focus, .form-control:focus {
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 40%, transparent);
 }
 
-/* Meldungs-/Hinweisboxen (falls vorhanden) */
+/* Message/notification boxes (if available) */
 .alert, .notice, .callout {
   background: var(--surface-2);
   color: var(--color-text);
@@ -369,17 +369,14 @@ input:focus, textarea:focus, select:focus, .form-control:focus {
 }
 
 /* -------------------------------------------------------
-   Sonstiges
+   Miscellaneous lists & scrollbars
    ------------------------------------------------------- */
-/* Generische Liste/Items */
-```css name=static/styles/main.css
 .list, .list-item {
   background: var(--surface);
   color: var(--color-text);
   border-color: var(--border-color);
 }
 
-/* Scrollbar konsistent im Dark-Mode */
 * {
   scrollbar-color: var(--border-color) transparent;
 }
