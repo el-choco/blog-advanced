@@ -188,7 +188,7 @@ html[data-theme="dark"] {
 
 .comment-form input,
 .comment-form textarea {
-    width: 100%;
+    width: -webkit-fill-available;
     padding: 10px 12px;
     border: 2px solid var(--input-border, #ecf0f1);
     border-radius: 8px;
