@@ -1,14 +1,37 @@
 /* ============================================
    STICKY POSTS STYLING
+   Dark Mode Toggle support via CSS variables.
+   Toggle by adding data-theme="dark" to <html>.
    ============================================ */
+
+:root {
+	--surface: #ffffff;
+	--sticky-border: #ff0000;
+	--sticky-badge: #FFD700;
+	--sticky-subtle: #4CAF50;
+	--sticky-subtle-bg: rgba(76, 175, 80, 0.02);
+	--sticky-hover-shadow: rgba(255, 215, 0, 0.2);
+	--sticky-grad-fg: rgba(255, 215, 0, 0.05);
+}
+
+html[data-theme="dark"] {
+	--surface: #1f2937;
+	--sticky-border: #ef4444;
+	--sticky-badge: #fbbf24;
+	--sticky-subtle: #22c55e;
+	--sticky-subtle-bg: rgba(34, 197, 94, 0.07);
+	--sticky-hover-shadow: rgba(251, 191, 36, 0.25);
+	--sticky-grad-fg: rgba(251, 191, 36, 0.08);
+}
+
 /* These styles must be included in main.css or as a separate CSS file */
 
 /* Sticky post highlighting */
 .post_row.sticky {
 	position: relative;
-	border: 2px solid #ff0000 !important;
+	border: 2px solid var(--sticky-border) !important;
 	/* background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent 20%) !important;*/
-	background: #fff;
+	background: var(--surface);
 }
 
 /* Sticky pin icon top right */
@@ -25,7 +48,7 @@
 /* Sticky badge next to date */
 .post_row.sticky .b_date::after {
 	content: " • Sticky";
-	color: #FFD700;
+	color: var(--sticky-badge);
 	font-weight: bold;
 	font-size: 1.3em;
 	margin-left: 8px;
@@ -33,8 +56,8 @@
 
 /* Alternative: More subtle variant */
 .post_row.sticky.subtle {
-	border-left: 3px solid #4CAF50 !important;
-	background: rgba(76, 175, 80, 0.02) !important;
+	border-left: 3px solid var(--sticky-subtle) !important;
+	background: var(--sticky-subtle-bg) !important;
 }
 
 .post_row.sticky.subtle::before {
@@ -47,7 +70,7 @@
 
 /* Hover effect for sticky posts */
 .post_row.sticky:hover {
-	box-shadow: 0 2px 12px rgba(255, 215, 0, 0.2) !important;
+	box-shadow: 0 2px 12px var(--sticky-hover-shadow) !important;
 }
 
 /* Responsive adjustments */
@@ -66,13 +89,13 @@
 /* Sticky button styles in dropdown */
 .post_tools .sticky_post,
 .post_tools .unsticky_post {
-	color: #FFD700 !important;
+	color: var(--sticky-badge) !important;
 	font-weight: 500;
 }
 
 .post_tools .sticky_post:hover,
 .post_tools .unsticky_post:hover {
-	background: rgba(255, 215, 0, 0.1) !important;
+	background: color-mix(in srgb, var(--sticky-badge) 10%, transparent) !important;
 }
 
 /* Animation on load */
@@ -86,11 +109,11 @@
 		background: transparent;
 	}
 	50% {
-		border-left-color: #FFD700;
-		background: rgba(255, 215, 0, 0.15);
+		border-left-color: var(--sticky-badge);
+		background: color-mix(in srgb, var(--sticky-badge) 15%, transparent);
 	}
 	100% {
-		border-left-color: #FFD700;
-		background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent 20%);
+		border-left-color: var(--sticky-badge);
+		background: linear-gradient(to right, var(--sticky-grad-fg), transparent 20%);
 	}
 }

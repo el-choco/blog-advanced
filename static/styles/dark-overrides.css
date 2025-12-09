@@ -1,0 +1,148 @@
+/* Dark-Mode: gezielte harte Overrides, wird als LETZTES CSS geladen */
+
+/* Karten & Panels (u. a. Bereich unter dem Cover) */
+[data-theme="dark"] .card,
+[data-theme="dark"] .panel,
+[data-theme="dark"] .intro-card,
+[data-theme="dark"] .author-panel,
+[data-theme="dark"] .post-header,
+[data-theme="dark"] .content-card {
+  background-color: var(--surface) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-elev-1) !important;
+}
+[data-theme="dark"] .card .sub,
+[data-theme="dark"] .panel .sub,
+[data-theme="dark"] .intro-card .sub,
+[data-theme="dark"] .author-panel .sub,
+[data-theme="dark"] .content-card .sub,
+[data-theme="dark"] .post-actions,
+[data-theme="dark"] .post-meta,
+[data-theme="dark"] .post-toolbar {
+  background-color: var(--surface-2) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Sidebar Widgets (Kategorien, Kommentare nach Kategorie) */
+[data-theme="dark"] .widget,
+[data-theme="dark"] .widget-body,
+[data-theme="dark"] .sidebar-widget,
+[data-theme="dark"] .widget-list,
+[data-theme="dark"] .widget-list .list-group,
+[data-theme="dark"] .list-group-item {
+  background-color: var(--surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .widget-sub,
+[data-theme="dark"] .widget-muted,
+[data-theme="dark"] .list-group-item.muted,
+[data-theme="dark"] .widget-list .sub {
+  background-color: var(--surface-2) !important;
+}
+
+/* Widget-Header bleibt primär, Icons transparent */
+[data-theme="dark"] .widget-header,
+[data-theme="dark"] .sidebar-widget .widget-header {
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+  border: none !important;
+}
+[data-theme="dark"] .widget-header .icon,
+[data-theme="dark"] .sidebar-widget .widget-header .icon,
+[data-theme="dark"] .widget .icon {
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+[data-theme="dark"] .widget-header .icon svg,
+[data-theme="dark"] .sidebar-widget .widget-header .icon svg {
+  fill: currentColor !important;
+}
+[data-theme="dark"] .widget-header .icon img,
+[data-theme="dark"] .sidebar-widget .widget-header .icon img {
+  background: transparent !important;
+}
+
+/* Editor: Toolbar, Emoji-Panels, untere Aktionsleiste */
+[data-theme="dark"] .editor-toolbar,
+[data-theme="dark"] .editor-toolbar-row,
+[data-theme="dark"] .emoji-panel,
+[data-theme="dark"] .composer-toolbar,
+[data-theme="dark"] .composer-toolbar-row {
+  background-color: var(--surface-3) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .editor-toolbar .btn,
+[data-theme="dark"] .editor-toolbar .chip,
+[data-theme="dark"] .emoji-panel .chip,
+[data-theme="dark"] .composer-toolbar .btn,
+[data-theme="dark"] .composer-toolbar .chip {
+  background-color: var(--surface-2) !important;
+  color: var(--color-text) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .editor-toolbar .btn:hover,
+[data-theme="dark"] .composer-toolbar .btn:hover,
+[data-theme="dark"] .editor-toolbar .chip:hover,
+[data-theme="dark"] .composer-toolbar .chip:hover {
+  background-color: var(--surface) !important;
+}
+[data-theme="dark"] .emoji-panel .emoji-grid,
+[data-theme="dark"] .emoji-panel .emoji-row {
+  background-color: var(--surface-3) !important;
+}
+[data-theme="dark"] .emoji-panel .emoji,
+[data-theme="dark"] .emoji-panel button.emoji {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Untere (rote Linie im Screenshot) Leiste/Action-Bar */
+[data-theme="dark"] .editor-footer,
+[data-theme="dark"] .composer-footer,
+[data-theme="dark"] .action-bar,
+[data-theme="dark"] .post-footer-tools {
+  background-color: var(--surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Formular-Inputs (Kommentarformular etc.) */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select,
+[data-theme="dark"] .form-control {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--muted-text) !important;
+}
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] .form-control:focus {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 40%, transparent) !important;
+}
+
+/* Badges/Chips/Counter */
+[data-theme="dark"] .badge,
+[data-theme="dark"] .chip,
+[data-theme="dark"] .counter-badge {
+  background-color: var(--chip-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--chip-border) !important;
+}
+
+/* Generische Listen/Items */
+[data-theme="dark"] .list,
+[data-theme="dark"] .list-item {
+  background-color: var(--surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--border-color) !important;
+}

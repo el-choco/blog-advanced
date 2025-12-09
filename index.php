@@ -1,5 +1,5 @@
 <?php
-// Aggressive cache prevention for Firefox
+// Aggressive cache prevention (useful for browsers like Firefox)
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -7,69 +7,91 @@ header("Expires: 0");
 
 include 'common.php';
 
-// Create token
-if(empty($_SESSION['token'])){
-	if(function_exists('random_bytes')){
-		$_SESSION['token'] = bin2hex(random_bytes(5));
-	} else {
-		$_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
-	}
+// CSRF token creation
+if (empty($_SESSION['token'])) {
+    if (function_exists('random_bytes')) {
+        $_SESSION['token'] = bin2hex(random_bytes(5));
+    } else {
+        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
+    }
 }
 
+// HTML escape helper
 function escape($str) {
-	return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
 
+// Log visitor
 Log::put("visitors");
 
+// Build hour options (00–23)
 $hours = '';
-for($h=0;$h<24;$h++){
-	$hours .= sprintf('<option value="%d">%02d</option>', $h, $h);
+for ($h = 0; $h < 24; $h++) {
+    $hours .= sprintf('<option value="%d">%02d</option>', $h, $h);
 }
 
+// Build minute options (00,10,...,50)
 $minutes = '';
-for($m=0;$m<60;$m+=10){
-	$minutes .= sprintf('<option value="%d">%02d</option>', $m, $m);
+for ($m = 0; $m < 60; $m += 10) {
+    $minutes .= sprintf('<option value="%d">%02d</option>', $m, $m);
 }
 
-$header_path = PROJECT_PATH.Config::get_safe("header", 'data/header.html');
-if(file_exists($header_path)){
-	$header = file_get_contents($header_path);
+// Load header html (cover overlay content)
+$header_path = PROJECT_PATH . Config::get_safe("header", 'data/header.html');
+if (file_exists($header_path)) {
+    $header = file_get_contents($header_path);
 } else {
-	$header = '';
+    $header = '';
 }
 
-// Translate styles into html
+// Styles to include (from config)
 $styles = Config::get_safe("styles", []);
 $styles_html = '';
-if(!empty($styles) && is_array($styles)){
-	$styles = array_unique($styles);
-	$styles = array_filter($styles);
-	
-	if(!empty($styles)){
-		$styles = array_map('escape', $styles);
-		$styles_html = '<link href="'.implode('" rel="stylesheet" type="text/css"/>'.PHP_EOL.'	<link href="', $styles).'" rel="stylesheet" type="text/css"/>'.PHP_EOL;
-	}
+if (!empty($styles) && is_array($styles)) {
+    $styles = array_unique($styles);
+    $styles = array_filter($styles);
+
+    if (!empty($styles)) {
+        $styles = array_map('escape', $styles);
+        $styles_html = '<link href="' . implode('" rel="stylesheet" type="text/css"/' . PHP_EOL . '	<link href="', $styles) . '" rel="stylesheet" type="text/css"/>' . PHP_EOL;
+    }
 }
 
-// Translate script urls into html
+// Scripts to include (from config)
 $scripts = Config::get_safe("scripts", []);
 $scripts_html = '';
-if(!empty($scripts) && is_array($scripts)){
-	$scripts = array_unique($scripts);
-	$scripts = array_filter($scripts);
-	
-	if(!empty($scripts)){
-		$scripts = array_map('escape', $scripts);
-		$scripts_html = '<script src="'.implode('" type="text/javascript"></script>'.PHP_EOL.'	<script src="', $scripts).'" type="text/javascript"></script>'.PHP_EOL;
-	}
+if (!empty($scripts) && is_array($scripts)) {
+    $scripts = array_unique($scripts);
+    $scripts = array_filter($scripts);
+
+    if (!empty($scripts)) {
+        $scripts = array_map('escape', $scripts);
+        $scripts_html = '<script src="' . implode('" type="text/javascript"></script>' . PHP_EOL . '	<script src="', $scripts) . '" type="text/javascript"></script>' . PHP_EOL;
+    }
 }
 
+// Version suffix for cache busting
 $versionSuffix = '';
 if (Config::get_safe("version", false)) {
-	$versionSuffix = '?v='.rawurlencode(Config::get("version"));
+    $versionSuffix = '?v=' . rawurlencode(Config::get("version"));
 }
 
+<<<<<<< Updated upstream
+=======
+// Theme mode settings (light/dark) and override flag
+$theme_mode = Config::get_safe("theme_mode", "light");
+$theme_mode_override = Config::get_safe("theme_mode_override", "0");
+
+// Validate theme_mode
+if (!in_array($theme_mode, ['light', 'dark'], true)) {
+    $theme_mode = 'light';
+}
+
+// Validate theme_mode_override
+if (!in_array($theme_mode_override, ['0', '1'], true)) {
+    $theme_mode_override = '0';
+}
+>>>>>>> Stashed changes
 ?><!DOCTYPE html>
 <html>
 <head>
@@ -82,20 +104,27 @@ if (Config::get_safe("version", false)) {
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 	<meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['token'], ENT_QUOTES, 'UTF-8'); ?>">
 
-	<link href="static/styles/main.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
-	<link href="static/styles/<?php echo rawurlencode(Config::get_safe("theme", "theme01")); ?>.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
-	<!-- Custom overrides for the clickable paperclip & file preview -->
+	<!-- Styles: base, theme, custom; then libraries and overrides -->
+	<link href="static/styles/main.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
+	<link href="static/styles/<?php echo rawurlencode(Config::get_safe('theme', 'theme01')); ?>.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/custom1.css?v=<?php echo time(); ?>" rel="stylesheet" type="text/css" />
 
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=all" rel="stylesheet">
 
-	<link href="static/styles/lightbox.css" rel="stylesheet" type="text/css" />
+	<link href="static/styles/lightbox.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
+	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
+	<link href="static/styles/comments.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
+	<link href="static/styles/highlight-monokai-sublime.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
 
-	<link href="static/styles/sticky_posts.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
-	<link href="static/styles/comments.css<?php echo $versionSuffix?>" rel="stylesheet" type="text/css" />
+	<!-- Optional separate toggle styles (not used; we keep styles in custom1.css) -->
+	<!-- <link href="static/styles/theme-toggle.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" /> -->
 
-	<link href="static/styles/highlight-monokai-sublime.css" rel="stylesheet" type="text/css" />
+	<!-- Dark mode hard overrides (keep as last until inline styles are removed) -->
+	<link href="static/styles/dark-overrides.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	
+
+	<!-- Inline CSS (kept minimal; consider moving to custom1.css later) -->
 	<style>
+	/* Emoji picker container (editor) */
 	#emojiPicker {
 		display: flex;
 		flex-wrap: wrap;
@@ -122,18 +151,22 @@ if (Config::get_safe("version", false)) {
 	#emojiPicker .emoji:active {
 		transform: scale(1.1);
 	}
+
+	/* Limit textarea height and disable resize */
 	textarea.e_text, textarea#postText {
 		height: 300px !important;
 		max-height: 300px !important;
 		overflow-y: auto !important;
 		resize: none !important;
 	}
+
+	/* File preview strip */
 	.file-preview-container { display:none; margin-top:8px; }
 	.file-preview-item { display:inline-block; margin-right:8px; padding:6px 8px; border:1px solid #e6e6e6; border-radius:6px; background:#fafafa; }
 	.file-preview-item .file-name { display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
 	.file-preview-item .remove-file-btn { margin-left:6px; border:0; background:transparent; color:#888; cursor:pointer; font-size:14px; }
 
-	/* Comments-by-category card */
+	/* Comments-by-category card (sidebar) */
 	.comments-by-category-card {
 	  margin-top: 30px;
 	  border-radius: 8px;
@@ -153,7 +186,7 @@ if (Config::get_safe("version", false)) {
 	  gap: 8px;
 	  border-bottom: 1px solid rgba(0,0,0,.06);
 	}
-	/* avoid duplicate icon */
+	/* Avoid duplicate icon */
 	.comments-by-category-card .sidebar-card-header span::before {
 	  content: none !important;
 	  margin: 0 !important;
@@ -188,10 +221,39 @@ if (Config::get_safe("version", false)) {
 	.comments-by-category-card .cbc-text { margin: 4px 0; color: #111827; font-size: 14px; white-space: normal; }
 	.comments-by-category-card .cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
 	.comments-by-category-card .cbc-post a:hover { text-decoration: underline; }
+<<<<<<< Updated upstream
+=======
+
+	/* Editor toolbars */
+	.toolbar {
+		display: flex;
+		justify-content: center;
+		gap: 6px;
+		padding: 8px 0;
+		flex-wrap: wrap;
+		border: 1px solid var(--border-color, #b8daed);
+		background: var(--surface, #fff);
+		margin-bottom: 8px;
+		border-radius: 15px;
+	}
+	.toolbar.markdown-toolbar { border-color: var(--border-color, #b8daed); }
+	.toolbar.html-toolbar { border-color: var(--border-color, #d4edda); }
+	.toolbar .separator { border-right: 1px solid var(--border-color, #b8daed); margin: 0 4px; }
+	.markdown-btn, .html-btn {
+		padding: 6px 10px;
+		border: 1px solid var(--border-color, #b8daed);
+		background: var(--surface, #fff);
+		cursor: pointer;
+		border-radius: 10px;
+		font-size: 11px;
+	}
+	.html-btn { border-color: var(--border-color, #28a745); }
+>>>>>>> Stashed changes
 	</style>
 	<?php echo $styles_html; ?>
 </head>
 <body>
+	<!-- Prepared templates & modal fragments -->
 	<div id="dd_mask" class="mask"></div>
 	<div id="prepared" style="display:none;"
 	     data-show-less-text="<?php echo __("Show less"); ?>"
@@ -231,7 +293,7 @@ if (Config::get_safe("version", false)) {
 			</div>
 		</div>
 
-		<!-- Post Link -->
+		<!-- Post Link Template -->
 		<a class="b_link" target="_blank">
 			<div class="thumb">
 				<img class="thumb_imglink">
@@ -244,7 +306,7 @@ if (Config::get_safe("version", false)) {
 			</div>
 		</a>
 
-		<!-- Post Image Link -->
+		<!-- Post Image Link Template -->
 		<a class="b_imglink">
 			<img>
 			<div class="ftr">
@@ -254,10 +316,10 @@ if (Config::get_safe("version", false)) {
 			</div>
 		</a>
 
-		<!-- Post Image -->
+		<!-- Post Image Template -->
 		<a class="b_img"><img></a>
 
-		<!-- New Post -->
+		<!-- New Post Container -->
 		<div class="b_post new_post">
 			<div class="modal-header">
 				<h4 class="modal-title"><?php echo __("Post"); ?></h4>
@@ -265,7 +327,7 @@ if (Config::get_safe("version", false)) {
 			<div class="edit-form"></div>
 		</div>
 
-		<!-- Post Tools -->
+		<!-- Post Tools Dropdown -->
 		<ul class="b_dropdown post_tools">
 			<li class="normal-only"><a class="edit_post">✏️ <?php echo __("Edit Post"); ?></a></li>
 			<li class="normal-only"><a class="edit_date">📅 <?php echo __("Change Date"); ?></a></li>
@@ -278,7 +340,7 @@ if (Config::get_safe("version", false)) {
 				<a class="show">👁️ <?php echo __("Show on Timeline"); ?></a>
 			</li>
 			<li class="normal-only"><a class="delete_post">🗑️ <?php echo __("Delete Post"); ?></a></li>
-			<!-- Trash-only options -->
+			<!-- Trash-only options (visible inside trash view) -->
 			<li class="trash-only" style="display:none;"><a class="restore_post">♻️ <?php echo __("Restore Post"); ?></a></li>
 			<li class="trash-only" style="display:none;"><a class="permanent_delete_post">🗑️ <?php echo __("Delete Permanently"); ?></a></li>
 		</ul>
@@ -297,19 +359,137 @@ if (Config::get_safe("version", false)) {
 							<div class="e_drop"><span><?php echo __("Drop photos here"); ?></span></div>
 							<img src="<?php echo escape(Config::get("pic_small")); ?>" width="40" height="40" class="e_profile">
 							
-							<!-- Multi-Image Upload Preview Container -->
+							<!-- Multi-Image Upload Preview -->
 							<div class="image-preview-container" style="display:none;"></div>
 							<div class="multi-upload-info" style="display:none;">
 								<span class="image-count"></span>
 							</div>
 
-							<!-- Multi-File Upload Preview Container -->
+							<!-- Multi-File Upload Preview -->
 							<div class="file-preview-container" style="display:none;"></div>
 							
-						<div class="t_area">
-							<textarea id="postText" class="e_text" placeholder="<?php echo __("What's on your mind?"); ?>"></textarea>
+							<div class="t_area">
+								<textarea id="postText" class="e_text" placeholder="<?php echo __("What's on your mind?"); ?>"></textarea>
+							</div>
+
+							<!-- Markdown Toolbar -->
+							<div class="toolbar markdown-toolbar">
+								<span style="font-size: 11px; font-weight: bold; color: #0066cc; align-self: center; margin-right: 8px;">MARKDOWN:</span>
+								
+								<!-- Text Formatting -->
+								<button type="button" class="markdown-btn" data-md="bold" title="<?php echo __("Bold"); ?>" style="font-weight:bold;">B</button>
+								<button type="button" class="markdown-btn" data-md="italic" title="<?php echo __("Italic"); ?>" style="font-style:italic;">I</button>
+								<button type="button" class="markdown-btn" data-md="strike" title="<?php echo __("Strikethrough"); ?>" style="text-decoration:line-through;">S</button>
+								
+								<span class="separator"></span>
+								
+								<!-- Headings -->
+								<button type="button" class="markdown-btn" data-md="h1" title="<?php echo __("Heading 1"); ?>" style="font-size:13px; font-weight:bold;">H1</button>
+								<button type="button" class="markdown-btn" data-md="h2" title="<?php echo __("Heading 2"); ?>" style="font-size:12px; font-weight:bold;">H2</button>
+								<button type="button" class="markdown-btn" data-md="h3" title="<?php echo __("Heading 3"); ?>" style="font-weight:bold;">H3</button>
+								
+								<span class="separator"></span>
+								
+								<!-- Links & Images -->
+								<button type="button" class="markdown-btn" data-md="link" title="<?php echo __("Link"); ?>">🔗</button>
+								<button type="button" class="markdown-btn" data-md="image" title="<?php echo __("Image"); ?>">🖼️</button>
+								
+								<span class="separator"></span>
+								
+								<!-- Code -->
+								<button type="button" class="markdown-btn" data-md="code" title="<?php echo __("Inline Code"); ?>" style="font-family:monospace;">`code`</button>
+								<button type="button" class="markdown-btn" data-md="codeblock" title="<?php echo __("Code Block"); ?>" style="font-family:monospace; font-size:10px;">```</button>
+								
+								<span class="separator"></span>
+								
+								<!-- Lists & Quotes -->
+								<button type="button" class="markdown-btn" data-md="ul" title="<?php echo __("List"); ?>">• <?php echo __("List"); ?></button>
+								<button type="button" class="markdown-btn" data-md="ol" title="<?php echo __("Numbered List"); ?>">1. <?php echo __("List"); ?></button>
+								<button type="button" class="markdown-btn" data-md="quote" title="<?php echo __("Quote"); ?>">💬</button>
+								<button type="button" class="markdown-btn" data-md="hr" title="<?php echo __("Horizontal Line"); ?>">---</button>
+								<button type="button" class="markdown-btn" data-md="table" title="<?php echo __("Table"); ?>">📊</button>
+							</div>
+
+							<!-- HTML Toolbar -->
+							<div class="toolbar html-toolbar">
+								<span style="font-size: 11px; font-weight: bold; color: #28a745; align-self: center; margin-right: 8px;">HTML:</span>
+								
+								<!-- Alignment -->
+								<button type="button" class="html-btn" data-html="center" title="<?php echo __("Center"); ?>">⬆️ Center</button>
+								<button type="button" class="html-btn" data-html="right" title="<?php echo __("Right Align"); ?>">➡️ Right</button>
+								<button type="button" class="html-btn" data-html="left" title="<?php echo __("Left Align"); ?>">⬅️ Left</button>
+								
+								<span class="separator"></span>
+								
+								<!-- Color & Highlighting -->
+								<button type="button" class="html-btn" data-html="color" title="<?php echo __("Color"); ?>">🎨 <?php echo __("Color"); ?></button>
+								<button type="button" class="html-btn" data-html="mark" title="<?php echo __("Highlight"); ?>">✨ <?php echo __("Highlight"); ?></button>
+								
+								<span class="separator"></span>
+								
+								<!-- Text Size -->
+								<button type="button" class="html-btn" data-html="small" title="<?php echo __("Small"); ?>" style="font-size:9px;">Small</button>
+								<button type="button" class="html-btn" data-html="big" title="<?php echo __("Large"); ?>" style="font-size:14px;">Large</button>
+								
+								<span class="separator"></span>
+								
+								<!-- Special -->
+								<button type="button" class="html-btn" data-html="underline" title="<?php echo __("Underline"); ?>" style="text-decoration:underline;">U</button>
+								<button type="button" class="html-btn" data-html="sup" title="<?php echo __("Superscript"); ?>">x<sup>2</sup></button>
+								<button type="button" class="html-btn" data-html="sub" title="<?php echo __("Subscript"); ?>">H<sub>2</sub>O</button>
+								<button type="button" class="html-btn" data-html="spoiler" title="<?php echo __("Spoiler"); ?>">👁️ <?php echo __("Spoiler"); ?></button>
+							</div>
+
+							<!-- Emoji Picker (examples) -->
+							<div id="emojiPicker">
+								<span class="emoji" data-emoji="😀">😀</span>
+								<span class="emoji" data-emoji="😃">😃</span>
+								<span class="emoji" data-emoji="😄">😄</span>
+								<span class="emoji" data-emoji="😁">😁</span>
+								<span class="emoji" data-emoji="😆">😆</span>
+								<span class="emoji" data-emoji="😂">😂</span>
+								<span class="emoji" data-emoji="🤣">🤣</span>
+								<span class="emoji" data-emoji="😊">😊</span>
+								<span class="emoji" data-emoji="😇">😇</span>
+								<span class="emoji" data-emoji="😍">😍</span>
+								<span class="emoji" data-emoji="🥰">🥰</span>
+								<span class="emoji" data-emoji="😘">😘</span>
+								<span class="emoji" data-emoji="😗">😗</span>
+								<span class="emoji" data-emoji="😎">😎</span>
+								<span class="emoji" data-emoji="🤩">🤩</span>
+								<span class="emoji" data-emoji="🤗">🤗</span>
+								<span class="emoji" data-emoji="🤔">🤔</span>
+								<span class="emoji" data-emoji="😐">😐</span>
+								<span class="emoji" data-emoji="😑">😑</span>
+								<span class="emoji" data-emoji="😶">😶</span>
+								<span class="emoji" data-emoji="🙄">🙄</span>
+								<span class="emoji" data-emoji="😏">😏</span>
+								<span class="emoji" data-emoji="😣">😣</span>
+								<span class="emoji" data-emoji="😥">😥</span>
+								<span class="emoji" data-emoji="😮">😮</span>
+								<span class="emoji" data-emoji="🤐">🤐</span>
+								<span class="emoji" data-emoji="😯">😯</span>
+								<span class="emoji" data-emoji="😪">😪</span>
+								<span class="emoji" data-emoji="😫">😫</span>
+								<span class="emoji" data-emoji="🥱">🥱</span>
+								<span class="emoji" data-emoji="😴">😴</span>
+								<span class="emoji" data-emoji="😌">😌</span>
+								<span class="emoji" data-emoji="😛">😛</span>
+								<span class="emoji" data-emoji="😜">😜</span>
+								<span class="emoji" data-emoji="😝">😝</span>
+								<span class="emoji" data-emoji="🤤">🤤</span>
+								<span class="emoji" data-emoji="😒">😒</span>
+								<span class="emoji" data-emoji="😓">😓</span>
+								<span class="emoji" data-emoji="😔">😔</span>
+								<span class="emoji" data-emoji="😕">😕</span>
+								<span class="emoji" data-emoji="🙃">🙃</span>
+								<span class="emoji" data-emoji="🫠">🫠</span>
+								<span class="emoji" data-emoji="🤑">🤑</span>
+								<span class="emoji" data-emoji="😲">😲</span>
+							</div>
 						</div>
 
+<<<<<<< Updated upstream
 						<!-- Markdown Toolbar -->
 						<div style="display:flex; justify-content: center; gap:6px; padding:8px 0; flex-wrap:wrap; border: 1px solid #b8daed; background: #fff; margin-bottom: 8px; border-radius: 15px;">
 							<span style="font-size: 11px; font-weight: bold; color: #0066cc; align-self: center; margin-right: 8px;">MARKDOWN:</span>
@@ -424,25 +604,36 @@ if (Config::get_safe("version", false)) {
 							<span class="emoji" data-emoji="😲">😲</span>
 						</div>
 						</div>
+=======
+						<!-- Upload progress UI -->
+>>>>>>> Stashed changes
 						<div class="e_loading">
 							<span class="e_dots"></span>
 							<span class="e_dots"></span>
 							<span class="e_dots"></span>
 							<div class="e_meter"><span></span></div>
 						</div>
+
+						<!-- Hidden inputs for content -->
 						<input type="hidden" class="i_content_type">
 						<input type="hidden" class="i_content">
+
+						<!-- Rendered content -->
 						<div class="modal-body content"></div>
+
+						<!-- Options (feeling, persons, location) -->
 						<table class="options_content">
 							<tr class="feeling"><th><?php echo __("Feeling"); ?></th><td><input type="text" class="i_feeling" placeholder="<?php echo __("How are you feeling?"); ?>" autocomplete="off"><button class="clear"></button></td></tr>
 							<tr class="persons"><th><?php echo __("With"); ?></th><td><input type="text" class="i_persons" placeholder="<?php echo __("Who are you with?"); ?>" autocomplete="off"><button class="clear"></button></td></tr>
 							<tr class="location"><th><?php echo __("At"); ?></th><td><input type="text" class="i_location" placeholder="<?php echo __("Where are you?"); ?>" autocomplete="off"><button class="clear"></button></td></tr>
 						</table>
+
+						<!-- Footer: file attach + save -->
 						<div class="modal-footer">
 							<ul class="options">
 								<li class="kepet"><a><span><input type="file" accept="image/*" multiple class="photo_upload" name="file"></span></a></li>
 								<li class="file_attach" style="position: relative; display: inline-block; margin: 0; padding: 0;">
-									<label class="file-attach-label" style="display: block; width: 40px; height: 40px; background-color: #fff; border-right: 1px solid #e5e5e5; position: relative; margin: 0; padding: 0; cursor: pointer;" title="<?php echo __("Attach file"); ?>">
+									<label class="file-attach-label" style="display: block; width: 40px; height: 40px; background-color: rgba(0,0,0,.00); border-right: 1px solid #e5e5e5; position: relative; margin: 0; padding: 0; cursor: pointer;" title="<?php echo __("Attach file"); ?>">
 										<span class="file-icon" style="position: absolute; top: 50%; left: 37%; transform: translate(-50%, -50%); font-size: 21px; line-height: 1; pointer-events: none; display: inline-block;" aria-hidden="true">📎</span>
 										<input id="file_upload_input" type="file" class="file_upload" name="file" multiple style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;" aria-label="<?php echo __("Attach file"); ?>" />
 									</label>
@@ -456,10 +647,10 @@ if (Config::get_safe("version", false)) {
 								<button type="button" class="button blue save"><?php echo __("Save"); ?></button>
 							</div>
 						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+					</div><!-- .edit_form -->
+				</div><!-- .modal-content -->
+			</div><!-- .modal-dialog -->
+		</div><!-- .modal -->
 
 		<!-- Edit Date Modal -->
 		<div class="modal edit_date_modal">
@@ -534,7 +725,7 @@ if (Config::get_safe("version", false)) {
 			</div>
 		</div>
 
-		<!-- Post Row -->
+		<!-- Single Post Row Template (used for rendering posts) -->
 		<div class="b_post post_row">
 			<div class="b_overlay">
 				<a class="button"><?php echo __("Show hidden content"); ?></a>
@@ -554,45 +745,55 @@ if (Config::get_safe("version", false)) {
 			<div class="b_content"></div>
 		</div>
 
-		<!-- Privacy Settings -->
+		<!-- Privacy dropdown -->
 		<ul class="b_dropdown privacy_settings">
 			<li><a class="set" data-val="public"><i class="public"></i><?php echo __("Public"); ?></a></li>
 			<li><a class="set" data-val="friends"><i class="friends"></i><?php echo __("Friends"); ?></a></li>
 			<li><a class="set" data-val="private"><i class="private"></i><?php echo __("Only me"); ?></a></li>
 		</ul>
-	</div>
+	</div><!-- #prepared -->
 
+	<!-- Title bar -->
 	<div class="bluebar">
 		<h1><?php echo escape(Config::get("title")); ?></h1>
 	</div>
 
+	<!-- Header/Cover area -->
 	<div class="headbar">
 		<div class="cover">
 			<?php echo $header; ?>
 			<div class="overlay"></div>
-			<?php echo (Config::get_safe("cover", false) ? '<img src="'.escape(Config::get("cover")).'">' : (empty($header) ? '<div style="padding-bottom: 37%;"></div>' : '')); ?>
+			<?php
+				echo (Config::get_safe("cover", false)
+					? '<img src="'.escape(Config::get("cover")).'">'
+					: (empty($header) ? '<div style="padding-bottom: 37%;"></div>' : '')
+				);
+			?>
 			<div class="profile">
 				<img src="<?php echo escape(Config::get("pic_big")); ?>">
 			</div>
 			<div class="name"><?php echo escape(Config::get("name")); ?></div>
 		</div>
+
+		<!-- Header actions: Toggle, Logout, Admin (injected into this container) -->
 		<div id="headline"></div>
 
-		<!-- Trash button below logout (only visible when logged in) -->
-		<div id="trash_headline_btn" style="display:none; max-width: 1000px; margin: 0 auto 20px auto; text-align: right; background-color: #fff; padding: 0 10px;">
+		<!-- Trash button bar below header (visible only when logged in) -->
+		<div id="trash_headline_btn" style="display:none; max-width: 1000px; margin: 0 auto 20px auto; text-align: right; padding: 0 10px;">
 			<button type="button" class="button gray" id="show_trash_btn" style="padding: 8px 16px; font-size: 14px; display: inline-block;">
 				🗑️ <?php echo __("Show Trash"); ?> <span class="trash-count" style="color: #666; font-weight: bold;"></span>
 			</button>
 		</div>
 	</div>
 
-	<!-- Trash/Recycle Bin Toggle (only visible when logged in) -->
+	<!-- Trash/Recycle Bin state flags -->
 	<script>
 	var trashEnabled = <?php echo User::is_logged_in() ? 'true' : 'false'; ?>;
 	var softDeleteEnabled = <?php echo Config::get_safe('SOFT_DELETE', true) ? 'true' : 'false'; ?>;
 	var hardDeleteFilesEnabled = <?php echo Config::get_safe('HARD_DELETE_FILES', true) ? 'true' : 'false'; ?>;
 	</script>
 
+	<!-- Feed container -->
     <?php if(User::is_logged_in()): ?>
 		<?php endif; ?>
 			<div id="b_feed">
@@ -602,9 +803,10 @@ if (Config::get_safe("version", false)) {
 				<div id="posts"></div>
 			</div>
 
+	<!-- Trash view (only visible when logged in) -->
 	<?php if(User::is_logged_in()): ?>
-	<div id="b_trash" style="display: none; max-width: 1000px; margin: 0 auto;">
-		<div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+	<div id="b_trash">
+		<div style="text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
 			<h2 style="margin: 0 0 10px 0;">🗑️ <?php echo __("Trash"); ?></h2>
 			<p style="color: #666; margin: 0 0 15px 0;"><?php echo __("Posts in trash can be restored or permanently deleted"); ?></p>
 			<button type="button" class="button blue" id="hide_trash_btn" style="padding: 10px 20px;">
@@ -618,14 +820,17 @@ if (Config::get_safe("version", false)) {
 	</div>
 	<?php endif; ?>
 
-	<!-- End of feed -->
+	<!-- End of feed footer -->
 	<div id="eof_feed">
 		<img src="static/images/zpEYXu5Wdu6.png">
 		<p><?php echo escape(Config::get("version")); ?> &copy; 2016-2025<br>
 		<?php echo Config::get_safe("footer", false) ? escape(Config::get_safe("footer")) : '<a href="https://github.com/m1k1o/blog" class="link" title="m1k1o/blog github repository" target="_blank">m1k1o/blog</a>'; ?>
 		</p>
 	</div>
+
+	<!-- Core scripts -->
 	<script src="static/scripts/jquery.min.js"></script>
+	<!-- Set CSRF header for AJAX (kept obfuscated as in original) -->
 	<script>$["\x61\x6A\x61\x78\x53\x65\x74\x75\x70"]({"\x68\x65\x61\x64\x65\x72\x73":{"\x43\x73\x72\x66-\x54\x6F\x6B\x65\x6E":"<?php echo $_SESSION['token'];?>"}});</script>
 
 	<script src="static/scripts/lightbox.js"></script>
@@ -634,12 +839,22 @@ if (Config::get_safe("version", false)) {
 	<script src="static/scripts/app.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/comments.js<?php echo $versionSuffix?>"></script>
 	<script src="static/scripts/comments-init.js<?php echo $versionSuffix?>"></script>
+<<<<<<< Updated upstream
+=======
+
+	<!-- Theme toggle (self-healing; aligns with custom1.css) -->
+	<script src="assets/js/theme-toggle.js<?php echo $versionSuffix?>"></script>
+
+>>>>>>> Stashed changes
 	<?php echo $scripts_html; ?>
 
 <script>
-// ============================================
-// Markdown & Emoji Editor Functionality
-// ============================================
+/**
+ * Markdown & Emoji Editor interactions
+ * - Inserts markdown snippets at cursor
+ * - Inserts emojis (as codes) at cursor
+ * - Provides simple HTML helpers (center, underline, etc.)
+ */
 (function(){
 	'use strict';
 
@@ -670,6 +885,7 @@ if (Config::get_safe("version", false)) {
 		textarea.dispatchEvent(new Event('change', { bubbles: true }));
 	}
 
+	// Map common emojis to shortcodes
 	const emojiToCode = {
 		'😀': ':grinning:','😃': ':smiley:','😄': ':smile:','😁': ':grin:','😆': ':laughing:','😂': ':joy:','🤣': ':rofl:','😊': ':blush:',
 		'😇': ':innocent:','😍': ':heart_eyes:','🥰': ':smiling_face_with_hearts:','😘': ':kissing_heart:','😗': ':kissing:','😎': ':sunglasses:','🤩': ':star_struck:',
@@ -680,6 +896,7 @@ if (Config::get_safe("version", false)) {
 		'🙃': ':upside_down:','🫠': ':melting:','🤑': ':money_mouth:','😲': ':astonished:'
 	};
 
+	// Emoji click handler
 	document.addEventListener('click', function(e) {
 		const emojiEl = e.target.closest('.emoji');
 		if (!emojiEl) return;
@@ -691,12 +908,14 @@ if (Config::get_safe("version", false)) {
 		insertAtCursor(textarea, emojiCode, '');
 	});
 
+	// Prevent double-click text selection for toolbar/emoji
 	document.addEventListener('dblclick', function(e) {
 		if (e.target.closest('.emoji') || e.target.closest('.markdown-btn') || e.target.closest('.html-btn')) {
 			e.preventDefault();
 		}
 	});
 
+	// Markdown insertions
 	document.addEventListener('click', function(e) {
 		const btn = e.target.closest('.markdown-btn');
 		if (!btn) return;
@@ -715,18 +934,21 @@ if (Config::get_safe("version", false)) {
 			case 'h1': before = '# '; break;
 			case 'h2': before = '## '; break;
 			case 'h3': before = '### '; break;
-			case 'link':
+			case 'link': {
 				const url = prompt('Enter URL:', 'https://');
 				if (url) { if (selectedText) { before = '['; after = '](' + url + ')'; } else { before = '[Link Text](' + url + ')'; } }
 				break;
-			case 'image':
+			}
+			case 'image': {
 				const imgUrl = prompt('Enter Image URL:', 'https://');
 				if (imgUrl) { const alt = prompt('Alt text, optional:', 'Image'); before = '![' + (alt || 'Image') + '](' + imgUrl + ')'; }
 				break;
+			}
 			case 'code': before = '`'; after = '`'; break;
-			case 'codeblock':
+			case 'codeblock': {
 				const lang = prompt('Language, optional, e.g. javascript:', '');
 				before = '\n```' + (lang || '') + '\n'; after = '\n```\n'; break;
+			}
 			case 'ul': before = '\n- '; after = '\n- Item 2\n- Item 3\n'; break;
 			case 'ol': before = '\n1. '; after = '\n2. Item 2\n3. Item 3\n'; break;
 			case 'quote': before = '\n> '; after = '\n'; break;
@@ -744,6 +966,7 @@ if (Config::get_safe("version", false)) {
 		}
 	});
 
+	// HTML insertions
 	document.addEventListener('click', function(e) {
 		const btn = e.target.closest('.html-btn');
 		if (!btn) return;
@@ -759,20 +982,22 @@ if (Config::get_safe("version", false)) {
 			case 'center': before = '<center>'; after = '</center>'; break;
 			case 'right': before = '<div align="right">'; after = '</div>'; break;
 			case 'left': before = '<div align="left">'; after = '</div>'; break;
-			case 'color':
+			case 'color': {
 				const color = prompt('Enter color, e.g. red or #ff0000:', 'red');
 				if (color) { before = '<span style="color:' + color + '">'; after = '</span>'; }
 				break;
+			}
 			case 'mark': before = '<mark>'; after = '</mark>'; break;
 			case 'small': before = '<small>'; after = '</small>'; break;
 			case 'big': before = '<big>'; after = '</big>'; break;
 			case 'underline': before = '<u>'; after = '</u>'; break;
 			case 'sup': before = '<sup>'; after = '</sup>'; break;
 			case 'sub': before = '<sub>'; after = '</sub>'; break;
-			case 'spoiler':
+			case 'spoiler': {
 				const title = prompt('Spoiler title:', 'Click to show');
 				if (title !== null) { before = '<details><summary>' + (title || 'Click to show') + '</summary>\n'; after = '\n</details>'; }
 				break;
+			}
 		}
 		if (before !== '' || after !== '') {
 			const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
@@ -789,14 +1014,18 @@ if (Config::get_safe("version", false)) {
 </script>
 
 <script>
-/* Comments by Category – safe mount + single load */
+/**
+ * Comments by Category – lazy mount and single load
+ * - Mounts a sidebar card in #right_sidebar (below categories list)
+ * - Loads comments grouped by category via ajax.php?action=comments_by_category
+ */
 (function(){
   'use strict';
 
   var sidebarSelector = '#right_sidebar';
   var categoriesListSelector = sidebarSelector + ' .cat-box-list';
   
-  // Localized strings from PHP (using json_encode for safer JS embedding)
+  // Localized strings from PHP
   var i18n = {
     commentsCategory: <?php echo json_encode(__("Comments by category")); ?>,
     loadingComments: <?php echo json_encode(__("Loading comments…")); ?>,
@@ -953,7 +1182,7 @@ if (Config::get_safe("version", false)) {
 })();
 </script>
 
-<!-- Back-to-top arrow: blue circle + white arrow -->
+<!-- Back-to-top arrow (blue circle + white arrow) -->
 <a id="back_to_top"
    href="#"
    aria-label="<?php echo __('Back to top'); ?>"
@@ -964,7 +1193,7 @@ if (Config::get_safe("version", false)) {
   </svg>
 </a>
 <script>
-// Always visible; smooth scroll on click
+// Back-to-top: smooth scroll
 (function(){
   var btn = document.getElementById('back_to_top');
   if (!btn) return;

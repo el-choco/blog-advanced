@@ -1,24 +1,88 @@
 /* Modern Compact Comment Design */
+/* Dark Mode Toggle support: sets variables for light and dark themes. 
+   Toggle by adding data-theme="dark" to the <html> element. */
+
+:root {
+    --surface: #ffffff;
+    --surface-2: #f8f9fa;
+    --text: #34495e;
+    --text-strong: #2c3e50;
+    --muted-text: #95a5a6;
+
+    --primary: #3498db;
+    --primary-dark: #2980b9;
+    --primary-darker: #21618c;
+
+    --warning: #f39c12;
+    --danger: #e74c3c;
+
+    --input-border: #ecf0f1;
+
+    --shadow: rgba(0, 0, 0, 0.05);
+    --shadow-strong: rgba(0, 0, 0, 0.1);
+
+    --success-bg: #d4edda;
+    --success-text: #155724;
+    --success-border: #c3e6cb;
+
+    --error-bg: #f8d7da;
+    --error-text: #721c24;
+    --error-border: #f5c6cb;
+}
+
+html[data-theme="dark"] {
+    --surface: #1f2937;
+    --surface-2: #111827;
+    --text: #e5e7eb;
+    --text-strong: #f3f4f6;
+    --muted-text: #9ca3af;
+
+    --primary: #60a5fa;
+    --primary-dark: #3b82f6;
+    --primary-darker: #2563eb;
+
+    --warning: #f59e0b;
+    --danger: #ef4444;
+
+    --input-border: #374151;
+
+    --shadow: rgba(0, 0, 0, 0.4);
+    --shadow-strong: rgba(0, 0, 0, 0.6);
+
+    --success-bg: #102a17;
+    --success-text: #bbf7d0;
+    --success-border: #166534;
+
+    --error-bg: #2c1517;
+    --error-text: #fecaca;
+    --error-border: #7f1d1d;
+}
+
 .comments-section {
     margin-top: 20px;
     padding: 20px;
     background: #f8f9fa;
     border-radius: 12px;
     font-size: 14px;
+    color: var(--text, #34495e);
 }
 
 .comments-title {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 20px;
+<<<<<<< Updated upstream
     color: #2c3e50;
+=======
+    color: var(--text-strong, #2c3e50);
+>>>>>>> Stashed changes
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .comment-count {
-    color: #3498db;
+    color: var(--primary, #3498db);
     font-weight: bold;
 }
 
@@ -28,21 +92,27 @@
 }
 
 .comment {
+<<<<<<< Updated upstream
     background: white;
+=======
+    background: var(--surface, #ffffff);
+>>>>>>> Stashed changes
     padding: 15px;
     margin-bottom: 12px;
-    border-left: 4px solid #3498db;
+    border-left: 4px solid var(--primary, #3498db);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.05));
     transition: transform 0.2s, box-shadow 0.2s;
+    color: var(--text, #34495e);
 }
 
 .comment:hover {
     transform: translateX(4px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px var(--shadow-strong, rgba(0,0,0,0.1));
 }
 
 .comment.pending {
+<<<<<<< Updated upstream
     border-left-color: #f39c12;
     background: #fffbf0;
 }
@@ -50,6 +120,15 @@
 .comment.spam {
     border-left-color: #e74c3c;
     background: #fff5f5;
+=======
+    border-left-color: var(--warning, #f39c12);
+    background: var(--surface-2, #fffbf0);
+}
+
+.comment.spam {
+    border-left-color: var(--danger, #e74c3c);
+    background: var(--surface-2, #fff5f5);
+>>>>>>> Stashed changes
     opacity: 0.6;
 }
 
@@ -64,18 +143,18 @@
 
 .comment-author {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text-strong, #2c3e50);
     font-size: 15px;
 }
 
 .comment-date {
-    color: #95a5a6;
+    color: var(--muted-text, #95a5a6);
     font-size: 12px;
 }
 
 .comment-content {
     line-height: 1.6;
-    color: #34495e;
+    color: var(--text, #34495e);
     word-wrap: break-word;
     white-space: pre-wrap;
 }
@@ -86,29 +165,37 @@
     font-size: 11px;
     border-radius: 12px;
     font-weight: 500;
+    color: #fff;
 }
 
 .comment-status-badge.pending {
-    background: #f39c12;
-    color: white;
+    background: var(--warning, #f39c12);
 }
 
 .comment-status-badge.spam {
-    background: #e74c3c;
-    color: white;
+    background: var(--danger, #e74c3c);
 }
 
 /* Comment Form */
 .comment-form-wrapper {
+<<<<<<< Updated upstream
     background: white;
+=======
+    background: var(--surface, #ffffff);
+>>>>>>> Stashed changes
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px var(--shadow-strong, rgba(0,0,0,0.08));
+    color: var(--text, #34495e);
 }
 
 .comment-form-wrapper h4 {
     margin: 0 0 15px 0;
+<<<<<<< Updated upstream
     color: #2c3e50;
+=======
+    color: var(--text-strong, #2c3e50);
+>>>>>>> Stashed changes
     font-size: 16px;
     font-weight: 600;
 }
@@ -121,7 +208,7 @@
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #34495e;
+    color: var(--text, #34495e);
     font-size: 13px;
 }
 
@@ -129,17 +216,19 @@
 .comment-form textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 2px solid #ecf0f1;
+    border: 2px solid var(--input-border, #ecf0f1);
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+    background: var(--surface, #ffffff);
+    color: var(--text, #34495e);
 }
 
 .comment-form input:focus,
 .comment-form textarea:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: var(--primary, #3498db);
 }
 
 .comment-form textarea {
@@ -160,15 +249,15 @@
 
 .comment-form .btn-primary,
 .comment-form .button.blue {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary, #3498db) 0%, var(--primary-dark, #2980b9) 100%);
+    color: #ffffff;
 }
 
 .comment-form .btn-primary:hover,
 .comment-form .button.blue:hover {
-    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    background: linear-gradient(135deg, var(--primary-dark, #2980b9) 0%, var(--primary-darker, #21618c) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--primary, #3498db) 30%, transparent);
 }
 
 .comment-status {
@@ -181,23 +270,23 @@
 }
 
 .comment-status.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: var(--success-bg, #d4edda);
+    color: var(--success-text, #155724);
+    border: 1px solid var(--success-border, #c3e6cb);
     display: block;
 }
 
 .comment-status.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: var(--error-bg, #f8d7da);
+    color: var(--error-text, #721c24);
+    border: 1px solid var(--error-border, #f5c6cb);
     display: block;
 }
 
 /* No comments */
 .no-comments {
     text-align: center;
-    color: #95a5a6;
+    color: var(--muted-text, #95a5a6);
     padding: 30px;
     font-style: italic;
 }

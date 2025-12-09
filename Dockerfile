@@ -1,6 +1,9 @@
 # Base image
 FROM php:8.2-apache
 
+# uploads.ini-Configuration
+COPY uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 # System packages (inkl. mariadb-client für mysqldump/mysql)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
@@ -48,5 +51,5 @@ RUN chown -R www-data:www-data /var/www/html \
 
 EXPOSE 80
 
-# Optional: Healthcheck (kannst du aktivieren falls sinnvoll)
+# Optional: Healthcheck (to enable, remove leading #)
 # HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://localhost/ || exit 1

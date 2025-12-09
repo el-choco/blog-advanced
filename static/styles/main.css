@@ -137,4 +137,202 @@ table {
   border-spacing: 0; }
 
 td, th {
+<<<<<<< Updated upstream
   padding: 0; }
+=======
+  padding: 0; }
+
+/* -------------------------------------------------------
+   Variablen-Erweiterung (oberste Sektion deiner main.css)
+   ------------------------------------------------------- */
+:root {
+  /* vorhandene Variablen beibehalten/ergänzen */
+  --color-background: #ffffff;
+  --color-text: #222222;
+  --color-primary: #1877f2;
+  --color-secondary: #166fe5;
+  --color-accent: #ff9800;
+  --radius: 6px;
+
+  /* neue Oberflächen- und UI-Variablen */
+  --surface: #ffffff;
+  --surface-2: #f7f7f9;
+  --surface-3: #f0f1f4;
+  --border-color: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-text: #222222;
+  --muted-text: #88909a;
+  --shadow-elev-1: 0 1px 2px rgba(0,0,0,0.06);
+  --chip-bg: #eef2f7;
+  --chip-border: #d7dbe2;
+}
+
+[data-theme="dark"] {
+  /* vorhandene Dark-Variablen beibehalten/ergänzen */
+  --color-background: #121212;
+  --color-text: #e0e0e0;
+
+  /* dunkle Oberflächen */
+  --surface: #1b1b1f;
+  --surface-2: #232329;
+  --surface-3: #25262c;
+  --border-color: #2f3136;
+  --input-bg: #1b1b1f;
+  --input-text: #e0e0e0;
+  --muted-text: #9aa0a6;
+  --shadow-elev-1: 0 1px 2px rgba(0,0,0,0.55);
+  --chip-bg: #2a2c31;
+  --chip-border: #3a3d43;
+}
+
+/* -------------------------------------------------------
+   Global: Flächen & Text
+   ------------------------------------------------------- */
+html, body {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+/* -------------------------------------------------------
+   Karten & Panels (u. a. Bereich direkt unter dem Cover)
+   ------------------------------------------------------- */
+/* Ersetzt harte #fff/#f8f9fa durch Variablen */
+.card, .panel, .intro-card, .author-panel, .post-header, .content-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-elev-1);
+}
+.card .sub, .panel .sub, .intro-card .sub, .author-panel .sub, .content-card .sub {
+  background: var(--surface-2);
+}
+
+/* Falls es eine spezielle „Meta-/Action-Leiste“ unter dem Cover gibt: */
+.post-actions, .post-meta, .post-toolbar {
+  background: var(--surface-2);
+  border-top: 1px solid var(--border-color);
+}
+
+/* -------------------------------------------------------
+   Sidebar Widgets (Kategorien, Kommentare nach Kategorie)
+   ------------------------------------------------------- */
+/* Widget-Container, Body und Items */
+.widget, .widget-body, .sidebar-widget, .widget-list, .widget-list .list-group, .list-group-item {
+  background: var(--surface);
+  color: var(--color-text);
+  border: 1px solid var(--border-color);
+}
+.widget-sub, .widget-muted, .list-group-item.muted, .widget-list .sub {
+  background: var(--surface-2);
+}
+
+/* Header-Balken bleibt primär, aber ohne helle Artefakte */
+.widget-header, .sidebar-widget .widget-header {
+  background: var(--color-primary);
+  color: #fff;
+  border: none; /* verhindert helle Rahmen */
+}
+
+/* Icon-Hintergründe im Widget-Header transparent halten */
+.widget-header .icon,
+.sidebar-widget .widget-header .icon,
+.widget .icon {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Inline-SVG/IMG im Header: kein weißer Hintergrund, Farbe adaptiv */
+.widget-header .icon svg,
+.sidebar-widget .widget-header .icon svg {
+  fill: currentColor !important; /* übernimmt #fff im Header, var(--color-text) sonst */
+}
+.widget-header .icon img,
+.sidebar-widget .widget-header .icon img {
+  background: transparent !important;
+}
+
+/* Manche Themes nutzen Pseudo-Elemente als Icon-Hintergrund */
+.widget-header .icon::before,
+.sidebar-widget .widget-header .icon::before,
+.widget .icon::before {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Widget-Items/Badges/Counter */
+.widget .badge, .widget .chip, .counter-badge {
+  background: var(--chip-bg);
+  color: var(--color-text);
+  border: 1px solid var(--chip-border);
+}
+
+/* -------------------------------------------------------
+   Editor: Toolbar, Emoji-Panels, Leisten
+   ------------------------------------------------------- */
+.editor-toolbar, .editor-toolbar-row, .emoji-panel, .composer-toolbar, .composer-toolbar-row {
+  background: var(--surface-3);
+  border: 1px solid var(--border-color);
+}
+.editor-toolbar .btn, .editor-toolbar .chip, .emoji-panel .chip, .composer-toolbar .btn, .composer-toolbar .chip {
+  background: var(--surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--border-color);
+}
+.editor-toolbar .btn:hover, .composer-toolbar .btn:hover, .editor-toolbar .chip:hover, .composer-toolbar .chip:hover {
+  background: var(--surface);
+}
+
+/* Emoji-Raster/Hintergründe */
+.emoji-panel .emoji-grid, .emoji-panel .emoji-row {
+  background: var(--surface-3);
+}
+.emoji-panel .emoji, .emoji-panel button.emoji {
+  background: transparent; /* Emojis selbst haben keine helle Fläche */
+  border: none;
+}
+
+/* Untere Aktionsleiste (roter Pfeil in deinem Screenshot) */
+.editor-footer, .composer-footer, .action-bar, .post-footer-tools {
+  background: var(--surface);
+  border-top: 1px solid var(--border-color);
+}
+
+/* -------------------------------------------------------
+   Formular-Inputs (Kommentarformular etc.)
+   ------------------------------------------------------- */
+input, textarea, select, .form-control {
+  background: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--border-color);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--muted-text);
+}
+input:focus, textarea:focus, select:focus, .form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 40%, transparent);
+}
+
+/* Meldungs-/Hinweisboxen (falls vorhanden) */
+.alert, .notice, .callout {
+  background: var(--surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--border-color);
+}
+
+/* -------------------------------------------------------
+   Sonstiges
+   ------------------------------------------------------- */
+/* Generische Liste/Items */
+```css name=static/styles/main.css
+.list, .list-item {
+  background: var(--surface);
+  color: var(--color-text);
+  border-color: var(--border-color);
+}
+
+/* Scrollbar konsistent im Dark-Mode */
+* {
+  scrollbar-color: var(--border-color) transparent;
+}
+>>>>>>> Stashed changes

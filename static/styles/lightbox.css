@@ -1,3 +1,33 @@
+/* Lightbox
+   Dark Mode Toggle support: uses CSS variables and [data-theme="dark"] overrides.
+   Toggle by adding data-theme="dark" to the <html> element. */
+
+:root {
+  --overlay-bg: #000000;
+  --overlay-opacity: 0.8;
+
+  --surface: #ffffff;
+  --image-border: #ffffff;
+
+  --text: #e5e7eb;
+  --muted-text: #cccccc;
+  --muted-2: #999999;
+  --link: #44aaee;
+}
+
+html[data-theme="dark"] {
+  --overlay-bg: #000000;
+  --overlay-opacity: 0.9;
+
+  --surface: #111827;
+  --image-border: #374151;
+
+  --text: #e5e7eb;
+  --muted-text: #d1d5db;
+  --muted-2: #9ca3af;
+  --link: #60a5fa;
+}
+
 /* Preload images */
 body:after {
   content: url(../images/close.png) url(../images/loading.gif) url(../images/prev.png) url(../images/next.png);
@@ -13,9 +43,9 @@ body.lb-disable-scrolling {
   top: 0;
   left: 0;
   z-index: 9999;
-  background-color: black;
+  background-color: var(--overlay-bg, black);
   filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=80);
-  opacity: 0.8;
+  opacity: var(--overlay-opacity, 0.8);
   display: none;
 }
 
@@ -37,7 +67,7 @@ body.lb-disable-scrolling {
   border-radius: 3px;
 
   /* Image border */
-  border: 4px solid white;
+  border: 4px solid var(--image-border, white);
 }
 
 .lightbox a img {
@@ -52,9 +82,8 @@ body.lb-disable-scrolling {
   margin: 0 auto;
   border-radius: 4px;
 
-  /* Background color behind image.
-     This is visible during transitions. */
-  background-color: white;
+  /* Background color behind image. Visible during transitions. */
+  background-color: var(--surface, white);
 }
 
 .lb-outerContainer:after {
@@ -162,7 +191,7 @@ body.lb-disable-scrolling {
 
 .lb-data {
   padding: 0 4px;
-  color: #ccc;
+  color: var(--muted-text, #ccc);
 }
 
 .lb-data .lb-details {
@@ -179,7 +208,7 @@ body.lb-disable-scrolling {
 }
 
 .lb-data .lb-caption a {
-  color: #4ae;
+  color: var(--link, #4ae);
 }
 
 .lb-data .lb-number {
@@ -187,7 +216,7 @@ body.lb-disable-scrolling {
   clear: left;
   padding-bottom: 1em;
   font-size: 12px;
-  color: #999999;
+  color: var(--muted-2, #999999);
 }
 
 .lb-data .lb-close {
