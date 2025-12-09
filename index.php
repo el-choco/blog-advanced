@@ -194,9 +194,9 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 	.cbc-category { font-weight: 600; margin: 10px 0 6px; }
 	.cbc-list { list-style: none; margin: 0; padding: 0; }
 	.cbc-item { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
-	.cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
-	.cbc-text { margin: 4px 0; color: var(--text); font-size: 14px; }
-	.cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
+	.cbc-line { display: flex; justify-content: space-between; color: var(--muted-text); font-size: 12px; }
+	.cbc-text { margin: 4px 0; color: var(--color-text); font-size: 14px; }
+	.cbc-post a { color: var(--blue-link); text-decoration: none; font-size: 13px; }
 	.cbc-post a:hover { text-decoration: underline; }
 
 	/* Cosmetics: category row similar to categories list */
@@ -214,9 +214,9 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 	.comments-by-category-card .cbc-list { list-style: none; margin: 8px 0 0; padding: 0; }
 	.comments-by-category-card .cbc-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
 	.comments-by-category-card .cbc-item:last-child { border-bottom: none; }
-	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: #6b7280; font-size: 12px; }
-	.comments-by-category-card .cbc-text { margin: 4px 0; color: var(--text); font-size: 14px; white-space: normal; }
-	.comments-by-category-card .cbc-post a { color: #2563eb; text-decoration: none; font-size: 13px; }
+	.comments-by-category-card .cbc-line { display: flex; justify-content: space-between; color: var(--muted-text); font-size: 12px; }
+	.comments-by-category-card .cbc-text { margin: 4px 0; color: var(--color-text); font-size: 14px; white-space: normal; }
+	.comments-by-category-card .cbc-post a { color: var(--blue-link); text-decoration: none; font-size: 13px; }
 	.comments-by-category-card .cbc-post a:hover { text-decoration: underline; }
 
 	/* Editor toolbars */
