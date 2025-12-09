@@ -47,13 +47,15 @@ touch logs/.gitkeep
 touch sessions/.gitkeep
 
 # Copy config file if it doesn't exist
-if [ ! -f "data/config.ini" ]; then
-    if [ -f "data/config.ini.example" ]; then
+if [ ! -f "config.ini" ]; then
+    if [ -f "config.ini.example" ]; then
         echo -e "${GREEN}⚙️  Creating config.ini from example...${NC}"
-        cp data/config.ini.example data/config.ini
+        cp config.ini.example config.ini
         echo -e "${GREEN}✅ config.ini created${NC}"
     else
         echo -e "${RED}❌ config.ini.example not found!${NC}"
+        echo -e "${RED}   Expected location: ./config.ini.example${NC}"
+        echo -e "${YELLOW}   Please ensure config.ini.example exists in the repository root.${NC}"
     fi
 else
     echo -e "${YELLOW}ℹ️  config.ini already exists, skipping...${NC}"
@@ -74,8 +76,8 @@ chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set per
 chmod -R 0775 logs/ 2>/dev/null || true
 chmod -R 0775 sessions/ 2>/dev/null || true
 
-if [ -f "data/config.ini" ]; then
-    chmod 0666 data/config.ini 2>/dev/null || true
+if [ -f "config.ini" ]; then
+    chmod 0666 config.ini 2>/dev/null || true
 fi
 
 # Check for PHP
@@ -109,8 +111,8 @@ echo ""
 echo "Next steps:"
 echo ""
 echo "📦 Manual Installation:"
-echo "  1. Edit data/config.ini with your database credentials"
-echo "  2. Import database: mysql -u root -p blog < app/db/mysql/01_schema. sql"
+echo "  1. Edit config.ini with your database credentials"
+echo "  2. Import database: mysql -u root -p blog < app/db/mysql/01_schema.sql"
 echo "  3. Configure your web server to point to this directory"
 echo "  4. Visit: http://localhost/admin/"
 echo "  5. Login: admin / admin123"
