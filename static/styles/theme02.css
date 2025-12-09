@@ -46,7 +46,9 @@
   --chip-border: #ced0d4;
   --color-primary: #1877f2;
   --shadow-elev-1: 0 2px 6px rgba(0,0,0,.06);
+  --headline-bg: rgba(228, 230, 235, 0.6);
 }
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -97,6 +99,7 @@
     --chip-border: #393a3b;
     --color-primary: #2d88ff;
     --shadow-elev-1: 0 2px 6px rgba(0,0,0,.3);
+    --headline-bg: rgba(58, 59, 60, 0.6);
   }
 }
 
@@ -149,6 +152,7 @@ html[data-theme="dark"] {
   --chip-border: #393a3b;
   --color-primary: #2d88ff;
   --shadow-elev-1: 0 2px 6px rgba(0,0,0,.3);
+  --headline-bg: rgba(58, 59, 60, 0.6);
 }
 
 body {
@@ -259,8 +263,7 @@ max-width: 100%;
   min-height: 100px;
   padding: 10px;
   text-align: right;
-  background-color: var(--secondary-background);
-  opacity: 0.6;
+  background-color: var(--headline-bg);
 }
 
 #b_feed {
