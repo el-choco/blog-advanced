@@ -90,7 +90,7 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
     $theme_mode_override = '0';
 }
 ?><!DOCTYPE html>
-<html data-theme="<?php echo htmlspecialchars($theme_mode, ENT_QUOTES, 'UTF-8'); ?>" data-theme-override="<?php echo htmlspecialchars($theme_mode_override, ENT_QUOTES, 'UTF-8'); ?>">
+<html data-theme="<?php echo htmlspecialchars($theme_mode, ENT_QUOTES, 'UTF-8'); ?>"<?php if ($theme_mode_override === '1') echo ' data-theme-override="1"'; ?>>
 <head>
 	<meta charset="utf-8">
 	<title><?php echo escape(Config::get("title")); ?></title>
