@@ -927,24 +927,24 @@ max-width: 100%;
   min-height: 50px;
 }
 
-.t_area {
-  overflow: hidden;
-  padding: 0 16px 0 0;
-  margin: 0;
-  box-sizing: border-box;
-  height: 200px;
+.t_area { 
+  overflow: visible; 
+  padding: 0 16px 0 0; 
+  margin: 0; 
+  box-sizing: border-box; 
 }
 
-.t_area .e_text  {
+/* WICHTIG: Editor-Textarea im Theme nicht mehr transparent und ohne linken Margin */
+.t_area .e_text {
   white-space: pre-wrap;
-  margin: 0 0 0 10px;
-  min-height: 88px;
+  margin: 0;
+  min-height: 88px; 
   max-width: 100%;
   min-width: 100%;
-  background: transparent;
-  border: 0;
+  background: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--border-color);
 }
-
 .options {
   text-align: left;
   float: left;

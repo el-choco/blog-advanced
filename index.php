@@ -113,14 +113,11 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 	<link href="static/styles/comments.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
 	<link href="static/styles/highlight-monokai-sublime.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
 
-	<!-- Optional separate toggle styles (not used; we keep styles in custom1.css) -->
 	<!-- <link href="static/styles/theme-toggle.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" /> -->
 
-	<!-- Dark mode hard overrides (keep as last until inline styles are removed) -->
 	<link href="static/styles/dark-overrides.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	
 
-	<!-- Inline CSS (kept minimal; consider moving to custom1.css later) -->
-	<style>
+	<link href="static/styles/custom-override.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	<style>
 	/* Emoji picker container (editor) */
 	#emojiPicker {
 		display: flex;
@@ -148,15 +145,6 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 	#emojiPicker .emoji:active {
 		transform: scale(1.1);
 	}
-
-	/* Limit textarea height and disable resize */
-	textarea.e_text, textarea#postText {
-		height: 300px !important;
-		max-height: 300px !important;
-		overflow-y: auto !important;
-		resize: none !important;
-	}
-
 	/* File preview strip */
 	.file-preview-container { display:none; margin-top:8px; }
 	.file-preview-item { display:inline-block; margin-right:8px; padding:6px 8px; border:1px solid var(--border-color, #e6e6e6); border-radius:6px; background:var(--surface-2, #fafafa); }
@@ -243,6 +231,9 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 		font-size: 11px;
 	}
 	.html-btn { border-color: var(--border-color, #28a745); }
+
+	.t_area { overflow: visible !important; }
+	
 	</style>
 	<?php echo $styles_html; ?>
 </head>

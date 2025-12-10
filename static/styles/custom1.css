@@ -486,19 +486,61 @@
 .mixed-content { margin: 10px 0; }
 
 /* ============================================
-   TEXTAREA IMPROVEMENTS
+   TEXTAREA IMPROVEMENTS (Resizable)
    ============================================ */
-textarea.e_text, 
+textarea.e_text,
 textarea#postText {
-  height: 300px !important;
-  max-height: 300px !important;
-  overflow-y: auto !important;
-  resize: none !important;
+  /*min-height: 200px !important;*/
+  height: auto !important;
+  max-height: none !important;
+  resize: vertical !important;
+  overflow: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
   line-height: 1.6 !important;
   background: var(--input-bg);
   color: var(--input-text);
   border: 1px solid var(--border-color);
+}
+
+/* Container lässt Wachstum durch und beendet Floats robust */
+.t_area { overflow: visible !important; }
+.t_area::after { content: ""; display: table; clear: both; }
+.modal-body.drop_space { display: flow-root !important; overflow: visible !important; }
+
+/* Editor-Container und Reihenfolge unter .b_post.new_post */
+.b_post.new_post .modal-body.drop_space {
+  display: flow-root !important;
+  overflow: visible !important;
+}
+
+/* Textbereich unterhalb des Floats; linker Versatz entfernen */
+.b_post.new_post .t_area {
+  clear: both !important;
+  padding-left: 0 !important;           /* bei Bedarf: 50px, falls Raum für Avatar gewünscht */
+}
+.b_post.new_post .t_area textarea.e_text,
+.b_post.new_post textarea#postText {
+  display: block !important;
+  clear: both !important;
+  margin-left: 0 !important;            /* verhindert optisches „Einschieben“ */
+  margin-bottom: 12px !important;       /* Abstand zu den Toolbars */
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Toolbars & EmojiPicker starten garantiert unterhalb und sind nicht absolut positioniert */
+.b_post.new_post .toolbar,
+.b_post.new_post #emojiPicker,
+.b_post.new_post .image-preview-container,
+.b_post.new_post .multi-upload-info,
+.b_post.new_post .file-preview-container,
+.b_post.new_post .modal-footer {
+  clear: both !important;
+  position: static !important;
+  margin-top: 8px;
 }
 
 /* ============================================
@@ -767,3 +809,9 @@ hr {
   opacity: .6;
   pointer-events: none;
 }
+
+/* Editor-Fluss abschließend robust unter .b_post.new_post sichern */
+.b_post.new_post .modal-body.drop_space { display: flow-root !important; }
+.b_post.new_post .t_area { clear: both !important; }
+.b_post.new_post .toolbar,
+.b_post.new_post #emojiPicker { clear: both !important; position: static !important; margin-top: 8px; }

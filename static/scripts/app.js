@@ -892,6 +892,20 @@ var new_post = {
 		}
 		buildCategorySelect(optionsContainerNP, null);
 
+		// Deaktivieren von autosize für die Editor-Textarea und manuelles Resizing erlauben
+		try {
+			var taNew = new_post.obj.find('#postText')[0] || new_post.obj.find('textarea.e_text')[0];
+			if (taNew && typeof autosize !== 'undefined' && autosize && typeof autosize.destroy === 'function') {
+				autosize.destroy(taNew);
+				// Sicherstellen, dass Browser-Griff aktiv ist
+				taNew.style.resize = 'vertical';
+				taNew.style.height = '';
+				taNew.style.maxHeight = '';
+				taNew.style.overflow = 'auto';
+				taNew.style.display = 'block';
+			}
+		} catch(e){}
+
 		$(new_post.obj).find(".save").click(function(){
 			var modal = new_post.obj;
 			var saveBtn = $(this);
@@ -1298,6 +1312,18 @@ $.fn.apply_edit = function(data){
 				'resize': 'vertical',
 				'display': 'block'
 			});
+			// Hier zusätzlich autosize sicher deaktivieren, falls aktiv
+			try {
+				var taModal = modal.find('#postText')[0] || modal.find('textarea.e_text')[0];
+				if (taModal && typeof autosize !== 'undefined' && autosize && typeof autosize.destroy === 'function') {
+					autosize.destroy(taModal);
+					taModal.style.resize = 'vertical';
+					taModal.style.height = '';
+					taModal.style.maxHeight = '';
+					taModal.style.overflow = 'auto';
+					taModal.style.display = 'block';
+				}
+			} catch(e){}
 		},0);
 
 		var file_data = modal.find(".photo_upload");
@@ -1643,6 +1669,19 @@ $.fn.apply_post = function(){
 						$("body").css("overflow", "hidden");
 
 						modal.apply_edit(data);
+
+						// Deaktivieren von autosize im Edit-Modal
+						try {
+							var taEdit = modal.find('#postText')[0] || modal.find('textarea.e_text')[0];
+							if (taEdit && typeof autosize !== 'undefined' && autosize && typeof autosize.destroy === 'function') {
+								autosize.destroy(taEdit);
+								taEdit.style.resize = 'vertical';
+								taEdit.style.height = '';
+								taEdit.style.maxHeight = '';
+								taEdit.style.overflow = 'auto';
+								taEdit.style.display = 'block';
+							}
+						} catch(e){}
 
 						modal.find(".close").click(function(){
 							modal.close();

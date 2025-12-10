@@ -1,0 +1,17 @@
+.b_post.new_post .t_area textarea.e_text,
+.b_post.new_post textarea#postText {
+  min-height: 200px !important;
+  height: auto !important;
+  max-height: none !important;
+  resize: vertical !important;
+  overflow: auto !important;
+  display: block !important;
+  margin-left: 0 !important;
+  margin-bottom: 12px !important;
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--border-color) !important;
+}
+.b_post.new_post .modal-body.drop_space { display: flow-root !important; overflow: visible !important; }
+.b_post.new_post .t_area { clear: both !important; }
+.b_post.new_post .toolbar, .b_post.new_post #emojiPicker { clear: both !important; position: static !important; margin-top: 8px; }
