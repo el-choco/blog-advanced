@@ -62,6 +62,41 @@ Optional for email:
 
 ---
 
+## Script permissions
+
+The installation scripts are not executable by default. On macOS/Linux, make them executable first:
+
+```bash
+chmod +x install.sh docker-install.sh
+```
+
+If your environment requires ownership changes (to avoid using 777), run the script with sudo so it can set safe ownership and permissions:
+
+```bash
+# Local install (writes to data/ and uploads/ and data/config.ini)
+sudo ./install.sh
+
+# Docker quick install (also adjusts config.ini in repo root)
+sudo ./docker-install.sh
+```
+
+These scripts will try to set secure permissions (dirs 775, files 664) and adjust ownership on:
+- Non‑Docker: `data/`, `uploads/`, `data/config.ini`
+- Docker quick install: `data/`, `uploads/`, `config.ini`
+
+If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or `apache` on CentOS/Fedora), set ownership manually:
+
+```bash
+# Replace www-data with your web server user (e.g., apache, nginx, httpd)
+sudo chown -R your-web-user:your-web-user data/ uploads/
+sudo chown your-web-user:your-web-user data/config.ini   # for non-Docker
+sudo chown your-web-user:your-web-user config.ini        # for Docker quick install
+```
+
+**Windows users:** Run scripts via Git Bash or WSL, or execute Docker Compose commands directly.
+
+---
+
 ## Quick Start (Docker)
 
 This is the fastest way to get the blog running.
@@ -74,9 +109,16 @@ git clone https://github.com/el-choco/blog-advanced.git
 cd blog-advanced
 ```
 
-2) Run the Docker installation script
+2) Make the script executable
+```bash
+chmod +x docker-install.sh
+```
+
+3) Run the Docker installation script
 ```bash
 ./docker-install.sh
+# Or with sudo if ownership changes are required:
+# sudo ./docker-install.sh
 ```
 
 The script will:
@@ -87,7 +129,7 @@ The script will:
 - Start Docker containers
 - Import database schema
 
-3) Access your blog
+4) Access your blog
 - Frontend: http://localhost:3333
 - Admin Panel: http://localhost:3333/admin/
 - phpMyAdmin: http://localhost:3334
@@ -114,10 +156,15 @@ cp .env.example .env 2>/dev/null || true
 # Edit .env with your DB credentials and app settings
 ```
 
-3) Create necessary directories and set permissions
+3) Make the script executable and create directories
 ```bash
+# Make install script executable
+chmod +x install.sh
+
 # Run the install script to create directories
 ./install.sh
+# Or with sudo if ownership changes are required:
+# sudo ./install.sh
 
 # Or manually create and set permissions
 mkdir -p data data/backups uploads
@@ -210,7 +257,12 @@ git clone https://github.com/el-choco/blog-advanced.git
 cd blog-advanced
 ```
 
-2) Run the installation script
+2) Make the script executable
+```bash
+chmod +x install.sh
+```
+
+3) Run the installation script
 ```bash
 # Run as root or with sudo to set proper ownership
 sudo ./install.sh
@@ -223,14 +275,14 @@ The script will:
 - Create .gitkeep files
 - Check for PHP and required extensions
 
-Or manually create directories and set permissions:
+4) Or manually create directories and set permissions:
 ```bash
 mkdir -p data/{posts,images,files,users,backups,cache} uploads/{images,files} logs sessions
 chown -R www-data:www-data data uploads
 chmod -R 0775 data uploads data/backups
 ```
 
-3) Configure your web server
+5) Configure your web server
 
 - Apache (VirtualHost example):
 ```
@@ -283,7 +335,7 @@ Reload:
 nginx -t && systemctl reload nginx
 ```
 
-4) PHP extensions
+6) PHP extensions
 - Ensure required extensions are enabled:
 ```bash
 php -m | grep -E 'pdo_mysql|mbstring|intl|zip|gd|curl|openssl|json'
@@ -294,7 +346,7 @@ apt-get install -y php8.2-{mysql,mbstring,intl,zip,gd,curl}
 systemctl reload php8.2-fpm || systemctl restart apache2
 ```
 
-5) Database
+7) Database
 - Create a database and user:
 ```sql
 CREATE DATABASE blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -310,7 +362,7 @@ FLUSH PRIVILEGES;
 
 The schema files include all required tables: `posts`, `categories`, `comments`, `images`, and `users`.
 
-6) Configuration
+8) Configuration
 - Create or edit `config.ini` in the project root:
 - chose DB Type by removing the Semikolon ( ; ).
 ```
@@ -400,7 +452,7 @@ theme = "theme02"
 ```
 Note: Do not commit secrets to the repo. Add sensitive files to `.gitignore` (see below).
 
-7) Permissions
+9) Permissions
 - If you skipped running `./install.sh` earlier, ensure proper permissions:
 ```bash
 # Create additional directories if needed
@@ -413,7 +465,7 @@ chmod -R 0775 data uploads data/backups
 
 Note: The `install.sh` script already handles most permissions. This step is only needed if you're setting up manually.
 
-8) Access
+10) Access
 - Open http://blog.local (adjust hosts/DNS) and http://blog.local/admin
 
 ---
