@@ -1,8 +1,8 @@
 .b_post.new_post .t_area textarea.e_text,
 .b_post.new_post textarea#postText {
-  min-height: 200px !important;
-  height: auto !important;
-  max-height: none !important;
+  min-height: 200px;
+  height: auto;
+  max-height: none;
   resize: vertical !important;
   overflow: auto !important;
   display: block !important;

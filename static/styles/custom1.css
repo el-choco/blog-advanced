@@ -490,9 +490,8 @@
    ============================================ */
 textarea.e_text,
 textarea#postText {
-  /*min-height: 200px !important;*/
-  height: auto !important;
-  max-height: none !important;
+  height: auto;
+  max-height: none;
   resize: vertical !important;
   overflow: auto !important;
   width: 100% !important;

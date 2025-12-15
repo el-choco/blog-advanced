@@ -534,6 +534,10 @@
   padding: 16px !important;
   margin-bottom: 18px !important;
 }
+.form-help { 
+  font-size: 12px; 
+  color: #6b7280; 
+}
 
 /* Panel header spacing */
 .settings-panel .panel-header,

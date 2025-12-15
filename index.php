@@ -117,7 +117,7 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 
 	<link href="static/styles/dark-overrides.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	
 
-	<link href="static/styles/custom-override.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	<style>
+	<link href="static/styles/override.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	<style>
 	/* Emoji picker container (editor) */
 	#emojiPicker {
 		display: flex;

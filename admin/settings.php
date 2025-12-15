@@ -24,18 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (isset($_POST['title'])) $config['profile']['title'] = $_POST['title'];
         if (isset($_POST['name']))  $config['profile']['name']  = $_POST['name'];
 
-        if (isset($_POST['title']))    $config['title']    = $_POST['title'];
-        if (isset($_POST['name']))     $config['name']     = $_POST['name'];
-        if (isset($_POST['subtitle'])) $config['subtitle'] = $_POST['subtitle'];
-        if (isset($_POST['timezone'])) $config['timezone'] = $_POST['timezone'];
-
+        // Visitor: nur Schalter + Subtitle
         if (!isset($config['visitor'])) $config['visitor'] = [];
         $config['visitor']['enabled'] = isset($_POST['visitor_enabled']) ? '1' : '0';
-        if (isset($_POST['title']))    $config['visitor']['title']    = $_POST['title'];
-        if (isset($_POST['name']))     $config['visitor']['name']     = $_POST['name'];
         if (isset($_POST['subtitle'])) $config['visitor']['subtitle'] = $_POST['subtitle'];
-        if (isset($_POST['timezone'])) $config['visitor']['timezone'] = $_POST['timezone'];
 
+        // System: nur Timezone
         if (!isset($config['system'])) $config['system'] = [];
         if (isset($_POST['timezone'])) $config['system']['timezone'] = $_POST['timezone'];
 
@@ -48,36 +42,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* LANGUAGE (redirect on success for full reload) */
-    if ($action === 'update_language') {
-        $supported_langs = ['en','de','es','fr','it','pt','ru','zh','ja'];
-        $new_lang        = $_POST['lang'] ?? '';
+/* LANGUAGE (redirect on success for full reload) */
+if ($action === 'update_language') {
+    $supported_langs = ['en','de','es','fr','it','pt','ru','zh','ja'];
+    $new_lang        = $_POST['lang'] ?? '';
 
-        if (in_array($new_lang, $supported_langs, true)) {
-            if (!isset($config['language'])) $config['language'] = [];
-            $config['language']['lang'] = $new_lang;
-            $config['lang'] = $new_lang;
+    if (in_array($new_lang, $supported_langs, true)) {
+        if (!isset($config['language'])) $config['language'] = [];
+        $config['language']['lang'] = $new_lang;
 
-            if (!isset($config['visitor'])) $config['visitor'] = [];
-            $config['visitor']['lang'] = $new_lang;
+        // Legacy-Kompatibilität: Root und Visitor mitpflegen (für bestehende common.php/Frontend)
+        $config['lang'] = $new_lang;
+        if (!isset($config['visitor'])) $config['visitor'] = [];
+        $config['visitor']['lang'] = $new_lang;
 
-            if (session_status() !== PHP_SESSION_ACTIVE) {
-                @session_start();
-            }
-            $_SESSION['lang'] = $new_lang;
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+        $_SESSION['lang'] = $new_lang;
 
-            if (writeConfig($config_file, $config)) {
-                header('Location: settings.php?language_changed=1&lang=' . urlencode($new_lang));
-                exit;
-            } else {
-                $message = $lang['Error saving'];
-                $message_type = 'error';
-            }
+        if (writeConfig($config_file, $config)) {
+            header('Location: settings.php?language_changed=1&lang=' . urlencode($new_lang));
+            exit;
         } else {
             $message = $lang['Error saving'];
             $message_type = 'error';
         }
+    } else {
+        $message = $lang['Error saving'];
+        $message_type = 'error';
     }
+} 
 
     /* THEME */
     if ($action === 'update_theme') {
@@ -85,8 +80,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (isset($_POST['theme'])) {
             $t = $sanitizeTheme($_POST['theme']);
             $config['custom']['theme'] = $t;
-            $config['theme'] = $t;
         }
+        if (writeConfig($config_file, $config)) {
+            $message = $lang['General settings saved'];
+            $message_type = 'success';
+        } else {
+            $message = $lang['Error saving'];
+            $message_type = 'error';
+        }
+    }
+
+    /* THEME MODE (Light/Dark + Override) */
+    if ($action === 'update_theme_mode') {
+        $mode = $_POST['theme_mode'] ?? 'light';
+        $mode = in_array($mode, ['light','dark'], true) ? $mode : 'light';
+        $override = isset($_POST['theme_mode_override']) ? '1' : '0';
+
+        if (!isset($config['system'])) $config['system'] = [];
+        $config['system']['theme_mode'] = $mode;
+        $config['system']['theme_mode_override'] = $override;
+
         if (writeConfig($config_file, $config)) {
             $message = $lang['General settings saved'];
             $message_type = 'success';
@@ -197,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $stored_hash  = $config['admin']['pass'] ?? ($config['pass'] ?? '');
         $is_valid     = false;
 
-        if (password_get_info($stored_hash)['algo'] !== null) {
+        if ($stored_hash !== '' && password_get_info($stored_hash)['algo'] !== null) {
             $is_valid = password_verify($current_pass, $stored_hash);
         } else {
             $is_valid = ($current_pass === $stored_hash);
@@ -207,8 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             if ($new_pass === $confirm_pass && strlen($new_pass) >= 6) {
                 $new_hash = password_hash($new_pass, PASSWORD_DEFAULT);
                 if (!isset($config['admin'])) $config['admin'] = [];
-                $config['admin']['pass'] = $new_hash;
-                $config['pass']          = $new_hash;
+                $config['admin']['pass'] = $new_hash; // nur in admin speichern
                 if (writeConfig($config_file, $config)) {
                     $message = $lang['Password changed'];
                     $message_type = 'success';
@@ -226,38 +238,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* COVER IMAGE */
-    if ($action === 'update_cover' && isset($_FILES['cover'])) {
-        $file = $_FILES['cover'];
-        if ($file['error'] === UPLOAD_ERR_OK) {
-            $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            $finfo   = finfo_open(FILEINFO_MIME_TYPE);
-            $mime    = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
-            if (in_array($mime, $allowed)) {
-                $upload_dir = PROJECT_PATH . 'static/images/';
-                if (!is_dir($upload_dir)) @mkdir($upload_dir, 0755, true);
-                $ext  = pathinfo($file['name'], PATHINFO_EXTENSION);
-                $dest = $upload_dir . 'cover.' . $ext;
-                if (move_uploaded_file($file['tmp_name'], $dest)) {
-                    if (!isset($config['profile'])) $config['profile'] = [];
-                    $config['profile']['cover'] = 'static/images/cover.' . $ext;
-                    $config['cover']            = 'static/images/cover.' . $ext;
-                    if (writeConfig($config_file, $config)) {
-                        $message = $lang['Cover image uploaded'];
-                        $message_type = 'success';
-                    }
-                } else {
-                    $message = $lang['Error uploading'];
-                    $message_type = 'error';
-                }
-            } else {
-                $message = $lang['Only images allowed'];
-                $message_type = 'error';
-            }
-        }
-    }
-
     $config = parse_ini_file($config_file, true);
 }
 
@@ -272,20 +252,27 @@ if (isset($_GET['language_changed'])) {
     $message_type = 'success';
 }
 
-// Helper: write config
+// Helper: write config (sichereres Escaping, keine Root-Duplikate erzeugen)
 function writeConfig($file, $config) {
     $content = '';
     foreach ($config as $key => $value) {
         if (is_array($value)) {
             $content .= "[$key]\n";
             foreach ($value as $k => $v) {
+                $v = (string)$v;
+                // Basales Escaping für INI-Werte in Anführungszeichen
+                $v = str_replace(["\\", "\"", "\r", "\n"], ["\\\\", "\\\"", "", "\\n"], $v);
                 $content .= "$k = \"$v\"\n";
             }
+            $content .= "\n";
         } else {
-            $content .= "$key = \"$value\"\n";
+            $v = (string)$value;
+            $v = str_replace(["\\", "\"", "\r", "\n"], ["\\\\", "\\\"", "", "\\n"], $v);
+            $content .= "$key = \"$v\"\n";
         }
     }
-    return file_put_contents($file, $content);
+    $content = rtrim($content) . "\n";
+    return file_put_contents($file, $content) !== false;
 }
 
 // Helper: read config
@@ -338,7 +325,7 @@ $timezones = [
     .tab-content{display:none;}
     .tab-content.active{display:block;}
 
-    /* Panel: außen sichtbar */
+    /* Panel */
     .settings-section{
         box-sizing:border-box !important;
         background:#fff !important;
@@ -351,12 +338,18 @@ $timezones = [
 
     /* Titel */
     .section-title{
+        display:flex; align-items:center; gap:8px;
         font-size:16px !important;
         font-weight:600 !important;
         margin-bottom:12px !important;
         padding-bottom:8px !important;
         border-bottom:2px solid #f0f0f0 !important;
         color:#111827 !important;
+    }
+    .section-title .icon{
+        width:22px; height:22px; border-radius:999px;
+        background: radial-gradient( circle at 30% 30%, #ffb300 0%, #ffb300 30%, #7c4dff 31%, #7c4dff 100%);
+        box-shadow:0 2px 6px rgba(0,0,0,.12);
     }
 
     /* Grid */
@@ -419,34 +412,49 @@ $timezones = [
     }
     .btn-save:hover{filter:brightness(0.98) !important;}
 
-    /* Messages */
-    .message{padding:15px 20px;border-radius:8px;margin-bottom:20px;font-size:14px;font-weight:500;}
-    .message-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb;}
-    .message-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;}
+    /* Help text */
+    .form-help { font-size:12px; color:#6b7280; }
 
-    /* Warning box */
-    .warning-box{
-        background:#fff8e6 !important;
-        border-left:4px solid #f3cf73 !important;
-        padding:12px !important;
-        border-radius:8px !important;
-        margin-bottom:12px !important;
-        color:#8a6d1e !important;
+    /* Theme picker cards (restore previous look) */
+    .theme-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+        gap:14px;
+    }
+    .theme-option{position:relative; display:block;}
+    .theme-option input[type="radio"]{position:absolute; opacity:0; pointer-events:none;}
+    .theme-card{
+        border:2px solid #e5e7eb;
+        border-radius:10px;
+        padding:16px 14px;
+        text-align:center;
+        background:#fff;
+        transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+    .theme-card .dot{
+        width:44px;
+        height:44px;
+        border-radius:999px;
+        background:#1877f2;
+        margin:0 auto 10px;
+        box-shadow:0 2px 6px rgba(24,119,242,.25);
+    }
+    .theme-card .label{
+        font-weight:600;
+        color:#374151;
+    }
+    .theme-option input:checked + .theme-card{
+        border-color:#1877f2;
+        background:#e7f3ff;
+        box-shadow:0 4px 12px rgba(24,119,242,.15);
     }
 
-    /* Focus state */
-    .form-input:focus,.form-select:focus,.form-textarea:focus{
-        border-color:#3b82f6 !important;
-        box-shadow:0 0 0 3px rgba(59,130,246,0.15) !important;
-        background:#fff !important;
+    /* Dark & Light Mode row aesthetics */
+    .mode-row{
+        display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;
     }
-
-    /* Theme grid remains */
-    .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:15px;}
-    .theme-option{position:relative;cursor:pointer;}
-    .theme-option input{position:absolute;opacity:0;}
-    .theme-card{border:3px solid #e5e5e5;border-radius:8px;padding:20px;text-align:center;transition:.2s;}
-    .theme-option input:checked + .theme-card{border-color:#1877f2;background:#e7f3ff;}
+    .mode-select-wrap{flex:1 1 320px;}
+    .mode-override-wrap{flex:0 1 auto; min-width:240px;}
     </style>
 </head>
 <body class="admin-body">
@@ -567,8 +575,8 @@ $timezones = [
                                 <label class="theme-option">
                                     <input type="radio" name="theme" value="<?php echo $theme_option; ?>" <?php echo $current_theme === $theme_option?'checked':''; ?>>
                                     <div class="theme-card">
-                                        <div style="width:50px;height:50px;background:#1877f2;border-radius:50%;margin:0 auto 10px;"></div>
-                                        <div><?php echo ucfirst($theme_option); ?></div>
+                                        <div class="dot"></div>
+                                        <div class="label"><?php echo ucfirst($theme_option); ?></div>
                                     </div>
                                 </label>
                             <?php endforeach; ?>
@@ -577,19 +585,54 @@ $timezones = [
                         <button type="submit" class="btn-save">💾 <?php echo escape($lang['Save theme']); ?></button>
                     </form>
                 </div>
-                <div class="settings-section">
-                    <h2 class="section-title">✨ <?php echo escape($lang['Components']); ?></h2>
-                    <form method="POST">
-                        <input type="hidden" name="action" value="update_components">
-                        <div class="form-checkbox">
-                            <input type="checkbox" name="highlight" id="highlight" <?php echo getConfig($config,'components','highlight')==='1'?'checked':''; ?>>
-                            <label for="highlight"><?php echo escape($lang['Enable syntax highlighting']); ?></label>
+
+        <!-- Dark & Light Mode section -->
+        <div class="settings-section">
+            <h2 class="section-title">
+                <span class="icon" aria-hidden="true"></span>
+                <?php echo escape($lang['Dark & Light Mode']); ?>
+            </h2>
+
+            <form method="POST">
+                <input type="hidden" name="action" value="update_theme_mode">
+
+                <div class="mode-row">
+                    <div class="mode-select-wrap">
+                        <label class="form-label" for="theme_mode">
+                            <?php echo escape($lang['ThemeModeChoose'] ?? '(Choose Mode:)'); ?>
+                        </label>
+                        <?php $current_mode = getConfig($config,'system','theme_mode','light'); ?>
+                        <select id="theme_mode" name="theme_mode" class="form-select">
+                            <option value="light" <?php echo $current_mode==='light'?'selected':''; ?>>
+                                <?php echo escape($lang['ThemeModeLight'] ?? 'Light'); ?>
+                            </option>
+                            <option value="dark"  <?php echo $current_mode==='dark'?'selected':''; ?>>
+                                <?php echo escape($lang['ThemeModeDark'] ?? 'Dark'); ?>
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mode-override-wrap">
+                        <?php $override = getConfig($config,'system','theme_mode_override','0'); ?>
+                        <div class="form-checkbox" style="margin-top: 26px;">
+                            <input type="checkbox"
+                                name="theme_mode_override"
+                                id="theme_mode_override"
+                                <?php echo $override==='1'?'checked':''; ?>>
+                            <label for="theme_mode_override">
+                                <?php echo escape($lang['ThemeModeAdminOverride'] ?? 'Admin Override to lock selected Mode!'); ?>
+                            </label>
                         </div>
-                        <br>
-                        <button type="submit" class="btn-save">💾 <?php echo escape($lang['Save']); ?></button>
-                    </form>
+                    </div>
                 </div>
-            </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+            <button type="submit" class="btn-save">
+                💾 <?php echo escape($lang['ThemeModeSave'] ?? 'Save display mode'); ?>
+            </button>
+        </div>
+    </form>
+</div>            </div>
 
             <!-- Email -->
             <div class="tab-content" id="tab-email">
