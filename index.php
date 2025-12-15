@@ -354,7 +354,7 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 							<div class="file-preview-container" style="display:none;"></div>
 							
 							<div class="t_area">
-								<textarea id="postText" class="e_text" placeholder="<?php echo __("What's on your mind?"); ?>"></textarea>
+								<textarea id="postText" class="e_text" placeholder="<?php echo __("What is on your mind?"); ?>"></textarea>
 							</div>
 
 							<!-- Markdown Toolbar -->
@@ -645,7 +645,10 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 
 		<!-- Header actions: Toggle, Logout, Admin (injected into this container) -->
 		<div id="headline"></div>
-
+		<form action="search.php" method="get" class="headbar-search-form">
+		<input type="text" name="q" class="headbar-search-input" placeholder="Suchen…" />
+		<button type="submit" class="headbar-search-btn admin_btn">Search</button>
+		</form>
 		<!-- Trash button bar below header (visible only when logged in) -->
 		<div id="trash_headline_btn" style="display:none; max-width: 1000px; margin: 0 auto 20px auto; text-align: right; padding: 0 10px;">
 			<button type="button" class="button gray" id="show_trash_btn" style="padding: 8px 16px; font-size: 14px; display: inline-block;">

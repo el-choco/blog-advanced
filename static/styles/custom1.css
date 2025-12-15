@@ -819,7 +819,6 @@ hr {
    ============================================ */
 /* Mobile: hide Sidebar and Content Full */
 @media (max-width: 768px) {
-  /* right Sidebar (laut Styles oben: #right_sidebar.right-sidebar-fixed) */
   #right_sidebar,
   #right_sidebar.right-sidebar-fixed {
     display: none !important;
@@ -846,4 +845,39 @@ hr {
   .home-grid {
     grid-template-columns: 1fr !important;
   }
+}
+/* ============================================
+   HEADER SEARCH FORM STYLING
+   ============================================ */
+.headbar-search-form {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: 10px; 
+  translate: 10px 40px;
+}
+.headbar-search-input {
+  height: 20px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  min-width: 220px;
+}
+.headbar-search-btn {
+  height: 36px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #1877f2;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.headbar-search-btn:hover { background: #166fe5; }
+.headbar-search-btn:active { background: #1466d9; }
+
+@media (max-width: 768px) {
+  .headbar-search-input { min-width: 140px; }
 }
