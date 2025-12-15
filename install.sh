@@ -51,6 +51,10 @@ if [ ! -f "data/config.ini" ]; then
     if [ -f "data/config.ini.example" ]; then
         echo -e "${GREEN}⚙️  Creating config.ini from example...${NC}"
         cp data/config.ini.example data/config.ini
+        # ensure correct ownership right after creation (best effort)
+        if command -v chown &> /dev/null; then
+            chown www-data:www-data data/config.ini 2>/dev/null || true
+        fi
         echo -e "${GREEN}✅ config.ini created${NC}"
     else
         echo -e "${RED}❌ config.ini.example not found!${NC}"
@@ -63,6 +67,10 @@ fi
 echo -e "${GREEN}👤 Setting ownership...${NC}"
 if command -v chown &> /dev/null; then
     chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+    # explicitly ensure config.ini belongs to web user so 777 is not needed
+    if [ -f "data/config.ini" ]; then
+        chown www-data:www-data data/config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown data/config.ini (may need root/sudo)${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
 fi
@@ -74,8 +82,9 @@ chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set per
 chmod -R 0775 logs/ 2>/dev/null || true
 chmod -R 0775 sessions/ 2>/dev/null || true
 
+# secure permissions for config.ini (read/write for owner+group)
 if [ -f "data/config.ini" ]; then
-    chmod 0666 data/config.ini 2>/dev/null || true
+    chmod 0664 data/config.ini 2>/dev/null || true
 fi
 
 # Check for PHP

@@ -46,6 +46,13 @@ echo -e "${GREEN}👤 Setting ownership for Docker...${NC}"
 if command -v chown &> /dev/null; then
     # Set ownership (directories should already exist from install.sh)
     chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+
+    # NEW: config.ini ownership so we don't need 777
+    if [ -f "config.ini" ]; then
+        chown www-data:www-data config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown config.ini (may need root/sudo)${NC}"
+    else
+        echo -e "${YELLOW}⚠️  config.ini not found, skipping chown${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
 fi
@@ -54,6 +61,11 @@ echo -e "${GREEN}🔐 Setting permissions for Docker...${NC}"
 # Set permissions
 chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data${NC}"
 chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
+
+# NEW: secure permissions for config.ini
+if [ -f "config.ini" ]; then
+    chmod 0664 config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chmod config.ini${NC}"
+fi
 
 # Create .env file if it doesn't exist
 if [ ! -f ".env" ]; then

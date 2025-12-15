@@ -5,6 +5,24 @@ require_once 'common.php';
 $message = '';
 $message_type = '';
 
+// Resolve directory paths from config with safe defaults
+$images_path_cfg     = rtrim(trim(Config::get('images_path', 'data/i/')), '/').'/';
+$thumbnails_path_cfg = rtrim(trim(Config::get('thumbnails_path', 'data/t/')), '/').'/';
+
+// Build absolute paths
+$images_dir_abs      = PROJECT_PATH . $images_path_cfg;       // e.g. PROJECT_PATH.'data/i/'
+$thumbnails_dir_abs  = PROJECT_PATH . $thumbnails_path_cfg;   // e.g. PROJECT_PATH.'data/t/'
+$uploads_images_abs  = PROJECT_PATH . 'uploads/images/';
+$uploads_files_abs   = PROJECT_PATH . 'uploads/files/';
+
+// Allowed directories for delete/bulk delete (include all scanned dirs)
+$allowed_dirs = [
+    $images_dir_abs,
+    $thumbnails_dir_abs,
+    $uploads_images_abs,
+    $uploads_files_abs,
+];
+
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     
@@ -13,21 +31,17 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $file_path = $_POST['file_path'];
         
         // Security: ensure file is within allowed directories
-        $allowed_dirs = [
-            PROJECT_PATH . 'data/images/',
-            PROJECT_PATH . 'uploads/files/',
-            PROJECT_PATH . 'uploads/images/'
-        ];
-        
         $is_allowed = false;
+        $real_file = @realpath($file_path);
         foreach($allowed_dirs as $dir) {
-            if(strpos(realpath($file_path), realpath($dir)) === 0) {
+            $real_dir = @realpath($dir);
+            if($real_file && $real_dir && strpos($real_file, $real_dir) === 0) {
                 $is_allowed = true;
                 break;
             }
         }
         
-        if($is_allowed && file_exists($file_path)) {
+        if($is_allowed && is_file($file_path)) {
             if(@unlink($file_path)) {
                 $message = $lang['File deleted'];
                 $message_type = 'success';
@@ -42,26 +56,22 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
     
     // Bulk delete
-    if($action === 'bulk_delete' && isset($_POST['file_paths'])) {
+    if($action === 'bulk_delete' && isset($_POST['file_paths']) && is_array($_POST['file_paths'])) {
         $file_paths = $_POST['file_paths'];
         $count = 0;
         
         foreach($file_paths as $file_path) {
-            $allowed_dirs = [
-                PROJECT_PATH . 'data/images/',
-                PROJECT_PATH . 'uploads/files/',
-                PROJECT_PATH . 'uploads/images/'
-            ];
-            
             $is_allowed = false;
+            $real_file = @realpath($file_path);
             foreach($allowed_dirs as $dir) {
-                if(strpos(realpath($file_path), realpath($dir)) === 0) {
+                $real_dir = @realpath($dir);
+                if($real_file && $real_dir && strpos($real_file, $real_dir) === 0) {
                     $is_allowed = true;
                     break;
                 }
             }
             
-            if($is_allowed && file_exists($file_path)) {
+            if($is_allowed && is_file($file_path)) {
                 if(@unlink($file_path)) {
                     $count++;
                 }
@@ -79,58 +89,51 @@ $filter = $_GET['filter'] ?? 'all';
 // Collect all media files
 $media_files = [];
 
-// Images from data/images/
-if(is_dir(PROJECT_PATH . 'data/images/')) {
-    $image_files = glob(PROJECT_PATH . 'data/images/*');
-    foreach($image_files as $file) {
-        if(is_file($file)) {
-            $media_files[] = [
-                'path' => $file,
-                'name' => basename($file),
-                'size' => filesize($file),
-                'type' => 'image',
-                'modified' => filemtime($file),
-                'url' => str_replace(PROJECT_PATH, '', $file)
-            ];
-        }
+// Helper to add file into list
+$addFile = function($file, $typeOverride = null) use (&$media_files) {
+    if(!is_file($file)) return;
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $is_image = in_array($ext, ['jpg','jpeg','png','gif','webp','svg','bmp','avif']);
+
+    $type = $typeOverride ?: ($is_image ? 'image' : 'file');
+
+    $media_files[] = [
+        'path'     => $file,
+        'name'     => basename($file),
+        'size'     => @filesize($file) ?: 0,
+        'type'     => $type,
+        'modified' => @filemtime($file) ?: 0,
+        'url'      => str_replace(PROJECT_PATH, '', $file),
+        'ext'      => $ext
+    ];
+};
+
+// Scan images_path (configured)
+if(is_dir($images_dir_abs)) {
+    foreach(glob($images_dir_abs . '*') as $file) {
+        $addFile($file, 'image');
     }
 }
 
-// Images from uploads/images/
-if(is_dir(PROJECT_PATH . 'uploads/images/')) {
-    $upload_images = glob(PROJECT_PATH . 'uploads/images/*');
-    foreach($upload_images as $file) {
-        if(is_file($file)) {
-            $media_files[] = [
-                'path' => $file,
-                'name' => basename($file),
-                'size' => filesize($file),
-                'type' => 'image',
-                'modified' => filemtime($file),
-                'url' => str_replace(PROJECT_PATH, '', $file)
-            ];
-        }
+// Scan thumbnails_path (optional – meist ebenfalls Bilder)
+// Wenn du Thumbnails NICHT anzeigen willst, kommentiere diesen Block aus.
+if(is_dir($thumbnails_dir_abs)) {
+    foreach(glob($thumbnails_dir_abs . '*') as $file) {
+        $addFile($file, 'image');
     }
 }
 
-// Files from uploads/files/
-if(is_dir(PROJECT_PATH . 'uploads/files/')) {
-    $upload_files = glob(PROJECT_PATH . 'uploads/files/*');
-    foreach($upload_files as $file) {
-        if(is_file($file)) {
-            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-            $is_image = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']);
-            
-            $media_files[] = [
-                'path' => $file,
-                'name' => basename($file),
-                'size' => filesize($file),
-                'type' => $is_image ? 'image' : 'file',
-                'modified' => filemtime($file),
-                'url' => str_replace(PROJECT_PATH, '', $file),
-                'ext' => $ext
-            ];
-        }
+// Scan uploads/images
+if(is_dir($uploads_images_abs)) {
+    foreach(glob($uploads_images_abs . '*') as $file) {
+        $addFile($file, 'image');
+    }
+}
+
+// Scan uploads/files (kann Bilder oder andere Dateien enthalten)
+if(is_dir($uploads_files_abs)) {
+    foreach(glob($uploads_files_abs . '*') as $file) {
+        $addFile($file, null);
     }
 }
 
@@ -142,15 +145,15 @@ if($filter === 'images') {
 }
 
 // Sort by modified date (newest first)
-usort($media_files, fn($a, $b) => $b['modified'] - $a['modified']);
+usort($media_files, fn($a, $b) => ($b['modified'] ?? 0) - ($a['modified'] ?? 0));
 
 // Count by type
-$count_all = count($media_files);
-$count_images = count(array_filter($media_files, fn($f) => $f['type'] === 'image'));
+$count_all   = count($media_files);
+$count_images= count(array_filter($media_files, fn($f) => $f['type'] === 'image'));
 $count_files = count(array_filter($media_files, fn($f) => $f['type'] === 'file'));
 
 // Calculate total size
-$total_size = array_sum(array_column($media_files, 'size'));
+$total_size = array_sum(array_map(fn($f) => $f['size'], $media_files));
 
 function formatFileSize($bytes) {
     if($bytes >= 1073741824) {
