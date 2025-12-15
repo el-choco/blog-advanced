@@ -809,8 +809,41 @@ hr {
   pointer-events: none;
 }
 
-/* Editor-Fluss abschließend robust unter .b_post.new_post sichern */
 .b_post.new_post .modal-body.drop_space { display: flow-root !important; }
 .b_post.new_post .t_area { clear: both !important; }
 .b_post.new_post .toolbar,
 .b_post.new_post #emojiPicker { clear: both !important; position: static !important; margin-top: 8px; }
+
+/* ============================================
+   RESPONSIVE: Mobile fullwidth content
+   ============================================ */
+/* Mobile: hide Sidebar and Content Full */
+@media (max-width: 768px) {
+  /* right Sidebar (laut Styles oben: #right_sidebar.right-sidebar-fixed) */
+  #right_sidebar,
+  #right_sidebar.right-sidebar-fixed {
+    display: none !important;
+  }
+
+  /* Main feed and Header full */
+  #b_feed,
+  .headbar {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .main-content,
+  .content,
+  .layout-main,
+  .home-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .page-grid,
+  .layout-grid,
+  .home-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
