@@ -62,6 +62,41 @@ Optional for email:
 
 ---
 
+## Script permissions
+
+The installation scripts are not executable by default. On macOS/Linux, make them executable first:
+
+```bash
+chmod +x install.sh docker-install.sh
+```
+
+If your environment requires ownership changes (to avoid using 777), run the script with sudo so it can set safe ownership and permissions:
+
+```bash
+# Local install (writes to data/ and uploads/ and data/config.ini)
+sudo ./install.sh
+
+# Docker quick install (also adjusts config.ini in repo root)
+sudo ./docker-install.sh
+```
+
+These scripts will try to set secure permissions (dirs 775, files 664) and adjust ownership on:
+- Non-Docker: `data/`, `uploads/`, `data/config.ini`
+- Docker quick install: `data/`, `uploads/`, `config.ini`
+
+If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or `apache` on CentOS/Fedora), set ownership manually:
+
+```bash
+# Replace www-data with your web server user (e.g., apache, nginx, etc.)
+sudo chown -R www-data:www-data data/ uploads/
+sudo chown www-data:www-data data/config.ini  # for non-Docker
+sudo chown www-data:www-data config.ini        # for Docker quick install
+```
+
+**Windows users:** Run scripts via Git Bash or WSL, or execute docker compose commands directly if you prefer not to use the scripts.
+
+---
+
 ## Quick Start (Docker)
 
 This is the fastest way to get the blog running.
@@ -74,9 +109,16 @@ git clone https://github.com/el-choco/blog-advanced.git
 cd blog-advanced
 ```
 
-2) Run the Docker installation script
+2) Make the installation scripts executable
+```bash
+chmod +x install.sh docker-install.sh
+```
+
+3) Run the Docker installation script
 ```bash
 ./docker-install.sh
+# Or with sudo if you need to set ownership on config files and writable directories:
+# sudo ./docker-install.sh
 ```
 
 The script will:
@@ -87,7 +129,7 @@ The script will:
 - Start Docker containers
 - Import database schema
 
-3) Access your blog
+4) Access your blog
 - Frontend: http://localhost:3333
 - Admin Panel: http://localhost:3333/admin/
 - phpMyAdmin: http://localhost:3334
@@ -116,8 +158,13 @@ cp .env.example .env 2>/dev/null || true
 
 3) Create necessary directories and set permissions
 ```bash
+# Make scripts executable
+chmod +x install.sh docker-install.sh
+
 # Run the install script to create directories
 ./install.sh
+# Or with sudo if ownership changes are required:
+# sudo ./install.sh
 
 # Or manually create and set permissions
 mkdir -p data data/backups uploads
@@ -210,7 +257,12 @@ git clone https://github.com/el-choco/blog-advanced.git
 cd blog-advanced
 ```
 
-2) Run the installation script
+2) Make the installation script executable
+```bash
+chmod +x install.sh
+```
+
+3) Run the installation script
 ```bash
 # Run as root or with sudo to set proper ownership
 sudo ./install.sh
@@ -223,7 +275,7 @@ The script will:
 - Create .gitkeep files
 - Check for PHP and required extensions
 
-Or manually create directories and set permissions:
+Or manually create directories and set permissions (if not using the install script):
 ```bash
 mkdir -p data/{posts,images,files,users,backups,cache} uploads/{images,files} logs sessions
 chown -R www-data:www-data data uploads
