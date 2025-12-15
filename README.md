@@ -81,7 +81,7 @@ sudo ./docker-install.sh
 ```
 
 These scripts will try to set secure permissions (dirs 775, files 664) and adjust ownership on:
-- Non‑Docker: `data/`, `uploads/`, `data/config.ini`
+- Non-Docker: `data/`, `uploads/`, `data/config.ini`
 - Docker quick install: `data/`, `uploads/`, `config.ini`
 
 If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or `apache` on CentOS/Fedora), set ownership manually:
