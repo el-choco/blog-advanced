@@ -17,6 +17,9 @@ tmp/
 temp/
 cache/
 
+# Theme Editor custom CSS (user-generated)
+static/styles/custom-theme.css
+
 # OS files
 .DS_Store
 Thumbs.db
