@@ -13,21 +13,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $config_file = PROJECT_PATH . 'config.ini';
     $config = parse_ini_file($config_file, true);
     
-    // Helper to write config
+    // Helper to write config with validation
     $writeConfig = function($file, $config) {
         $content = '';
         foreach ($config as $key => $value) {
+            // Validate section/key names to prevent INI injection
+            if (!preg_match('/^[a-zA-Z0-9_.-]+$/', $key)) {
+                throw new Exception('Invalid config key: ' . $key);
+            }
+            
             if (is_array($value)) {
                 $content .= "[$key]\n";
                 foreach ($value as $k => $v) {
+                    // Validate nested key names
+                    if (!preg_match('/^[a-zA-Z0-9_.-]+$/', $k)) {
+                        throw new Exception('Invalid config key: ' . $k);
+                    }
                     $v = (string)$v;
-                    $v = str_replace(["\\", "\"", "\r", "\n"], ["\\\\", "\\\"", "", "\\n"], $v);
+                    // Escape special characters and prevent INI syntax injection
+                    $v = str_replace(["\\", "\"", "\r", "\n", "[", "]"], ["\\\\", "\\\"", "", "\\n", "\\[", "\\]"], $v);
                     $content .= "$k = \"$v\"\n";
                 }
                 $content .= "\n";
             } else {
                 $v = (string)$value;
-                $v = str_replace(["\\", "\"", "\r", "\n"], ["\\\\", "\\\"", "", "\\n"], $v);
+                $v = str_replace(["\\", "\"", "\r", "\n", "[", "]"], ["\\\\", "\\\"", "", "\\n", "\\[", "\\]"], $v);
                 $content .= "$key = \"$v\"\n";
             }
         }
@@ -44,6 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 
                 if (empty($theme)) {
                     throw new Exception('Invalid theme name');
+                }
+                
+                // Verify theme file exists
+                $theme_file = PROJECT_PATH . 'static/styles/' . $theme . '.css';
+                if (!file_exists($theme_file)) {
+                    throw new Exception('Theme file does not exist');
                 }
                 
                 if (!isset($config['custom'])) {
@@ -395,8 +411,14 @@ function t($key, $fallback = '') {
         
         $('.color-value').on('input', function() {
             const variable = $(this).data('variable');
-            const value = $(this).val();
-            if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+            let value = $(this).val().toLowerCase();
+            // Accept both 3-char (#RGB) and 6-char (#RRGGBB) hex codes
+            if (/^#[0-9a-f]{3}$/.test(value)) {
+                // Expand 3-char hex to 6-char for consistency
+                value = '#' + value[1] + value[1] + value[2] + value[2] + value[3] + value[3];
+                $(this).val(value);
+            }
+            if (/^#[0-9a-f]{6}$/.test(value)) {
                 $(this).siblings('.color-picker').val(value);
                 customColors[variable] = value;
                 applyCustomColors();
@@ -418,8 +440,10 @@ function t($key, $fallback = '') {
         
         $('#reset-colors').on('click', function() {
             customColors = {};
+            const defaults = <?php echo json_encode(array_map(function($v) { return $v['default']; }, $css_variables)); ?>;
             $('.color-picker').each(function() {
-                const defaultVal = '<?php echo $css_variables['--bg']['default']; ?>';
+                const variable = $(this).data('variable');
+                const defaultVal = defaults[variable] || '#000000';
                 $(this).val(defaultVal);
                 $(this).siblings('.color-value').val(defaultVal);
             });

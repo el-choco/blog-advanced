@@ -121,16 +121,21 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 	
 	<?php
 	// Theme Editor: Load custom CSS and colors if enabled
-	$config_with_sections = @parse_ini_file(PROJECT_PATH . 'config.ini', true);
-	$theme_editor_config = isset($config_with_sections['theme_editor']) ? $config_with_sections['theme_editor'] : [];
+	// Only parse config once with sections to access [theme_editor] section
+	static $theme_editor_config = null;
+	if ($theme_editor_config === null) {
+		$config_with_sections = @parse_ini_file(PROJECT_PATH . 'config.ini', true);
+		$theme_editor_config = isset($config_with_sections['theme_editor']) ? $config_with_sections['theme_editor'] : [];
+	}
+	
+	// Load custom CSS file if enabled
 	$custom_css_file = PROJECT_PATH . 'static/styles/custom-theme.css';
 	$custom_css_enabled = isset($theme_editor_config['custom_css_enabled']) && $theme_editor_config['custom_css_enabled'] === '1';
 	if ($custom_css_enabled && file_exists($custom_css_file)): ?>
 	<link href="static/styles/custom-theme.css?v=<?php echo time(); ?>" rel="stylesheet" type="text/css" />
-	<?php endif; ?>
+	<?php endif;
 	
-	<?php
-	// Theme Editor: Apply custom colors if defined
+	// Apply custom colors if defined
 	$custom_colors_json = isset($theme_editor_config['custom_colors']) ? $theme_editor_config['custom_colors'] : '';
 	if (!empty($custom_colors_json)):
 		$custom_colors = json_decode($custom_colors_json, true);
