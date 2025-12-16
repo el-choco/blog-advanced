@@ -158,7 +158,7 @@ if ($theme === '') { $theme = 'theme01'; }
                 <a href="backups.php">💾 <?php echo escape(t('Backups','Backups')); ?></a>
                 <a href="trash.php">🗑️ <?php echo escape(t('Trash','Trash')); ?> <span class="badge"><?php echo (int)$stats['trash_posts']; ?></span></a>
                 <a href="categories.php">🏷️ <?php echo escape(t('Categories','Categories')); ?></a>
-                <a href="theme_editor.php">🎨 Theme Editor</a>
+                <a href="theme_editor.php">🎨 <?php echo escape(t('Theme Editor','Theme Editor')); ?></a>
                 <a href="settings.php">⚙️ <?php echo escape(t('Settings','Settings')); ?></a>
             </nav>
         </aside>
