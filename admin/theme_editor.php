@@ -21,7 +21,7 @@ $stats = AdminHelper::getStats();
 <html>
 <head>
     <meta charset="utf-8">
-    <title>🎨 <?php echo escape(t('Theme Editor', 'Theme Editor')); ?> - <?php echo escape(Config::get('title')); ?></title>
+    <title>🎨 <?php echo escape(t('Theme-Editor', 'Theme-Editor')); ?> - <?php echo escape(Config::get('title')); ?></title>
     <meta name="robots" content="noindex, nofollow">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 
@@ -51,7 +51,7 @@ $stats = AdminHelper::getStats();
 
     <div class="admin-header">
         <div class="admin-container">
-            <h1>🎨 <?php echo escape(t('Theme Editor', 'Theme Editor')); ?></h1>
+            <h1>🎨 <?php echo escape(t('Theme-Editor', 'Theme-Editor')); ?></h1>
             <div class="admin-user">
                 <span>👤 <?php echo escape(Config::get('name')); ?></span>
                 <a href="../" class="btn btn-sm">← <?php echo escape(t('Back to Blog', 'Back to Blog')); ?></a>
@@ -77,7 +77,7 @@ $stats = AdminHelper::getStats();
         <main class="admin-content">
             <div class="theme-editor-container">
                 <div class="theme-info">
-                    <h3>🎨 <?php echo escape(t('Theme Editor', 'Theme Editor')); ?></h3>
+                    <h3>🎨 <?php echo escape(t('Theme-Editor', 'Theme-Editor')); ?></h3>
                     <p><?php echo escape(t('Current Theme', 'Current Theme')); ?>: <strong><?php echo escape($theme); ?></strong></p>
                     <p><?php echo escape(t('Customize your blog theme colors and styles', 'Customize your blog theme colors and styles')); ?>.</p>
                 </div>
