@@ -854,7 +854,7 @@ hr {
   gap: 8px;
   align-items: center;
   margin-left: 10px; 
-  translate: 10px 40px;
+  translate: 10px -20px;
 }
 .headbar-search-input {
   height: 20px;

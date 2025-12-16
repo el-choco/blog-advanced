@@ -649,12 +649,6 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 		<input type="text" name="q" class="headbar-search-input" placeholder="Suchen…" />
 		<button type="submit" class="headbar-search-btn admin_btn">Search</button>
 		</form>
-		<!-- Trash button bar below header (visible only when logged in) -->
-		<div id="trash_headline_btn" style="display:none; max-width: 1000px; margin: 0 auto 20px auto; text-align: right; padding: 0 10px;">
-			<button type="button" class="button gray" id="show_trash_btn" style="padding: 8px 16px; font-size: 14px; display: inline-block;">
-				🗑️ <?php echo __("Show Trash"); ?> <span class="trash-count" style="color: #666; font-weight: bold;"></span>
-			</button>
-		</div>
 	</div>
 
 	<!-- Trash/Recycle Bin state flags -->
@@ -834,8 +828,8 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 		}
 	});
 
-	// HTML insertions
-	document.addEventListener('click', function(e) {
+		// HTML insertions
+		document.addEventListener('click', function(e) {
 		const btn = e.target.closest('.html-btn');
 		if (!btn) return;
 		e.preventDefault();
@@ -846,29 +840,77 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 		const end = textarea.selectionEnd;
 		const selectedText = textarea.value.substring(start, end);
 		let before = '', after = '';
+
 		switch(htmlType) {
-			case 'center': before = '<center>'; after = '</center>'; break;
-			case 'right': before = '<div align="right">'; after = '</div>'; break;
-			case 'left': before = '<div align="left">'; after = '</div>'; break;
+			case 'center':
+			before = '<center>\n';
+			after  = '\n</center>';
+			break;
+
+			case 'right':
+			before = '<div align="right">\n';
+			after  = '\n</div>';
+			break;
+
+			case 'left':
+			before = '<div align="left">\n';
+			after  = '\n</div>';
+			break;
+
 			case 'color': {
-				const color = prompt('Enter color, e.g. red or #ff0000:', 'red');
-				if (color) { before = '<span style="color:' + color + '">'; after = '</span>'; }
-				break;
+			const color = prompt('Enter color, e.g. red or #ff0000:', 'red');
+			if (color) {
+				before = '<span style="color:' + color + '">\n';
+				after  = '\n</span>';
 			}
-			case 'mark': before = '<mark>'; after = '</mark>'; break;
-			case 'small': before = '<small>'; after = '</small>'; break;
-			case 'big': before = '<big>'; after = '</big>'; break;
-			case 'underline': before = '<u>'; after = '</u>'; break;
-			case 'sup': before = '<sup>'; after = '</sup>'; break;
-			case 'sub': before = '<sub>'; after = '</sub>'; break;
+			break;
+			}
+
+			case 'mark':
+			before = '<mark>\n';
+			after  = '\n</mark>';
+			break;
+
+			case 'small':
+			before = '<small>\n';
+			after  = '\n</small>';
+			break;
+
+			case 'big':
+			before = '<big>\n';
+			after  = '\n</big>';
+			break;
+
+			case 'underline':
+			before = '<u>\n';
+			after  = '\n</u>';
+			break;
+
+			case 'sup':
+			before = '<sup>\n';
+			after  = '\n</sup>';
+			break;
+
+			case 'sub':
+			before = '<sub>\n';
+			after  = '\n</sub>';
+			break;
+
 			case 'spoiler': {
-				const title = prompt('Spoiler title:', 'Click to show');
-				if (title !== null) { before = '<details><summary>' + (title || 'Click to show') + '</summary>\n'; after = '\n</details>'; }
-				break;
+			const title = prompt('Spoiler title:', 'Click to show');
+			if (title !== null) {
+				before = '<details><summary>' + (title || 'Click to show') + '</summary>\n';
+				after  = '\n</details>';
+			}
+			break;
 			}
 		}
+
 		if (before !== '' || after !== '') {
-			const newText = textarea.value.substring(0, start) + before + selectedText + after + textarea.value.substring(end);
+			const newText =
+			textarea.value.substring(0, start) +
+			before + selectedText + after +
+			textarea.value.substring(end);
 			textarea.value = newText;
 			const newPos = start + before.length + selectedText.length;
 			textarea.selectionStart = textarea.selectionEnd = newPos;
@@ -876,7 +918,7 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 			textarea.dispatchEvent(new Event('input', { bubbles: true }));
 			textarea.dispatchEvent(new Event('change', { bubbles: true }));
 		}
-	});
+		});
 	console.log("✅ Markdown, HTML & Emoji Editor initialized");
 })();
 </script>
