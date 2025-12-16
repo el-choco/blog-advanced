@@ -205,6 +205,7 @@ function get_backup_type_icon($type) {
                 <a href="trash.php">🗑️ <?php echo escape($lang['Trash']); ?></a>
                 <a href="categories.php">🏷️ <?php echo escape($lang['Categories']); ?></a>
                 <a href="settings.php">⚙️ <?php echo escape($lang['Settings']); ?></a>
+                            <a href="theme.php">🎨 <?php echo escape(t('Theme Editor','Theme Editor')); ?></a>
             </nav>
         </aside>
 
