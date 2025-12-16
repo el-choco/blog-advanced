@@ -478,6 +478,7 @@ $timezones = [
                 <a href="backups.php">💾 <?php echo escape($lang['Backups']); ?></a>
                 <a href="trash.php">🗑️ <?php echo escape($lang['Trash']); ?></a>
                 <a href="categories.php">🏷️ <?php echo escape($lang['Categories']); ?></a>
+                <a href="theme_editor.php">🎨 Theme Editor</a>
                 <a href="settings.php" class="active">⚙️ <?php echo escape($lang['Settings']); ?></a>
             </nav>
         </aside>
