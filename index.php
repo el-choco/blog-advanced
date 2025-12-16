@@ -117,38 +117,7 @@ if (!in_array($theme_mode_override, ['0', '1'], true)) {
 
 	<link href="static/styles/dark-overrides.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	
 
-	<link href="static/styles/override.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />
-	
-	<?php
-	// Theme Editor: Load custom CSS and colors if enabled
-	// Only parse config once with sections to access [theme_editor] section
-	static $theme_editor_config = null;
-	if ($theme_editor_config === null) {
-		$config_with_sections = @parse_ini_file(PROJECT_PATH . 'config.ini', true);
-		$theme_editor_config = isset($config_with_sections['theme_editor']) ? $config_with_sections['theme_editor'] : [];
-	}
-	
-	// Load custom CSS file if enabled
-	$custom_css_file = PROJECT_PATH . 'static/styles/custom-theme.css';
-	$custom_css_enabled = isset($theme_editor_config['custom_css_enabled']) && $theme_editor_config['custom_css_enabled'] === '1';
-	if ($custom_css_enabled && file_exists($custom_css_file)): ?>
-	<link href="static/styles/custom-theme.css?v=<?php echo time(); ?>" rel="stylesheet" type="text/css" />
-	<?php endif;
-	
-	// Apply custom colors if defined
-	$custom_colors_json = isset($theme_editor_config['custom_colors']) ? $theme_editor_config['custom_colors'] : '';
-	if (!empty($custom_colors_json)):
-		$custom_colors = json_decode($custom_colors_json, true);
-		if (!empty($custom_colors) && is_array($custom_colors)): ?>
-	<style id="theme-editor-colors">
-	:root {
-		<?php foreach ($custom_colors as $var => $value): ?>
-		<?php echo htmlspecialchars($var, ENT_QUOTES, 'UTF-8'); ?>: <?php echo htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); ?>;
-		<?php endforeach; ?>
-	}
-	</style>
-	<?php endif; endif; ?>
-	<style>
+	<link href="static/styles/override.css<?php echo $versionSuffix; ?>" rel="stylesheet" type="text/css" />	<style>
 	/* Emoji picker container (editor) */
 	#emojiPicker {
 		display: flex;
