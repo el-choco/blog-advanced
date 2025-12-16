@@ -5,6 +5,10 @@
  */
 require_once 'common.php';
 
+// Set Content Security Policy for additional XSS protection
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: SAMEORIGIN");
+
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
@@ -77,12 +81,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             case 'save_colors':
                 $colors = $_POST['colors'] ?? [];
                 
+                // Validate colors array
+                if (!is_array($colors)) {
+                    throw new Exception('Invalid colors data');
+                }
+                
+                // Validate each color value
+                $validated_colors = [];
+                foreach ($colors as $var => $value) {
+                    // Only allow CSS variable names starting with --
+                    if (!preg_match('/^--[a-z0-9-]+$/i', $var)) {
+                        continue; // Skip invalid variable names
+                    }
+                    // Only allow valid hex color values
+                    if (preg_match('/^#[0-9a-f]{6}$/i', $value)) {
+                        $validated_colors[$var] = strtolower($value);
+                    }
+                }
+                
                 if (!isset($config['theme_editor'])) {
                     $config['theme_editor'] = [];
                 }
                 
-                // Store colors as JSON string
-                $config['theme_editor']['custom_colors'] = json_encode($colors);
+                // Store validated colors as JSON string
+                $config['theme_editor']['custom_colors'] = json_encode($validated_colors);
                 
                 if ($writeConfig($config_file, $config)) {
                     echo json_encode(['success' => true, 'message' => 'Colors saved successfully']);
@@ -94,7 +116,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             case 'save_custom_css':
                 $css = $_POST['css'] ?? '';
                 
-                // Save to custom CSS file
+                // Basic validation: ensure it's valid UTF-8 and doesn't contain null bytes
+                if (!mb_check_encoding($css, 'UTF-8') || strpos($css, "\0") !== false) {
+                    throw new Exception('Invalid CSS content');
+                }
+                
+                // Optional: Add length limit to prevent DoS
+                if (strlen($css) > 1048576) { // 1MB limit
+                    throw new Exception('CSS file too large (max 1MB)');
+                }
+                
+                // Save to custom CSS file (fixed path prevents path traversal)
                 $custom_css_file = PROJECT_PATH . 'static/styles/custom-theme.css';
                 
                 if (file_put_contents($custom_css_file, $css) !== false) {
