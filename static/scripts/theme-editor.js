@@ -18,7 +18,7 @@
     var found = null;
     links.forEach(function(link){
       var href = link.getAttribute('href') || '';
-      if (/\/static\/styles\/theme[a-z0-9_\-]*\.css(\?|$)/i.test(href)) {
+      if (/\/static\/styles\/theme[a-z0-9_-]*\.css(\?|$)/i.test(href)) {
         found = link;
       }
     });
@@ -31,7 +31,13 @@
     if (!doc) return;
     var link = findThemeLink(doc);
     if (!link) { console.warn('[Theme-Editor] Kein Theme-Link im iFrame gefunden.'); return; }
-    var newHref = '../static/styles/' + String(filename).replace(/[^a-zA-Z0-9_.\-]/g,'');
+    // Sanitize filename to prevent directory traversal
+    var sanitized = String(filename).replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!sanitized.match(/^theme[a-z0-9_-]*$/i)) {
+      console.warn('[Theme-Editor] Invalid theme filename');
+      return;
+    }
+    var newHref = '../static/styles/' + sanitized + '.css';
     newHref += (newHref.indexOf('?')>-1 ? '&' : '?') + 'v=' + Date.now();
     link.setAttribute('href', newHref);
   }
@@ -76,7 +82,14 @@
       btnReload.addEventListener('click', function(e){
         e.preventDefault();
         var f = getPreviewFrame();
-        if (f) f.src = f.src.replace(/([?&])v=\d+/, '$1v=' + Date.now());
+        if (f) {
+          var src = f.src;
+          if (src.indexOf('v=') > -1) {
+            f.src = src.replace(/([?&])v=\d+/, '$1v=' + Date.now());
+          } else {
+            f.src = src + (src.indexOf('?') > -1 ? '&' : '?') + 'v=' + Date.now();
+          }
+        }
       });
     }
 

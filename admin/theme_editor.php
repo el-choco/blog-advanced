@@ -11,9 +11,9 @@ if (!User::is_logged_in()) {
 // CSRF-Token
 if (empty($_SESSION['token'])) {
     if (function_exists('random_bytes')) {
-        $_SESSION['token'] = bin2hex(random_bytes(5));
+        $_SESSION['token'] = bin2hex(random_bytes(32));
     } else {
-        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(5));
+        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(32));
     }
 }
 $csrf = $_SESSION['token'];
@@ -36,7 +36,7 @@ function get_theme_list($stylesDir) {
     if (is_dir($stylesDir)) {
         foreach (scandir($stylesDir) as $f) {
             if (!is_string($f)) continue;
-            if (preg_match('/^theme[0-9a-z_\-]*\.css$/i', $f)) $files[] = $f;
+            if (preg_match('/^theme[0-9a-z_-]*\.css$/i', $f)) $files[] = $f;
         }
     }
     sort($files, SORT_NATURAL | SORT_FLAG_CASE);
@@ -110,7 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($vars as $k => $_) {
                 if (isset($_POST['vars'][$k])) {
                     $val = trim((string)$_POST['vars'][$k]);
-                    if (strpos($val, '}') !== false) $val = ''; // harte Klammern verhindern
+                    // Validate CSS value - basic sanity checks
+                    if (strpos($val, '}') !== false || strpos($val, '{') !== false || 
+                        strpos($val, ';') !== false || strpos($val, '/*') !== false) {
+                        $val = ''; // prevent CSS injection
+                    }
                     if ($val !== '') $vars[$k] = $val;
                 }
             }
@@ -137,7 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $err = 'Datei zu groß (max. 512KB).';
                 } else {
                     $code = (string)file_get_contents($tmp);
-                    if (!preg_match('/[{};]|@media|:[^:]/', $code)) {
+                    // Enhanced CSS validation
+                    $hasBasicCSS = preg_match('/[{};]/', $code);
+                    $hasSelector = preg_match('/[a-z0-9\-_#.:\[\]]+\s*\{/i', $code);
+                    if (!$hasBasicCSS || !$hasSelector) {
                         $err = 'Sieht nicht nach CSS aus.';
                     } else {
                         $current = read_file_safely($customCssPath);
