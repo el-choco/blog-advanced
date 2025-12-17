@@ -67,7 +67,7 @@ Optional for email:
 The installation scripts are not executable by default. On macOS/Linux, make them executable first:
 
 ```bash
-chmod +x install.sh docker-install.sh
+chmod +x install.sh docker-install.sh bare-metal-install.sh
 ```
 
 If your environment requires ownership changes (to avoid using 777), run the script with sudo so it can set safe ownership and permissions:
@@ -78,10 +78,13 @@ sudo ./install.sh
 
 # Docker quick install (also adjusts config.ini in repo root)
 sudo ./docker-install.sh
+
+# Bare-metal comfort setup (auto-detect web user, ACL option, webserver reload)
+sudo ./bare-metal-install.sh
 ```
 
 These scripts will try to set secure permissions (dirs 775, files 664) and adjust ownership on:
-- Non-Docker: `data/`, `uploads/`, `data/config.ini`
+- Non-Docker: `data/`, `uploads/`, `data/config.ini`, `static/styles/`, `static/styles/custom1.css`
 - Docker quick install: `data/`, `uploads/`, `config.ini`
 
 If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or `apache` on CentOS/Fedora), set ownership manually:
@@ -91,6 +94,9 @@ If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or 
 sudo chown -R www-data:www-data data/ uploads/
 sudo chown www-data:www-data data/config.ini  # for non-Docker
 sudo chown www-data:www-data config.ini        # for Docker quick install
+# Optional (Theme Editor writes custom CSS)
+sudo chown -R www-data:www-data static/styles
+sudo chown www-data:www-data static/styles/custom1.css
 ```
 
 **Windows users:** Run scripts via Git Bash or WSL, or execute docker compose commands directly if you prefer not to use the scripts.
@@ -243,7 +249,7 @@ docker exec -i blog-advanced-db mysql -u bloguser -pblogpass123 blog < app/db/my
 
 
 10) Logs and backups
-- Use the admin “Backups” page to create backups.
+- Use the admin “Backups” page to create and download archives. Store externally.
 - Configure file paths in `config.ini` as needed.
 
 ---
@@ -562,7 +568,7 @@ This ensures proper restoration even with complex table relationships.
 
 **After the Check for updates:**
 
- `git log -1 --oneline`  (shows the last commit)
+  `git log -1 --oneline`  (shows the last commit)
 `docker compose ps` (is the container running?)
 
 Hardly reload the browser (Ctrl+F5)
@@ -603,3 +609,47 @@ See repository for license information.
 
 Maintained by el-choco. Contributions welcome via issues and pull requests.
 
+
+---
+
+## Bare Metal Install Options: `install.sh` vs `bare-metal-install.sh`
+
+If you deploy without Docker, you can choose between a minimal installer and a comfort helper script:
+
+- `install.sh` (minimal):
+  - Creates required directories (`data/`, `uploads/`, `logs/`, `sessions/`)
+  - Sets safe ownership (default `www-data:www-data`) and permissions (dirs `0775`, files `0664`)
+  - Ensures Theme Editor paths exist and are writable (`static/styles/custom1.css`)
+
+- `bare-metal-install.sh` (comfort):
+  - Auto-detects the web user (`www-data`, `nginx`, or `apache`) with fallback to your current user
+  - Optional ACLs (`--apply-acl`) to grant write access without changing ownership (uses `setfacl` if available)
+  - Guarantees `static/styles/custom1.css` exists and is writable
+  - Optional web server reload (`--reload`) for `nginx`, `apache2`/`httpd` via `systemctl`
+  - Customizable user/group via flags: `--web-user`, `--web-group`
+  - Can skip the base installer: `--skip-install`
+
+### Usage examples
+```bash
+# Run with auto-detection and base setup
+./bare-metal-install.sh
+
+# Explicit web user/group and reload the web server
+./bare-metal-install.sh --web-user www-data --web-group www-data --reload
+
+# Use ACLs to grant write access without changing ownership
+./bare-metal-install.sh --apply-acl
+
+# If install.sh already ran and you want only the comfort steps
+./bare-metal-install.sh --skip-install
+```
+
+### Recommended ownership/permissions
+- Writable by the web server:
+  - `data/`, `uploads/`, `logs/`, `sessions/` → owner `WEB_USER:WEB_GROUP`, dirs `0775`, files `0664`
+  - `static/styles/` and `static/styles/custom1.css` (Theme Editor) → same as above
+- Read-only for the web server:
+  - `app/`, `static/scripts/`, other static assets → dirs `0755`, files `0644`
+- Avoid `0777` entirely.
+
+Note: On systems without `setfacl`, ACL mode automatically falls back to `chown/chmod`. 
