@@ -67,7 +67,7 @@ Optional for email:
 The installation scripts are not executable by default. On macOS/Linux, make them executable first:
 
 ```bash
-chmod +x install.sh docker-install.sh
+chmod +x install.sh docker-install.sh bare-metal-install.sh
 ```
 
 If your environment requires ownership changes (to avoid using 777), run the script with sudo so it can set safe ownership and permissions:
@@ -78,10 +78,13 @@ sudo ./install.sh
 
 # Docker quick install (also adjusts config.ini in repo root)
 sudo ./docker-install.sh
+
+# Bare-metal comfort setup (auto-detect web user, ACL option, webserver reload)
+sudo ./bare-metal-install.sh
 ```
 
 These scripts will try to set secure permissions (dirs 775, files 664) and adjust ownership on:
-- Non-Docker: `data/`, `uploads/`, `data/config.ini`
+- Non-Docker: `data/`, `uploads/`, `data/config.ini`, `static/styles/`, `static/styles/custom1.css`
 - Docker quick install: `data/`, `uploads/`, `config.ini`
 
 If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or `apache` on CentOS/Fedora), set ownership manually:
@@ -91,6 +94,9 @@ If you are not using the default web user (e.g., `www-data` on Debian/Ubuntu or 
 sudo chown -R www-data:www-data data/ uploads/
 sudo chown www-data:www-data data/config.ini  # for non-Docker
 sudo chown www-data:www-data config.ini        # for Docker quick install
+# Optional (Theme Editor writes custom CSS)
+sudo chown -R www-data:www-data static/styles
+sudo chown www-data:www-data static/styles/custom1.css
 ```
 
 **Windows users:** Run scripts via Git Bash or WSL, or execute docker compose commands directly if you prefer not to use the scripts.
@@ -243,7 +249,7 @@ docker exec -i blog-advanced-db mysql -u bloguser -pblogpass123 blog < app/db/my
 
 
 10) Logs and backups
-- Use the admin “Backups” page to create backups.
+- Use the admin “Backups” page to create and download archives. Store externally.
 - Configure file paths in `config.ini` as needed.
 
 ---
@@ -646,4 +652,4 @@ If you deploy without Docker, you can choose between a minimal installer and a c
   - `app/`, `static/scripts/`, other static assets → dirs `0755`, files `0644`
 - Avoid `0777` entirely.
 
-Note: On systems without `setfacl`, ACL mode automatically falls back to `chown/chmod`.
+Note: On systems without `setfacl`, ACL mode automatically falls back to `chown/chmod`. 
