@@ -115,7 +115,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $mode=($_POST['upload_mode'] ?? 'append');
             if(!empty($_FILES['css_file']['tmp_name'])){
                 $size=(int)$_FILES['css_file']['size'];
-                if($size>524288){ $err=$lang['Only CSS files allowed'] ?? 'Only CSS files allowed'; }
+                if($size>524288){ $err=$lang['File Too Large'] ?? 'File too large'; }
                 else {
                     // Validate file extension
                     $filename = (string)($_FILES['css_file']['name'] ?? '');
