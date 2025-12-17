@@ -14,6 +14,10 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Web user/group (adjust if your webserver runs as a different user, e.g. nginx/apache)
+WEB_USER="www-data"
+WEB_GROUP="www-data"
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}❌ Docker is not installed!${NC}"
@@ -40,18 +44,29 @@ else
     echo -e "${YELLOW}⚠️  install.sh not found, skipping...${NC}"
 fi
 
+# Ensure Theme Editor paths exist (in case install.sh was skipped)
+mkdir -p static/styles
+[ -f static/styles/custom1.css ] || touch static/styles/custom1.css
+
 # Set ownership and permissions for Docker
 echo ""
 echo -e "${GREEN}👤 Setting ownership for Docker...${NC}"
 if command -v chown &> /dev/null; then
     # Set ownership (directories should already exist from install.sh)
-    chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+    chown -R "$WEB_USER":"$WEB_GROUP" data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership on data/uploads (may need root/sudo)${NC}"
+    chown -R "$WEB_USER":"$WEB_GROUP" logs sessions 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership on logs/sessions (may need root/sudo)${NC}"
+    chown -R "$WEB_USER":"$WEB_GROUP" static/styles 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership on static/styles (may need root/sudo)${NC}"
 
-    # NEW: config.ini ownership so we don't need 777
-    if [ -f "config.ini" ]; then
-        chown www-data:www-data config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown config.ini (may need root/sudo)${NC}"
+    # config.ini ownership so we don't need 777 (correct path in data/)
+    if [ -f "data/config.ini" ]; then
+        chown "$WEB_USER":"$WEB_GROUP" data/config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown data/config.ini (may need root/sudo)${NC}"
     else
-        echo -e "${YELLOW}⚠️  config.ini not found, skipping chown${NC}"
+        echo -e "${YELLOW}ℹ️  data/config.ini not found, skipping chown${NC}"
+    fi
+
+    # Ensure custom CSS file belongs to web user
+    if [ -f "static/styles/custom1.css" ]; then
+        chown "$WEB_USER":"$WEB_GROUP" static/styles/custom1.css 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown static/styles/custom1.css (may need root/sudo)${NC}"
     fi
 else
     echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
@@ -61,10 +76,18 @@ echo -e "${GREEN}🔐 Setting permissions for Docker...${NC}"
 # Set permissions
 chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on data${NC}"
 chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
+chmod -R 0775 logs 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on logs${NC}"
+chmod -R 0775 sessions 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on sessions${NC}"
+chmod -R 0775 static/styles 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on static/styles${NC}"
 
-# NEW: secure permissions for config.ini
-if [ -f "config.ini" ]; then
-    chmod 0664 config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chmod config.ini${NC}"
+# Secure permissions for config.ini (read/write for owner+group)
+if [ -f "data/config.ini" ]; then
+    chmod 0664 data/config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chmod data/config.ini${NC}"
+fi
+
+# Theme Editor: secure permissions for custom CSS file (rw for owner/group)
+if [ -f "static/styles/custom1.css" ]; then
+    chmod 0664 static/styles/custom1.css 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chmod static/styles/custom1.css${NC}"
 fi
 
 # Create .env file if it doesn't exist
@@ -74,6 +97,8 @@ if [ ! -f ".env" ]; then
         echo -e "${GREEN}📝 Creating .env file...${NC}"
         cp .env.example .env
         echo -e "${GREEN}✅ .env created${NC}"
+    else
+        echo -e "${YELLOW}⚠️  .env.example not found, skipping .env creation${NC}"
     fi
 fi
 

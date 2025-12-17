@@ -14,6 +14,10 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Web user/group (adjust if your webserver runs as a different user, e.g. nginx/apache)
+WEB_USER="www-data"
+WEB_GROUP="www-data"
+
 # Check if running as root
 if [ "$EUID" -eq 0 ]; then 
     echo -e "${YELLOW}⚠️  WARNING: Running as root is not recommended${NC}"
@@ -32,6 +36,8 @@ mkdir -p uploads/images
 mkdir -p uploads/files
 mkdir -p logs
 mkdir -p sessions
+# Theme Editor: ensure custom CSS directory exists
+mkdir -p static/styles
 
 # Create .gitkeep files
 echo -e "${GREEN}📄 Creating .gitkeep files...${NC}"
@@ -46,6 +52,12 @@ touch uploads/files/.gitkeep
 touch logs/.gitkeep
 touch sessions/.gitkeep
 
+# Theme Editor: ensure custom1.css exists so the editor can write to it
+if [ ! -f "static/styles/custom1.css" ]; then
+    echo -e "${GREEN}🖊️  Creating static/styles/custom1.css...${NC}"
+    touch static/styles/custom1.css
+fi
+
 # Copy config file if it doesn't exist
 if [ ! -f "data/config.ini" ]; then
     if [ -f "data/config.ini.example" ]; then
@@ -53,23 +65,29 @@ if [ ! -f "data/config.ini" ]; then
         cp data/config.ini.example data/config.ini
         # ensure correct ownership right after creation (best effort)
         if command -v chown &> /dev/null; then
-            chown www-data:www-data data/config.ini 2>/dev/null || true
+            chown "$WEB_USER":"$WEB_GROUP" data/config.ini 2>/dev/null || true
         fi
         echo -e "${GREEN}✅ config.ini created${NC}"
     else
-        echo -e "${RED}❌ config.ini.example not found!${NC}"
+        echo -e "${RED}❌ data/config.ini.example not found!${NC}"
     fi
 else
-    echo -e "${YELLOW}ℹ️  config.ini already exists, skipping...${NC}"
+    echo -e "${YELLOW}ℹ️  data/config.ini already exists, skipping...${NC}"
 fi
 
 # Set ownership
 echo -e "${GREEN}👤 Setting ownership...${NC}"
 if command -v chown &> /dev/null; then
-    chown -R www-data:www-data data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership (may need root/sudo)${NC}"
+    chown -R "$WEB_USER":"$WEB_GROUP" data uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership on data/uploads (may need root/sudo)${NC}"
+    chown -R "$WEB_USER":"$WEB_GROUP" logs sessions 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership on logs/sessions (may need root/sudo)${NC}"
+    chown -R "$WEB_USER":"$WEB_GROUP" static/styles 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set ownership on static/styles (may need root/sudo)${NC}"
     # explicitly ensure config.ini belongs to web user so 777 is not needed
     if [ -f "data/config.ini" ]; then
-        chown www-data:www-data data/config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown data/config.ini (may need root/sudo)${NC}"
+        chown "$WEB_USER":"$WEB_GROUP" data/config.ini 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown data/config.ini (may need root/sudo)${NC}"
+    fi
+    # ensure custom1.css belongs to web user
+    if [ -f "static/styles/custom1.css" ]; then
+        chown "$WEB_USER":"$WEB_GROUP" static/styles/custom1.css 2>/dev/null || echo -e "${YELLOW}⚠️  Could not chown static/styles/custom1.css (may need root/sudo)${NC}"
     fi
 else
     echo -e "${YELLOW}⚠️  chown command not found, skipping ownership change${NC}"
@@ -81,10 +99,16 @@ chmod -R 0775 data 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permis
 chmod -R 0775 uploads 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on uploads${NC}"
 chmod -R 0775 logs/ 2>/dev/null || true
 chmod -R 0775 sessions/ 2>/dev/null || true
+chmod -R 0775 static/styles 2>/dev/null || echo -e "${YELLOW}⚠️  Could not set permissions on static/styles${NC}"
 
 # secure permissions for config.ini (read/write for owner+group)
 if [ -f "data/config.ini" ]; then
     chmod 0664 data/config.ini 2>/dev/null || true
+fi
+
+# Theme Editor: secure permissions for custom CSS file (rw for owner/group)
+if [ -f "static/styles/custom1.css" ]; then
+    chmod 0664 static/styles/custom1.css 2>/dev/null || true
 fi
 
 # Check for PHP
@@ -119,7 +143,7 @@ echo "Next steps:"
 echo ""
 echo "📦 Manual Installation:"
 echo "  1. Edit data/config.ini with your database credentials"
-echo "  2. Import database: mysql -u root -p blog < app/db/mysql/01_schema. sql"
+echo "  2. Import database: mysql -u root -p blog < app/db/mysql/01_schema.sql"
 echo "  3. Configure your web server to point to this directory"
 echo "  4. Visit: http://localhost/admin/"
 echo "  5. Login: admin / admin123"
