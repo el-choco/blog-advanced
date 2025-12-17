@@ -98,7 +98,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             // Eingaben kommen als vars[--color-primary] etc.
             foreach($vars as $k=>$v){
                 $in=trim((string)($_POST['vars'][$k] ?? $v));
-                if(preg_match('/[{};]/',$in)) $in=$v; // einfacher Schutz
+                // Basic protection: reject dangerous characters but allow semicolons in CSS functions
+                if(preg_match('/[{}]|javascript:/i',$in)) $in=$v;
                 $vars[$k]=$in;
             }
             $current=read_file_safely($customCssPath);
@@ -116,15 +117,23 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $size=(int)$_FILES['css_file']['size'];
                 if($size>524288){ $err='Datei zu groß (max 512KB).'; }
                 else {
-                    $data=(string)file_get_contents($_FILES['css_file']['tmp_name']);
-                    if(!preg_match('/[{}]/',$data)){ $err='Datei sieht nicht wie CSS aus.'; }
+                    // Validate file extension
+                    $filename = (string)($_FILES['css_file']['name'] ?? '');
+                    if(!preg_match('/\.css$/i',$filename)){ $err='Nur .css Dateien erlaubt.'; }
                     else {
-                        $current=read_file_safely($customCssPath);
-                        $stamp=date('c');
-                        $name=basename((string)($_FILES['css_file']['name'] ?? 'upload.css'));
-                        $header="/* " . ($mode==='replace'?'Replaced':'Appended') . " by Theme-Editor Upload: {$stamp} ({$name}) */" . PHP_EOL;
-                        $next = $mode==='replace' ? ($header.$data) : (rtrim($current).PHP_EOL.$header.$data);
-                        $msg = write_file_safely($customCssPath,$next) ? 'Upload gespeichert.' : 'Upload-Schreiben fehlgeschlagen.';
+                        $data=(string)file_get_contents($_FILES['css_file']['tmp_name']);
+                        // Check for CSS content and reject potentially dangerous content
+                        if(!preg_match('/[{}]/',$data) || preg_match('/<\?php|<script|javascript:/i',$data)){ 
+                            $err='Datei sieht nicht wie CSS aus oder enthält gefährlichen Code.'; 
+                        }
+                        else {
+                            $current=read_file_safely($customCssPath);
+                            $stamp=date('c');
+                            $name=basename($filename);
+                            $header="/* " . ($mode==='replace'?'Replaced':'Appended') . " by Theme-Editor Upload: {$stamp} ({$name}) */" . PHP_EOL;
+                            $next = $mode==='replace' ? ($header.$data) : (rtrim($current).PHP_EOL.$header.$data);
+                            $msg = write_file_safely($customCssPath,$next) ? 'Upload gespeichert.' : 'Upload-Schreiben fehlgeschlagen.';
+                        }
                     }
                 }
             } else { $err='Keine Datei gewählt.'; }

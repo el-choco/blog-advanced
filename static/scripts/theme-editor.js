@@ -90,7 +90,8 @@
         uploadForm.addEventListener('submit', function(e) {
             const modeSelect = uploadForm.querySelector('select[name="upload_mode"]');
             if (modeSelect && modeSelect.value === 'replace') {
-                if (!confirm('Achtung: Diese Aktion ersetzt alle bestehenden CSS-Regeln. Fortfahren?')) {
+                // Warning message in English for consistency (could be localized via PHP)
+                if (!confirm('Warning: This action will replace all existing CSS rules. Continue?')) {
                     e.preventDefault();
                 }
             }
